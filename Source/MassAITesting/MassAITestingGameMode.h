@@ -13,6 +13,8 @@ class AMassAITestingGameMode : public AGameModeBase
 
 public:
 	AMassAITestingGameMode();
+
+	void BeginPlay() override;
 };
 
 
