@@ -68,14 +68,8 @@ void UNavMeshMovementProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, F
 					if (Path.PathResult.Result == ENavigationQueryResult::Success)
 					{
 						PathIndex = 0;
+						MoveTarget.SlackRadius = 100.f;
 						MoveTarget.Center = Path.PathResult.Path->GetPathPointLocation(1).Position;
-
-						/*
-						for(const FNavPathPoint& Point : Path.PathResult.Path->GetPathPoints())
-						{
-							UE_LOG(LogTemp, Warning, TEXT("Points: %s"), *(Point.Location.ToString()));
-						}
-						*/
 					}
 
 					// Use result to move ai
@@ -85,8 +79,12 @@ void UNavMeshMovementProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, F
 				}
 				MoveTarget.DistanceToGoal = (MoveTarget.Center-Transform.GetLocation()).Size();
 				MoveTarget.Forward = (MoveTarget.Center-Transform.GetLocation()).GetSafeNormal();
+				FHitResult OutHit;
+				GetWorld()->LineTraceSingleByChannel(OutHit, Transform.GetLocation()+(Transform.GetRotation().GetUpVector()*100), Transform.GetLocation()-(Transform.GetRotation().GetUpVector()*100), ECollisionChannel::ECC_Visibility);
+				MoveTarget.Center.Z = OutHit.ImpactPoint.Z;
 
-				if (MoveTarget.DistanceToGoal <= 50.f)
+				// Go from point to point to reach final destination
+				if (MoveTarget.DistanceToGoal <= MoveTarget.SlackRadius)
 				{
 					if (PathIndex < Path.PathResult.Path->GetPathPoints().Num()-1)
 					{
@@ -100,17 +98,9 @@ void UNavMeshMovementProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, F
 						FNavLocation Result;
 						NavSys->GetRandomReachablePointInRadius(Transform.GetLocation(), 3000.f, Result);
 						Path.TargetLocation = Result.Location;
-						UE_LOG(LogTemp, Error, TEXT("Current Destination: %s"), *(Path.TargetLocation.ToString()));
+						//UE_LOG(LogTemp, Error, TEXT("Current Destination: %s"), *(Path.TargetLocation.ToString()));
 					}
 				}
-				
-				//UE_LOG(LogTemp, Error, TEXT("Current Destination: %s"), *(MoveTarget.Center.ToString()));
-				//UE_LOG(LogTemp, Error, TEXT("Distance to goal: %f"), MoveTarget.DistanceToGoal);
-				//UE_LOG(LogTemp, Error, TEXT("Forward: %s"), *(MoveTarget.Forward.ToString()));
-				//UE_LOG(LogTemp, Error, TEXT("Current Location: %s"), *(Transform.GetLocation().ToString()));
-
-				//DrawDebugLine(GetWorld(), Transform.GetLocation(), Transform.GetLocation()+(MoveTarget.Forward*200), FColor::Green, false, 0.1, 5);
-				// TODO: Track path index and goal to determine when finished and if it may change
 			}
 		}
 	}));
