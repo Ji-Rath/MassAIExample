@@ -18,11 +18,6 @@ bool FMassSetSmartObjectMoveTargetTask::Link(FStateTreeLinker& Linker)
 EStateTreeRunStatus FMassSetSmartObjectMoveTargetTask::EnterState(FStateTreeExecutionContext& Context,
 	const EStateTreeStateChangeType ChangeType, const FStateTreeTransitionResult& Transition) const
 {
-	if (ChangeType != EStateTreeStateChangeType::Changed)
-	{
-		return EStateTreeRunStatus::Running;
-	}
-	
 	// Update MoveTarget location
 	//const FMassStateTreeExecutionContext& MassContext = static_cast<FMassStateTreeExecutionContext&>(Context);
 	FMassMoveTargetFragment& MoveTarget = Context.GetExternalData(MoveTargetHandle);
@@ -31,22 +26,13 @@ EStateTreeRunStatus FMassSetSmartObjectMoveTargetTask::EnterState(FStateTreeExec
 	if (!SOUserFragment.ClaimHandle.IsValid())
 		return EStateTreeRunStatus::Failed;
 
+	
 	MoveTarget.Center = SOUserFragment.TargetLocation;
 	MoveTarget.Forward = SOUserFragment.TargetDirection;
 	MoveTarget.SlackRadius = 50.f;
-	UE_LOG(LogTemp,Error,TEXT("ENTER STATE!"));
+	UE_LOG(LogTemp, Error, TEXT("Update Target Location! New Destination: %s"), *(MoveTarget.Center.ToString()));
 
 	return EStateTreeRunStatus::Running;
-}
-
-void FMassSetSmartObjectMoveTargetTask::ExitState(FStateTreeExecutionContext& Context,
-	const EStateTreeStateChangeType ChangeType, const FStateTreeTransitionResult& Transition) const
-{
-	if (ChangeType != EStateTreeStateChangeType::Changed)
-	{
-		return;
-	}
-	UE_LOG(LogTemp,Error,TEXT("EXITING STATE!"));
 }
 
 EStateTreeRunStatus FMassSetSmartObjectMoveTargetTask::Tick(FStateTreeExecutionContext& Context,
@@ -57,14 +43,11 @@ EStateTreeRunStatus FMassSetSmartObjectMoveTargetTask::Tick(FStateTreeExecutionC
 	const FTransform& Transform = Context.GetExternalData(TransformHandle).GetTransform();
 
 	MoveTarget.DistanceToGoal = (MoveTarget.Center - Transform.GetLocation()).Length();
-	
 
 	if (MoveTarget.DistanceToGoal <= MoveTarget.SlackRadius)
 	{
-		UE_LOG(LogTemp,Error,TEXT("REACHED TARGET!"));
 		return EStateTreeRunStatus::Succeeded;
 	}
-
-	UE_LOG(LogTemp,Error,TEXT("DISTANCE: %d"),MoveTarget.DistanceToGoal);
+	
 	return EStateTreeRunStatus::Running;
 }
