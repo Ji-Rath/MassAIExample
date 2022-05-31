@@ -36,6 +36,10 @@ would be to update the target location z during movement.
 - Transitions allow the state tree to go to other branches based on a condition
 - Reference: https://docs.unrealengine.com/5.0/en-US/overview-of-state-tree-in-unreal-engine/
 - Category for UPROPERTY in InstanceData determines what kind of value it is (Input, Output, Parameter)
+
+### Smart Objects
+- FMassSmartObjectHandler should be used rather than directly getting the smart
+object subsystem in mass....i think (seems to be used in state tree tasks).
 ### TODO
 - Find a way to use Mass SmartObject Eval effectively in the State Tree
 - Convert logic in RTSMovementProcessor to State Tree
