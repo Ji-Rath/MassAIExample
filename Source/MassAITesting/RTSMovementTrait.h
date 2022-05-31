@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "MassEntityTraitBase.h"
 #include "MassProcessor.h"
+#include "MassSignalSubsystem.h"
 #include "SmartObjectSubsystem.h"
 #include "RTSMovementTrait.generated.h"
 
@@ -12,8 +13,39 @@ class UMassEntitySubsystem;
 class URTSMovementSubsystem;
 class USmartObjectSubsystem;
 
+UENUM()
+enum EResourceType
+{
+	Tree,
+	Rock
+};
+
 USTRUCT()
-struct MASSAITESTING_API FRTSMovementFragment : public FMassFragment
+struct MASSAITESTING_API FRTSGatherResourceFragment : public FMassFragment
+{
+	GENERATED_BODY();
+
+	// Type of resource to gather
+	EResourceType Resource = Tree;
+
+	// Amount of resource to gather
+	int Amount = 0;
+};
+
+UCLASS()
+class MASSAITESTING_API URTSGatherResourceProcessor : public UMassProcessor
+{
+	GENERATED_BODY()
+public:
+	virtual void Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context) override;
+	virtual void ConfigureQueries() override;
+	virtual void Initialize(UObject& Owner) override;
+
+	FMassEntityQuery EntityQuery;
+};
+
+USTRUCT()
+struct MASSAITESTING_API FRTSAgentFragment : public FMassFragment
 {
 	GENERATED_BODY()
 	
@@ -21,8 +53,9 @@ struct MASSAITESTING_API FRTSMovementFragment : public FMassFragment
 
 	FVector SpawnLocation;
 
-	int WoodNeeded = 0;
-	int RockNeeded = 0;
+	TMap<EResourceType, int> Inventory;
+	
+	TMap<EResourceType, int> RequiredResources;
 };
 
 /**
@@ -49,6 +82,7 @@ class MASSAITESTING_API URTSMovementProcessor : public UMassProcessor
 
 	TObjectPtr<URTSMovementSubsystem> RTSMovementSubsystem;
 	TObjectPtr<USmartObjectSubsystem> SmartObjectSubsystem;
+	TObjectPtr<UMassSignalSubsystem> SignalSubsystem;
 
 	FMassEntityQuery EntityQuery;
 };
