@@ -36,6 +36,29 @@ would be to update the target location z during movement.
 - Transitions allow the state tree to go to other branches based on a condition
 - Reference: https://docs.unrealengine.com/5.0/en-US/overview-of-state-tree-in-unreal-engine/
 - Category for UPROPERTY in InstanceData determines what kind of value it is (Input, Output, Parameter)
+<details>
+<summary> <b> State Tree Experimental Findings </b> </summary>
+<ul>
+<li>
+Tick on StateTree Tasks are only ran once and with subscribed signals
+(see UMassStateTreeProcessor)
+</li>
+<li>
+I found no feasable way to subscribe signals in MassStateTreeProcessor.
+As a hacky solution just reuse one of the hardcoded signals
+</li>
+<li>
+A <b>SmartObjectDefinition</b> needs <b>USmartObjectMassBehaviorDefinition</b>
+and ALL default tag filters to show on <b>Mass SmartObject Eval</b> evaluator.
+</li>
+<li>
+<b>UseSmartObjectTask</b> will only execute
+<b>USmartObjectMassBehaviorDefinition</b>, meaning only C++ logic for the time
+</li>
+
+</ul>
+
+</details>
 
 ### Smart Objects
 - FMassSmartObjectHandler should be used rather than directly getting the smart
