@@ -11,7 +11,7 @@
 
 void URTSGatherResourceProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context)
 {
-	EntityQuery.ForEachEntityChunk(EntitySubsystem, Context, ([this, &EntitySubsystem](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(EntitySubsystem, Context, ([this](FMassExecutionContext& Context)
 	{
 		const TConstArrayView<FRTSGatherResourceFragment> GatherResourceFragments = Context.GetFragmentView<FRTSGatherResourceFragment>();
 		const TArrayView<FRTSAgentFragment> RTSAgentFragment = Context.GetMutableFragmentView<FRTSAgentFragment>();
@@ -80,11 +80,11 @@ void URTSMovementProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMass
 			FTransform& Transform = TransformList[EntityIndex].GetMutableTransform();
 
 			MoveTarget.DistanceToGoal = (MoveTarget.Center - Transform.GetLocation()).Length();
-			MoveTarget.Forward = (MoveTarget.Center - Transform.GetLocation()).GetSafeNormal();
+			//MoveTarget.Forward = (MoveTarget.Center - Transform.GetLocation()).GetSafeNormal();
 
 			if (MoveTarget.DistanceToGoal <= MoveTarget.SlackRadius)
 			{
-				SignalSubsystem->SignalEntity(UE::Mass::Signals::FollowPointPathDone, Context.GetEntity(EntityIndex));
+				//SignalSubsystem->SignalEntity(UE::Mass::Signals::FollowPointPathDone, Context.GetEntity(EntityIndex));
 			}
 
 			/*
