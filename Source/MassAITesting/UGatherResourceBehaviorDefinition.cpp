@@ -31,5 +31,11 @@ void UUGatherResourceBehaviorDefinition::Deactivate(FMassCommandBuffer& CommandB
 	//CommandBuffer.RemoveFragment<FRTSGatherResourceFragment>(EntityContext.EntityView.GetEntity());
 	
 	const FMassSmartObjectUserFragment& SOUser = EntityContext.EntityView.GetFragmentData<FMassSmartObjectUserFragment>();
-	EntityContext.SmartObjectSubsystem.GetSmartObjectComponent(SOUser.ClaimHandle)->GetOwner()->Destroy();
+	if (USmartObjectComponent* SOComp = EntityContext.SmartObjectSubsystem.GetSmartObjectComponent(SOUser.ClaimHandle))
+	{
+		CommandBuffer.PushCommand(FDeferredCommand([SOComp](UMassEntitySubsystem& System)
+		{
+			SOComp->GetOwner()->Destroy();
+		}));
+	}
 }
