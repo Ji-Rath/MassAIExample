@@ -55,7 +55,9 @@ and ALL default tag filters to show on <b>Mass SmartObject Eval</b> evaluator.
 <b>UseSmartObjectTask</b> will only execute
 <b>USmartObjectMassBehaviorDefinition</b>, meaning only C++ logic for the time
 </li>
-
+Destroying a smart object safely in <b>USmartObjectMassBehaviorDefinition</b>
+should be done using PushCommand(). Lets the <b>SmartObjectUseTask</b> release the
+smart object before destruction.
 </ul>
 
 </details>
@@ -64,5 +66,9 @@ and ALL default tag filters to show on <b>Mass SmartObject Eval</b> evaluator.
 - FMassSmartObjectHandler should be used rather than directly getting the smart
 object subsystem in mass....i think (seems to be used in state tree tasks).
 ### TODO
-- Find a way to use Mass SmartObject Eval effectively in the State Tree
-- Convert logic in RTSMovementProcessor to State Tree
+- Find a way to use Mass SmartObject Eval effectively in the State Tree (DONE)
+- Convert logic in RTSMovementProcessor to State Tree (KINDOF DONE)
+- Agent gets stuck after using one smart object, find out why (DONE)
+- The UseSmartObject task also messes with the MoveTargetFragment. It seems to
+be doing some stuff in ActivateActionAnimate() at MassZoneGraphNavigationUtils too.
+  (DONE)
