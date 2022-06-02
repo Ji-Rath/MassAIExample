@@ -36,6 +36,9 @@ would be to update the target location z during movement.
 - Transitions allow the state tree to go to other branches based on a condition
 - Reference: https://docs.unrealengine.com/5.0/en-US/overview-of-state-tree-in-unreal-engine/
 - Category for UPROPERTY in InstanceData determines what kind of value it is (Input, Output, Parameter)
+- State Tree will throw an ensure when there are fragments missing for a task to execute.
+The only way I know to debug which fragments are missing is to goto the task and look
+for TStateTreeExternalDataHandle in the header file.
 <details>
 <summary> <b> State Tree Experimental Findings </b> </summary>
 <ul>
@@ -55,9 +58,19 @@ and ALL default tag filters to show on <b>Mass SmartObject Eval</b> evaluator.
 <b>UseSmartObjectTask</b> will only execute
 <b>USmartObjectMassBehaviorDefinition</b>, meaning only C++ logic for the time
 </li>
+<li>
 Destroying a smart object safely in <b>USmartObjectMassBehaviorDefinition</b>
 should be done using PushCommand(). Lets the <b>SmartObjectUseTask</b> release the
 smart object before destruction.
+</li>
+<li>
+Empty states with transitions seem to produce unexpected behavior. The state tree
+also always needs to be in an active state, even if idle.
+</li>
+<li>
+SmartObjectUseTask modifies MassMoveTarget around line 163-164, caused a headache
+since entities would not move after using a smart object.
+</li>
 </ul>
 
 </details>
