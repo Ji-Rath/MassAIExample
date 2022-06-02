@@ -11,6 +11,7 @@
 #include "UObject/Object.h"
 #include "MassSetSmartObjectMoveTargetTask.generated.h"
 
+class UMassSignalSubsystem;
 USTRUCT()
 struct MASSAITESTING_API FMassSetSmartObjectMoveTargetInstanceData
 {
@@ -37,4 +38,5 @@ protected:
 	TStateTreeExternalDataHandle<FMassMoveTargetFragment> MoveTargetHandle;
 	TStateTreeExternalDataHandle<FTransformFragment> TransformHandle;
 	TStateTreeExternalDataHandle<FMassSmartObjectUserFragment> SOUserHandle;
+	TStateTreeExternalDataHandle<UMassSignalSubsystem> MassSignalSubsystemHandle;
 };
