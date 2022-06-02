@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "MassCommonFragments.h"
+#include "MassMovementFragments.h"
 #include "MassNavigationFragments.h"
 #include "MassSmartObjectFragments.h"
 #include "MassStateTreeTypes.h"
@@ -39,4 +40,5 @@ protected:
 	TStateTreeExternalDataHandle<FTransformFragment> TransformHandle;
 	TStateTreeExternalDataHandle<FMassSmartObjectUserFragment> SOUserHandle;
 	TStateTreeExternalDataHandle<UMassSignalSubsystem> MassSignalSubsystemHandle;
+	TStateTreeExternalDataHandle<FMassMovementParameters> MoveParametersHandle;
 };

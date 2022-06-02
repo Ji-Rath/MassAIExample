@@ -3,6 +3,7 @@
 
 #include "MassSetSmartObjectMoveTargetTask.h"
 
+#include "MassMovementFragments.h"
 #include "MassSignalSubsystem.h"
 #include "MassSmartObjectFragments.h"
 #include "MassStateTreeExecutionContext.h"
@@ -13,6 +14,7 @@ bool FMassSetSmartObjectMoveTargetTask::Link(FStateTreeLinker& Linker)
 	Linker.LinkExternalData(TransformHandle);
 	Linker.LinkExternalData(SOUserHandle);
 	Linker.LinkExternalData(MassSignalSubsystemHandle);
+	Linker.LinkExternalData(MoveParametersHandle);
 	
 	return true;
 }
@@ -24,6 +26,7 @@ EStateTreeRunStatus FMassSetSmartObjectMoveTargetTask::EnterState(FStateTreeExec
 	//const FMassStateTreeExecutionContext& MassContext = static_cast<FMassStateTreeExecutionContext&>(Context);
 	FMassMoveTargetFragment& MoveTarget = Context.GetExternalData(MoveTargetHandle);
 	const FMassSmartObjectUserFragment& SOUserFragment = Context.GetExternalData(SOUserHandle);
+	const FMassMovementParameters& MoveParameters = Context.GetExternalData(MoveParametersHandle);
 
 	if (!SOUserFragment.ClaimHandle.IsValid())
 		return EStateTreeRunStatus::Failed;
@@ -31,10 +34,9 @@ EStateTreeRunStatus FMassSetSmartObjectMoveTargetTask::EnterState(FStateTreeExec
 	
 	MoveTarget.Center = SOUserFragment.TargetLocation;
 	MoveTarget.Forward = SOUserFragment.TargetDirection;
-	MoveTarget.SlackRadius = 50.f;
-	MoveTarget.DesiredSpeed.Set(200.f);
+	MoveTarget.SlackRadius = 25.f;
+	MoveTarget.DesiredSpeed.Set(MoveParameters.DefaultDesiredSpeed);
 	MoveTarget.CreateNewAction(EMassMovementAction::Move, *Context.GetWorld());
-	UE_LOG(LogTemp, Error, TEXT("Update Target Location! New Destination: %s"), *(MoveTarget.Center.ToString()));
 
 	return EStateTreeRunStatus::Running;
 }
@@ -53,9 +55,8 @@ EStateTreeRunStatus FMassSetSmartObjectMoveTargetTask::Tick(FStateTreeExecutionC
 	MoveTarget.DistanceToGoal = (MoveTarget.Center - Transform.GetLocation()).Length();
 	MoveTarget.Forward = (MoveTarget.Center - Transform.GetLocation()).GetSafeNormal();
 
-	if (MoveTarget.DistanceToGoal <= MoveTarget.SlackRadius)
+	if (MoveTarget.DistanceToGoal <= MoveTarget.SlackRadius+50.f)
 	{
-		MoveTarget.CreateNewAction(EMassMovementAction::Move, *Context.GetWorld());
 		return EStateTreeRunStatus::Succeeded;
 	}
 	
