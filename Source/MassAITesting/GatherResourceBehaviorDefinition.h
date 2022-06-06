@@ -4,15 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "MassSmartObjectBehaviorDefinition.h"
-#include "RTSMovementTrait.h"
-#include "UGatherResourceBehaviorDefinition.generated.h"
+#include "RTSAgentTrait.h"
+#include "GatherResourceBehaviorDefinition.generated.h"
 
 struct FMassBehaviorEntityContext;
 /**
  * Used to gather a resource from a smart object
  */
 UCLASS()
-class MASSAITESTING_API UUGatherResourceBehaviorDefinition : public USmartObjectMassBehaviorDefinition
+class MASSAITESTING_API UGatherResourceBehaviorDefinition : public USmartObjectMassBehaviorDefinition
 {
 	GENERATED_BODY()
 

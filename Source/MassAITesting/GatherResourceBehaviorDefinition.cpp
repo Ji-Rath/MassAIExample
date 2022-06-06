@@ -1,14 +1,14 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UGatherResourceBehaviorDefinition.h"
+#include "GatherResourceBehaviorDefinition.h"
 
 #include "MassCommandBuffer.h"
 #include "MassSmartObjectFragments.h"
-#include "RTSMovementTrait.h"
+#include "RTSAgentTrait.h"
 #include "SmartObjectComponent.h"
 
-void UUGatherResourceBehaviorDefinition::Activate(FMassCommandBuffer& CommandBuffer,
+void UGatherResourceBehaviorDefinition::Activate(FMassCommandBuffer& CommandBuffer,
                                                   const FMassBehaviorEntityContext& EntityContext) const
 {
 	Super::Activate(CommandBuffer, EntityContext);
@@ -23,7 +23,7 @@ void UUGatherResourceBehaviorDefinition::Activate(FMassCommandBuffer& CommandBuf
 	//CommandBuffer.AddFragment<FRTSGatherResourceFragment>(EntityContext.EntityView.GetEntity());
 }
 
-void UUGatherResourceBehaviorDefinition::Deactivate(FMassCommandBuffer& CommandBuffer,
+void UGatherResourceBehaviorDefinition::Deactivate(FMassCommandBuffer& CommandBuffer,
 	const FMassBehaviorEntityContext& EntityContext) const
 {
 	Super::Deactivate(CommandBuffer, EntityContext);
