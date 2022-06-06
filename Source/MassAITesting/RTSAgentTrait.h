@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "MassEntityTraitBase.h"
+#include "MassObserverProcessor.h"
 #include "MassProcessor.h"
 #include "MassSignalSubsystem.h"
 #include "SmartObjectSubsystem.h"
-#include "RTSMovementTrait.generated.h"
+#include "RTSAgentTrait.generated.h"
 
 class UMassEntitySubsystem;
 class URTSMovementSubsystem;
@@ -48,33 +49,43 @@ USTRUCT()
 struct MASSAITESTING_API FRTSAgentFragment : public FMassFragment
 {
 	GENERATED_BODY()
-	
-	FSmartObjectClaimHandle ClaimedObject;
 
-	FVector SpawnLocation;
+	UPROPERTY(VisibleAnywhere, Category = "")
+	TMap<TEnumAsByte<EResourceType>, int> Inventory;
 
-	TMap<EResourceType, int> Inventory;
+	UPROPERTY(VisibleAnywhere, Category = "")
+	TMap<TEnumAsByte<EResourceType>, int> RequiredResources;
+};
+
+USTRUCT()
+struct MASSAITESTING_API FRTSAgentParameters : public FMassSharedFragment
+{
+	GENERATED_BODY()
 	
-	TMap<EResourceType, int> RequiredResources;
+	UPROPERTY(EditAnywhere);
+	TMap<TEnumAsByte<EResourceType>, int> DefaultRequiredResources;
 };
 
 /**
  * 
  */
 UCLASS()
-class MASSAITESTING_API URTSMovementTrait : public UMassEntityTraitBase
+class MASSAITESTING_API URTSAgentTrait : public UMassEntityTraitBase
 {
 	GENERATED_BODY()
 
 	virtual void BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, UWorld& World) const override;
+
+	UPROPERTY(EditAnywhere)
+	FRTSAgentParameters AgentParameters;
 };
 
 UCLASS()
-class MASSAITESTING_API URTSMovementProcessor : public UMassProcessor
+class MASSAITESTING_API URTSAgentInitializer : public UMassObserverProcessor
 {
 	GENERATED_BODY()
 
-	URTSMovementProcessor();
+	URTSAgentInitializer();
 	
 	virtual void Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context) override;
 	virtual void ConfigureQueries() override;
@@ -82,13 +93,49 @@ class MASSAITESTING_API URTSMovementProcessor : public UMassProcessor
 
 	TObjectPtr<URTSMovementSubsystem> RTSMovementSubsystem;
 	TObjectPtr<USmartObjectSubsystem> SmartObjectSubsystem;
-	TObjectPtr<UMassSignalSubsystem> SignalSubsystem;
 
 	FMassEntityQuery EntityQuery;
+};
+
+/**
+ * Observer Processor to construct a smart object building floor
+ */
+UCLASS()
+class MASSAITESTING_API URTSConstructBuilding : public UMassObserverProcessor
+{
+	GENERATED_BODY()
+
+	URTSConstructBuilding();
+	
+	virtual void Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context) override;
+	virtual void ConfigureQueries() override;
+	virtual void Initialize(UObject& Owner) override;
+
+	TObjectPtr<URTSMovementSubsystem> RTSMovementSubsystem;
+	TObjectPtr<USmartObjectSubsystem> SmartObjectSubsystem;
+
+	float Height = 0.f;
+	float IncrementHeight = 100.f;
+
+	FMassEntityQuery EntityQuery;
+};
+
+USTRUCT()
+struct MASSAITESTING_API FRTSBuildingFragment : public FMassFragment
+{
+	GENERATED_BODY()
+
+	FSmartObjectClaimHandle BuildingClaimHandle;
 };
 
 USTRUCT()
 struct MASSAITESTING_API FRTSAgent : public FMassTag
 {
 	GENERATED_BODY();
+};
+
+USTRUCT()
+struct MASSAITESTING_API FRTSRequestResources : public FMassTag
+{
+	GENERATED_BODY()
 };
