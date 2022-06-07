@@ -5,6 +5,7 @@
 #include "MassCommonFragments.h"
 #include "MassEntityTemplateRegistry.h"
 #include "MassNavigationFragments.h"
+#include "MassObserverRegistry.h"
 #include "MassSignalProcessorBase.h"
 #include "RTSMovementSubsystem.h"
 #include "SmartObjectComponent.h"
@@ -84,7 +85,7 @@ URTSAgentInitializer::URTSAgentInitializer()
 	//bAutoRegisterWithProcessingPhases = true;
 	//ExecutionFlags = (int32)EProcessorExecutionFlags::All;
 	//ExecutionOrder.ExecuteBefore.Add(UE::Mass::ProcessorGroupNames::Avoidance);
-	ObservedType = FRTSRequestResources::StaticStruct();
+	ObservedType = FRTSAgentFragment::StaticStruct();
 	Operation = EMassObservedOperation::Add;
 }
 
@@ -112,6 +113,7 @@ void URTSAgentInitializer::ConfigureQueries()
 	EntityQuery.AddRequirement<FRTSAgentFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddConstSharedRequirement<FRTSAgentParameters>(EMassFragmentPresence::All);
 	EntityQuery.AddTagRequirement<FRTSAgent>(EMassFragmentPresence::All);
+	EntityQuery.AddTagRequirement<FRTSRequestResources>(EMassFragmentPresence::All);
 }
 
 void URTSAgentInitializer::Initialize(UObject& Owner)
@@ -120,6 +122,13 @@ void URTSAgentInitializer::Initialize(UObject& Owner)
 
 	RTSMovementSubsystem = UWorld::GetSubsystem<URTSMovementSubsystem>(Owner.GetWorld());
 	SmartObjectSubsystem = UWorld::GetSubsystem<USmartObjectSubsystem>(Owner.GetWorld());
+}
+
+void URTSAgentInitializer::Register()
+{
+	Super::Register();
+	ObservedType = FRTSRequestResources::StaticStruct();
+	UMassObserverRegistry::GetMutable().RegisterObserver(*ObservedType, Operation, GetClass());
 }
 
 URTSConstructBuilding::URTSConstructBuilding()
@@ -142,9 +151,8 @@ void URTSConstructBuilding::Execute(UMassEntitySubsystem& EntitySubsystem, FMass
 				const AActor* Actor = SmartObjectComponent->GetOwner();
 				UInstancedStaticMeshComponent* InstancedStaticMeshComp = Actor->FindComponentByClass<UInstancedStaticMeshComponent>();
 				FTransform Transform;
-				Transform.SetLocation(FVector(0,0,Height));
+				Transform.SetLocation(FVector(0,0,IncrementHeight*InstancedStaticMeshComp->GetInstanceCount()));
 				InstancedStaticMeshComp->AddInstance(Transform);
-				Height += IncrementHeight;
 
 				Context.Defer().RemoveFragment<FRTSBuildingFragment>(Context.GetEntity(EntityIndex));
 			}
