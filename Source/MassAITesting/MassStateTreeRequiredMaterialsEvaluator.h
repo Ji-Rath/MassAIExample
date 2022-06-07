@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "MassCommonFragments.h"
 #include "RTSAgentTrait.h"
 #include "MassStateTreeTypes.h"
 #include "SmartObjectSubsystem.h"
@@ -35,8 +36,11 @@ struct MASSAITESTING_API FMassStateTreeRequiredMaterialsEvaluator : public FMass
 	virtual const UStruct* GetInstanceDataType() const override { return FMassStateTreeRequiredMaterialsEvaluatorInstanceData::StaticStruct(); }
 
 	TStateTreeExternalDataHandle<FRTSAgentFragment> RTSAgentHandle;
+	TStateTreeExternalDataHandle<USmartObjectSubsystem> SmartObjectSubsystemHandle;
+	TStateTreeExternalDataHandle<FTransformFragment> TransformHandle;
 	
 	TStateTreeInstanceDataPropertyHandle<TEnumAsByte<EResourceType>> ResourceTypeHandle;
 	TStateTreeInstanceDataPropertyHandle<bool> NeedsResourcesHandle;
 	TStateTreeInstanceDataPropertyHandle<FSmartObjectRequestFilter> FilterHandle;
+	
 };
