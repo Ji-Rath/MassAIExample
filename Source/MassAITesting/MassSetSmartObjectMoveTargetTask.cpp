@@ -55,7 +55,7 @@ EStateTreeRunStatus FMassSetSmartObjectMoveTargetTask::Tick(FStateTreeExecutionC
 	MoveTarget.DistanceToGoal = (MoveTarget.Center - Transform.GetLocation()).Length();
 	MoveTarget.Forward = (MoveTarget.Center - Transform.GetLocation()).GetSafeNormal();
 
-	if (MoveTarget.DistanceToGoal <= MoveTarget.SlackRadius+50.f)
+	if (MoveTarget.DistanceToGoal <= MoveTarget.SlackRadius+100.f)
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}

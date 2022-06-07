@@ -31,7 +31,7 @@ struct FMassStateTreeClaimSmartObjectTaskInstanceData
 /**
  * 
  */
-USTRUCT()
+USTRUCT(DisplayName="Claim Smart Object Plus")
 struct MASSAITESTING_API FMassStateTreeClaimSmartObjectTask : public FMassStateTreeTaskBase
 {
 	GENERATED_BODY()
