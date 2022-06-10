@@ -4,8 +4,10 @@
 #include "RTSAgentTrait.h"
 #include "MassCommonFragments.h"
 #include "MassEntityTemplateRegistry.h"
+#include "MassMovementFragments.h"
 #include "MassNavigationFragments.h"
 #include "MassObserverRegistry.h"
+#include "MassRepresentationFragments.h"
 #include "MassSignalProcessorBase.h"
 #include "RTSMovementSubsystem.h"
 #include "SmartObjectComponent.h"
@@ -98,7 +100,6 @@ void URTSAgentInitializer::Execute(UMassEntitySubsystem& EntitySubsystem, FMassE
 		
 		for (int32 EntityIndex = 0; EntityIndex < Context.GetNumEntities(); ++EntityIndex)
 		{
-			UE_LOG(LogTemp, Error, TEXT("INIT ENTITY"));
 			// Simply refresh the required resources
 			FRTSAgentFragment& RTSAgent = RTSMoveFragmentList[EntityIndex];
 			RTSAgent.RequiredResources.Append(RTSAgentParameters.DefaultRequiredResources);
@@ -131,6 +132,9 @@ void URTSAgentInitializer::Register()
 	UMassObserverRegistry::GetMutable().RegisterObserver(*ObservedType, Operation, GetClass());
 }
 
+//----------------------------------------------------------------------//
+// URTSConstructBuilding
+//----------------------------------------------------------------------//
 URTSConstructBuilding::URTSConstructBuilding()
 {
 	ObservedType = FRTSBuildingFragment::StaticStruct();
@@ -170,4 +174,69 @@ void URTSConstructBuilding::Initialize(UObject& Owner)
 	Super::Initialize(Owner);
 
 	SmartObjectSubsystem = UWorld::GetSubsystem<USmartObjectSubsystem>(Owner.GetWorld());
+}
+
+//----------------------------------------------------------------------//
+// URTSAnimationProcessor
+//----------------------------------------------------------------------//
+void URTSAnimationProcessor::Initialize(UObject& Owner)
+{
+	Super::Initialize(Owner);
+	
+	RepresentationSubsystem = UWorld::GetSubsystem<UMassRepresentationSubsystem>(Owner.GetWorld());
+}
+
+void URTSAnimationProcessor::ConfigureQueries()
+{
+	EntityQuery.AddRequirement<FMassMoveTargetFragment>(EMassFragmentAccess::ReadOnly);
+	EntityQuery.AddTagRequirement<FRTSAgent>(EMassFragmentPresence::All);
+	EntityQuery.AddRequirement<FMassRepresentationFragment>(EMassFragmentAccess::ReadOnly);
+	EntityQuery.AddRequirement<FMassRepresentationLODFragment>(EMassFragmentAccess::ReadOnly);
+	EntityQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadOnly);
+	EntityQuery.AddRequirement<FRTSAgentFragment>(EMassFragmentAccess::ReadWrite);
+}
+
+void URTSAnimationProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context)
+{
+	EntityQuery.ParallelForEachEntityChunk(EntitySubsystem, Context, [this](FMassExecutionContext& Context)
+	{
+		TConstArrayView<FMassMoveTargetFragment> MoveFragments = Context.GetFragmentView<FMassMoveTargetFragment>();
+		TConstArrayView<FMassVelocityFragment> VelocityFragments = Context.GetFragmentView<FMassVelocityFragment>();
+		TConstArrayView<FMassRepresentationFragment> RepresentationFragments = Context.GetFragmentView<FMassRepresentationFragment>();
+		TConstArrayView<FMassRepresentationLODFragment> RepresentationLODFragments = Context.GetFragmentView<FMassRepresentationLODFragment>();
+		TArrayView<FRTSAgentFragment> AgentFragments = Context.GetMutableFragmentView<FRTSAgentFragment>();
+		
+		FMassInstancedStaticMeshInfoArrayView MeshInfo = RepresentationSubsystem->GetMutableInstancedStaticMeshInfos();
+		
+		for (int32 EntityIndex = 0; EntityIndex < Context.GetNumEntities(); ++EntityIndex)
+		{
+			const FMassMoveTargetFragment& MoveFragment = MoveFragments[EntityIndex];
+			const FMassVelocityFragment& Velocity = VelocityFragments[EntityIndex];
+			const FMassRepresentationFragment& Representation = RepresentationFragments[EntityIndex];
+			const FMassRepresentationLODFragment& RepresentationLOD = RepresentationLODFragments[EntityIndex];
+			FRTSAgentFragment& AgentFragment = AgentFragments[EntityIndex];
+
+			if (AgentFragment.SkinIndex == -1)
+				AgentFragment.SkinIndex = FMath::RandRange(0.f,2.f);
+			
+			// todo, find a way to iterate and update animations based on current action state. can also be used to update other ISM things
+			if (Representation.CurrentRepresentation == EMassRepresentationType::StaticMeshInstance)
+			{
+				const float Anim = Velocity.Value.Length() < 5.f ? 1.f : 0.f;
+				const float AnimSpeed = FMath::Clamp(Velocity.Value.Length() / MoveFragment.DesiredSpeed.Get(),0.f,1.f);
+				//UE_LOG(LogTemp, Error, TEXT("Velocity: %f | DesiredSpeed: %f | AnimSpeed: %f"), Velocity.Value.Length(), MoveFragment.DesiredSpeed.Get(), AnimSpeed);
+				TArray<float> CustomData;
+				CustomData.Reserve(3);
+
+				// 0 - Skin Data
+				// 1-2 - Anim Data
+				CustomData.Emplace(AgentFragment.SkinIndex);
+				CustomData.Emplace(Anim);
+				CustomData.Emplace(AnimSpeed);
+				
+				//MeshInfo[Representation.StaticMeshDescIndex].AddBatchedCustomData<float>(Anim, RepresentationLOD.LODSignificance, Representation.PrevLODSignificance);
+				MeshInfo[Representation.StaticMeshDescIndex].AddBatchedCustomDataFloats(CustomData, RepresentationLOD.LODSignificance, Representation.PrevLODSignificance);
+			}
+		}
+	});
 }

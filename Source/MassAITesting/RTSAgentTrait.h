@@ -6,6 +6,7 @@
 #include "MassEntityTraitBase.h"
 #include "MassObserverProcessor.h"
 #include "MassProcessor.h"
+#include "MassRepresentationSubsystem.h"
 #include "MassSignalSubsystem.h"
 #include "SmartObjectSubsystem.h"
 #include "RTSAgentTrait.generated.h"
@@ -55,6 +56,9 @@ struct MASSAITESTING_API FRTSAgentFragment : public FMassFragment
 
 	UPROPERTY(VisibleAnywhere, Category = "")
 	TMap<TEnumAsByte<EResourceType>, int> RequiredResources;
+
+	UPROPERTY()
+	float SkinIndex = -1;
 };
 
 USTRUCT()
@@ -115,10 +119,23 @@ class MASSAITESTING_API URTSConstructBuilding : public UMassObserverProcessor
 	TObjectPtr<URTSMovementSubsystem> RTSMovementSubsystem;
 	TObjectPtr<USmartObjectSubsystem> SmartObjectSubsystem;
 
-	float Height = 0.f;
 	float IncrementHeight = 100.f;
 
 	FMassEntityQuery EntityQuery;
+};
+
+UCLASS()
+class URTSAnimationProcessor : public UMassProcessor
+{
+	GENERATED_BODY()
+
+	virtual void Initialize(UObject& Owner) override;
+	virtual void ConfigureQueries() override;
+	virtual void Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context) override;
+
+	FMassEntityQuery EntityQuery;
+
+	TObjectPtr<UMassRepresentationSubsystem> RepresentationSubsystem;
 };
 
 USTRUCT()
