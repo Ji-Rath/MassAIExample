@@ -37,6 +37,7 @@ EStateTreeRunStatus FMassSetSmartObjectMoveTargetTask::EnterState(FStateTreeExec
 	MoveTarget.SlackRadius = 25.f;
 	MoveTarget.DesiredSpeed.Set(MoveParameters.DefaultDesiredSpeed);
 	MoveTarget.CreateNewAction(EMassMovementAction::Move, *Context.GetWorld());
+	MoveTarget.IntentAtGoal = EMassMovementAction::Stand;
 
 	return EStateTreeRunStatus::Running;
 }
