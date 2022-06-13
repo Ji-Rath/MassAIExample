@@ -1,7 +1,7 @@
 # MassAITesting
  A project primarily used to test UE5 Mass AI system
  
-## Simple gather entities (Currently called RTSMovementTrait in CPP)
+## Simple gather entities (Currently called RTSAgentTrait in CPP)
 ### AI process
 - Entities go to smart objects (tree/rock) and 'collect' the resource
 - Entities then go back to their 'house' which is their initial location
@@ -78,7 +78,8 @@ and ALL default tag filters to show on <b>Mass SmartObject Eval</b> evaluator.
 <li>
 Destroying a smart object safely in <b>USmartObjectMassBehaviorDefinition</b>
 should be done using PushCommand(). Lets the <b>SmartObjectUseTask</b> release the
-smart object before destruction.
+smart object before destruction. (may be source of ensures being fired, need
+to investigate further)
 </li>
 <li>
 Empty states with transitions seem to produce unexpected behavior. The state tree
@@ -94,7 +95,18 @@ since entities would not move after using a smart object.
 
 ### Smart Objects
 - FMassSmartObjectHandler should be used rather than directly getting the smart
-object subsystem in mass....i think (seems to be used in state tree tasks).
+object subsystem in mass....i think (seems to be used in~~~~ state tree tasks).
+### Instanced Static Meshes and Visualization
+- Its possible to apply unique textures to each instance through an atlas and getting
+a random num to choose the frame - dont forget to use
+[Vertex Interpolator and use a small float to fix precision issues](https://unrealcommunity.wiki/using-per-instance-custom-data-on-instanced-static-mesh-bpiygo0s).
+- Vertex animation can be achieved by a similar tactic of using instance custom data
+to determine which animation to play
+- To setup vertex animation, I used [Vertex_Anim_Toolset](https://github.com/BenVlodgi/Vertex_Anim_Toolset) and a UE5 fork
+- In the processor, order is important when giving instance custom floats.
+**FMassRepresentationFragment**, **FMassRepresentationLODFragment**, and **RepresentationSubsystem**
+should be all you need to get started with instance custom data.
+(See URTSAnimationProcessor)
 ### TODO
 - Find a way to use Mass SmartObject Eval effectively in the State Tree (DONE)
 - Convert logic in RTSMovementProcessor to State Tree (KINDOF DONE)
