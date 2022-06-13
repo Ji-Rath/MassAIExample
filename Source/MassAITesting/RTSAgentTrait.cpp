@@ -222,7 +222,7 @@ void URTSAnimationProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMas
 			// todo, find a way to iterate and update animations based on current action state. can also be used to update other ISM things
 			if (Representation.CurrentRepresentation == EMassRepresentationType::StaticMeshInstance)
 			{
-				const float Anim = Velocity.Value.Length() < 5.f ? 1.f : 0.f;
+				const float Anim = Velocity.Value.Length() < 20.f ? 1.f : 0.f;
 				const float AnimSpeed = FMath::Clamp(Velocity.Value.Length() / MoveFragment.DesiredSpeed.Get(),0.f,1.f);
 				//UE_LOG(LogTemp, Error, TEXT("Velocity: %f | DesiredSpeed: %f | AnimSpeed: %f"), Velocity.Value.Length(), MoveFragment.DesiredSpeed.Get(), AnimSpeed);
 				TArray<float> CustomData;
