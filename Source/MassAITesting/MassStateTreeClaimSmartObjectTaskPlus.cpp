@@ -1,13 +1,13 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "MassStateTreeClaimSmartObjectTask.h"
+#include "MassStateTreeClaimSmartObjectTaskPlus.h"
 
 #include "MassSmartObjectFragments.h"
 #include "SmartObjectSubsystem.h"
 #include "StateTreeExecutionContext.h"
 
-bool FMassStateTreeClaimSmartObjectTask::Link(FStateTreeLinker& Linker)
+bool FMassStateTreeClaimSmartObjectTaskPlus::Link(FStateTreeLinker& Linker)
 {
 	Linker.LinkInstanceDataProperty(RequestResultHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeClaimSmartObjectTaskInstanceData, SearchRequestResult));
 	Linker.LinkInstanceDataProperty(ClaimResultHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeClaimSmartObjectTaskInstanceData, ClaimResult));
@@ -19,7 +19,7 @@ bool FMassStateTreeClaimSmartObjectTask::Link(FStateTreeLinker& Linker)
 	return true;
 }
 
-EStateTreeRunStatus FMassStateTreeClaimSmartObjectTask::EnterState(FStateTreeExecutionContext& Context,
+EStateTreeRunStatus FMassStateTreeClaimSmartObjectTaskPlus::EnterState(FStateTreeExecutionContext& Context,
 	const EStateTreeStateChangeType ChangeType, const FStateTreeTransitionResult& Transition) const
 {
 	const FMassSmartObjectRequestResult& SearchRequestResult = Context.GetInstanceData(RequestResultHandle);

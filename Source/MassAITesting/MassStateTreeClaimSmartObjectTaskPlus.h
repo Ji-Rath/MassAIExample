@@ -7,7 +7,7 @@
 #include "MassSmartObjectTypes.h"
 #include "MassStateTreeTypes.h"
 #include "SmartObjectSubsystem.h"
-#include "MassStateTreeClaimSmartObjectTask.generated.h"
+#include "MassStateTreeClaimSmartObjectTaskPlus.generated.h"
 
 class UMassSignalSubsystem;
 struct FMassSmartObjectUserFragment;
@@ -32,7 +32,7 @@ struct FMassStateTreeClaimSmartObjectTaskInstanceData
  * 
  */
 USTRUCT(DisplayName="Claim Smart Object Plus")
-struct MASSAITESTING_API FMassStateTreeClaimSmartObjectTask : public FMassStateTreeTaskBase
+struct MASSAITESTING_API FMassStateTreeClaimSmartObjectTaskPlus : public FMassStateTreeTaskBase
 {
 	GENERATED_BODY()
 
