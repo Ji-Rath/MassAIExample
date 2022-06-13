@@ -22,6 +22,9 @@ enum EResourceType
 	Rock
 };
 
+/**
+ * @brief Fragment given to entities to grant resources
+ */
 USTRUCT()
 struct MASSAITESTING_API FRTSGatherResourceFragment : public FMassFragment
 {
@@ -34,6 +37,9 @@ struct MASSAITESTING_API FRTSGatherResourceFragment : public FMassFragment
 	int Amount = 0;
 };
 
+/**
+ * @brief Processes FRTSGatherResourceFragment to grant resources to entity in FRTSAgent
+ */
 UCLASS()
 class MASSAITESTING_API URTSGatherResourceProcessor : public UMassProcessor
 {
@@ -46,6 +52,9 @@ public:
 	FMassEntityQuery EntityQuery;
 };
 
+/**
+ * @brief Base fragment for RTS Agents
+ */
 USTRUCT()
 struct MASSAITESTING_API FRTSAgentFragment : public FMassFragment
 {
@@ -61,6 +70,9 @@ struct MASSAITESTING_API FRTSAgentFragment : public FMassFragment
 	float SkinIndex = -1;
 };
 
+/**
+ * @brief Base parameters for FRTSAgentTrait
+ */
 USTRUCT()
 struct MASSAITESTING_API FRTSAgentParameters : public FMassSharedFragment
 {
@@ -71,7 +83,7 @@ struct MASSAITESTING_API FRTSAgentParameters : public FMassSharedFragment
 };
 
 /**
- * 
+ * @brief Declares this entity as an RTS Agent
  */
 UCLASS()
 class MASSAITESTING_API URTSAgentTrait : public UMassEntityTraitBase
@@ -84,6 +96,9 @@ class MASSAITESTING_API URTSAgentTrait : public UMassEntityTraitBase
 	FRTSAgentParameters AgentParameters;
 };
 
+/**
+ * @brief Initializes RTS Agents with base required resources
+ */
 UCLASS()
 class MASSAITESTING_API URTSAgentInitializer : public UMassObserverProcessor
 {
@@ -124,6 +139,9 @@ class MASSAITESTING_API URTSConstructBuilding : public UMassObserverProcessor
 	FMassEntityQuery EntityQuery;
 };
 
+/**
+ * @brief Setup ISMs, animation, and textures for RTS Agents
+ */
 UCLASS()
 class URTSAnimationProcessor : public UMassProcessor
 {
@@ -138,6 +156,9 @@ class URTSAnimationProcessor : public UMassProcessor
 	TObjectPtr<UMassRepresentationSubsystem> RepresentationSubsystem;
 };
 
+/**
+ * @brief Fragment used to build floor in URTSConstructBuilding
+ */
 USTRUCT()
 struct MASSAITESTING_API FRTSBuildingFragment : public FMassFragment
 {
@@ -146,12 +167,18 @@ struct MASSAITESTING_API FRTSBuildingFragment : public FMassFragment
 	FSmartObjectClaimHandle BuildingClaimHandle;
 };
 
+/**
+ * @brief Basic tag to declare entity as RTS Agent
+ */
 USTRUCT()
 struct MASSAITESTING_API FRTSAgent : public FMassTag
 {
 	GENERATED_BODY();
 };
 
+/**
+ * @brief Tag used to request required resources from URTSAgentInitializer
+ */
 USTRUCT()
 struct MASSAITESTING_API FRTSRequestResources : public FMassTag
 {
