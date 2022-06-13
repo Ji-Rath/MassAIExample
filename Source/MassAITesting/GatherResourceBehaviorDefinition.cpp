@@ -33,8 +33,9 @@ void UGatherResourceBehaviorDefinition::Deactivate(FMassCommandBuffer& CommandBu
 	const FMassSmartObjectUserFragment& SOUser = EntityContext.EntityView.GetFragmentData<FMassSmartObjectUserFragment>();
 	if (USmartObjectComponent* SOComp = EntityContext.SmartObjectSubsystem.GetSmartObjectComponent(SOUser.ClaimHandle))
 	{
-		CommandBuffer.PushCommand(FDeferredCommand([SOComp](UMassEntitySubsystem& System)
+		CommandBuffer.PushCommand(FDeferredCommand([SOComp, EntityContext](UMassEntitySubsystem& System)
 		{
+			EntityContext.SmartObjectSubsystem.UnregisterSmartObject(*SOComp);
 			SOComp->GetOwner()->Destroy();
 		}));
 	}
