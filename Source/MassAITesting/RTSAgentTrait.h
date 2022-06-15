@@ -12,7 +12,7 @@
 #include "RTSAgentTrait.generated.h"
 
 class UMassEntitySubsystem;
-class URTSMovementSubsystem;
+class URTSBuildingSubsystem;
 class USmartObjectSubsystem;
 
 UENUM()
@@ -63,11 +63,15 @@ struct MASSAITESTING_API FRTSAgentFragment : public FMassFragment
 	UPROPERTY(VisibleAnywhere, Category = "")
 	TMap<TEnumAsByte<EResourceType>, int> Inventory;
 
-	UPROPERTY(VisibleAnywhere, Category = "")
-	TMap<TEnumAsByte<EResourceType>, int> RequiredResources;
-
 	UPROPERTY()
 	float SkinIndex = -1;
+
+	// todo Move these properties to another fragment when I find out how to handle state tree tasks missing fragments :(
+	UPROPERTY()
+	FSmartObjectHandle BuildingHandle;
+
+	UPROPERTY(VisibleAnywhere, Category = "")
+	TMap<TEnumAsByte<EResourceType>, int> RequiredResources;
 };
 
 /**
@@ -109,32 +113,9 @@ class MASSAITESTING_API URTSAgentInitializer : public UMassObserverProcessor
 	virtual void Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context) override;
 	virtual void ConfigureQueries() override;
 	virtual void Initialize(UObject& Owner) override;
-	virtual void Register() override;
 
-	TObjectPtr<URTSMovementSubsystem> RTSMovementSubsystem;
+	TObjectPtr<URTSBuildingSubsystem> RTSMovementSubsystem;
 	TObjectPtr<USmartObjectSubsystem> SmartObjectSubsystem;
-
-	FMassEntityQuery EntityQuery;
-};
-
-/**
- * Observer Processor to construct a smart object building floor
- */
-UCLASS()
-class MASSAITESTING_API URTSConstructBuilding : public UMassObserverProcessor
-{
-	GENERATED_BODY()
-
-	URTSConstructBuilding();
-	
-	virtual void Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context) override;
-	virtual void ConfigureQueries() override;
-	virtual void Initialize(UObject& Owner) override;
-
-	TObjectPtr<URTSMovementSubsystem> RTSMovementSubsystem;
-	TObjectPtr<USmartObjectSubsystem> SmartObjectSubsystem;
-
-	float IncrementHeight = 100.f;
 
 	FMassEntityQuery EntityQuery;
 };
@@ -154,17 +135,6 @@ class URTSAnimationProcessor : public UMassProcessor
 	FMassEntityQuery EntityQuery;
 
 	TObjectPtr<UMassRepresentationSubsystem> RepresentationSubsystem;
-};
-
-/**
- * @brief Fragment used to build floor in URTSConstructBuilding
- */
-USTRUCT()
-struct MASSAITESTING_API FRTSBuildingFragment : public FMassFragment
-{
-	GENERATED_BODY()
-
-	FSmartObjectClaimHandle BuildingClaimHandle;
 };
 
 /**

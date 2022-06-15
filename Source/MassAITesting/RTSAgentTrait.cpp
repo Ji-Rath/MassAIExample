@@ -6,11 +6,8 @@
 #include "MassEntityTemplateRegistry.h"
 #include "MassMovementFragments.h"
 #include "MassNavigationFragments.h"
-#include "MassObserverRegistry.h"
 #include "MassRepresentationFragments.h"
-#include "MassSignalProcessorBase.h"
-#include "RTSMovementSubsystem.h"
-#include "SmartObjectComponent.h"
+#include "RTSBuildingSubsystem.h"
 #include "SmartObjectSubsystem.h"
 #include "Components/InstancedStaticMeshComponent.h"
 
@@ -73,7 +70,6 @@ void URTSAgentTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildContext
 	
 	BuildContext.AddFragment<FRTSAgentFragment>();
 	BuildContext.AddTag<FRTSAgent>();
-	BuildContext.AddTag<FRTSRequestResources>();
 	
 	const FConstSharedStruct RTSAgentFragment = EntitySubsystem->GetOrCreateConstSharedFragment(UE::StructUtils::GetStructCrc32(FConstStructView::Make(AgentParameters)), AgentParameters);
 	BuildContext.AddConstSharedFragment(RTSAgentFragment);
@@ -84,20 +80,17 @@ void URTSAgentTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildContext
 //----------------------------------------------------------------------//
 URTSAgentInitializer::URTSAgentInitializer()
 {
-	//bAutoRegisterWithProcessingPhases = true;
-	//ExecutionFlags = (int32)EProcessorExecutionFlags::All;
-	//ExecutionOrder.ExecuteBefore.Add(UE::Mass::ProcessorGroupNames::Avoidance);
-	ObservedType = FRTSAgentFragment::StaticStruct();
+	ObservedType = FRTSRequestResources::StaticStruct();
 	Operation = EMassObservedOperation::Add;
 }
 
 void URTSAgentInitializer::Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context)
 {
-	EntityQuery.ForEachEntityChunk(EntitySubsystem, Context, ([this](FMassExecutionContext& Context)
+	EntityQuery.ParallelForEachEntityChunk(EntitySubsystem, Context, ([this](FMassExecutionContext& Context)
 	{
 		const TArrayView<FRTSAgentFragment> RTSMoveFragmentList = Context.GetMutableFragmentView<FRTSAgentFragment>();
 		const FRTSAgentParameters& RTSAgentParameters = Context.GetConstSharedFragment<FRTSAgentParameters>();
-		
+		 
 		for (int32 EntityIndex = 0; EntityIndex < Context.GetNumEntities(); ++EntityIndex)
 		{
 			// Simply refresh the required resources
@@ -114,65 +107,14 @@ void URTSAgentInitializer::ConfigureQueries()
 	EntityQuery.AddRequirement<FRTSAgentFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddConstSharedRequirement<FRTSAgentParameters>(EMassFragmentPresence::All);
 	EntityQuery.AddTagRequirement<FRTSAgent>(EMassFragmentPresence::All);
-	EntityQuery.AddTagRequirement<FRTSRequestResources>(EMassFragmentPresence::All);
+	EntityQuery.AddTagRequirement<FRTSRequestResources>(EMassFragmentPresence::All); 
 }
 
 void URTSAgentInitializer::Initialize(UObject& Owner)
 {
 	Super::Initialize(Owner);
 
-	RTSMovementSubsystem = UWorld::GetSubsystem<URTSMovementSubsystem>(Owner.GetWorld());
-	SmartObjectSubsystem = UWorld::GetSubsystem<USmartObjectSubsystem>(Owner.GetWorld());
-}
-
-void URTSAgentInitializer::Register()
-{
-	Super::Register();
-	ObservedType = FRTSRequestResources::StaticStruct();
-	UMassObserverRegistry::GetMutable().RegisterObserver(*ObservedType, Operation, GetClass());
-}
-
-//----------------------------------------------------------------------//
-// URTSConstructBuilding
-//----------------------------------------------------------------------//
-URTSConstructBuilding::URTSConstructBuilding()
-{
-	ObservedType = FRTSBuildingFragment::StaticStruct();
-	Operation = EMassObservedOperation::Add;
-}
-
-void URTSConstructBuilding::Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context)
-{
-	EntityQuery.ParallelForEachEntityChunk(EntitySubsystem, Context, [this](FMassExecutionContext& Context)
-	{
-		const TConstArrayView<FRTSBuildingFragment> BuildingFragments = Context.GetFragmentView<FRTSBuildingFragment>();
-		for (int32 EntityIndex = 0; EntityIndex < Context.GetNumEntities(); ++EntityIndex)
-		{
-			const FRTSBuildingFragment& BuildingFragment = BuildingFragments[EntityIndex];
-			
-			if (const USmartObjectComponent* SmartObjectComponent = SmartObjectSubsystem->GetSmartObjectComponent(BuildingFragment.BuildingClaimHandle))
-			{
-				const AActor* Actor = SmartObjectComponent->GetOwner();
-				UInstancedStaticMeshComponent* InstancedStaticMeshComp = Actor->FindComponentByClass<UInstancedStaticMeshComponent>();
-				FTransform Transform;
-				Transform.SetLocation(FVector(0,0,IncrementHeight*InstancedStaticMeshComp->GetInstanceCount()));
-				InstancedStaticMeshComp->AddInstance(Transform);
-
-				Context.Defer().RemoveFragment<FRTSBuildingFragment>(Context.GetEntity(EntityIndex));
-			}
-		}
-	});
-}
-
-void URTSConstructBuilding::ConfigureQueries()
-{
-	EntityQuery.AddRequirement<FRTSBuildingFragment>(EMassFragmentAccess::ReadOnly);
-}
-
-void URTSConstructBuilding::Initialize(UObject& Owner)
-{
-	Super::Initialize(Owner);
-
+	RTSMovementSubsystem = UWorld::GetSubsystem<URTSBuildingSubsystem>(Owner.GetWorld());
 	SmartObjectSubsystem = UWorld::GetSubsystem<USmartObjectSubsystem>(Owner.GetWorld());
 }
 
