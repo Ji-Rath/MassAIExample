@@ -5,19 +5,15 @@
 
 #include "MassSmartObjectFragments.h"
 #include "RTSAgentTrait.h"
+#include "RTSConstruction.h"
 
 void UConstructLevelBehaviorDefinition::Activate(FMassCommandBuffer& CommandBuffer,
                                                  const FMassBehaviorEntityContext& EntityContext) const
 {
 	Super::Activate(CommandBuffer, EntityContext);
-	// todo: check GetWorld() before accessing
-	FRTSBuildingFragment RTSBuildingFragment;
-	const UMassEntitySubsystem* EntitySubsystem = EntityContext.SmartObjectSubsystem.GetWorld()->GetSubsystem<UMassEntitySubsystem>();
-	const FMassSmartObjectUserFragment SOUser = EntitySubsystem->GetFragmentDataChecked<FMassSmartObjectUserFragment>(EntityContext.EntityView.GetEntity());
-	RTSBuildingFragment.BuildingClaimHandle = SOUser.ClaimHandle;
-	CommandBuffer.PushCommand(FCommandAddFragmentInstance(EntityContext.EntityView.GetEntity(), FConstStructView::Make(RTSBuildingFragment)));
-
-	CommandBuffer.AddTag<FRTSRequestResources>(EntityContext.EntityView.GetEntity());
+	
+	FMassSmartObjectUserFragment& SOUser = EntityContext.EntityView.GetFragmentData<FMassSmartObjectUserFragment>();
+	CommandBuffer.PushCommand(FCommandAddTag(EntityContext.EntityView.GetEntity(), FRTSConstructFloor::StaticStruct()));
 }
 
 void UConstructLevelBehaviorDefinition::Deactivate(FMassCommandBuffer& CommandBuffer,
