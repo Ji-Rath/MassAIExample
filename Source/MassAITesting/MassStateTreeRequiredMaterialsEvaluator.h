@@ -20,7 +20,7 @@ struct MASSAITESTING_API FMassStateTreeRequiredMaterialsEvaluatorInstanceData
 	FSmartObjectRequestFilter Filter;
 
 	UPROPERTY(EditAnywhere, Category = Output)
-	bool bNeedsResources = false;
+	bool bFoundSmartObjectFilter = false;
 };
 
 /**
@@ -37,10 +37,11 @@ struct MASSAITESTING_API FMassStateTreeRequiredMaterialsEvaluator : public FMass
 
 	TStateTreeExternalDataHandle<FRTSAgentFragment> RTSAgentHandle;
 	TStateTreeExternalDataHandle<USmartObjectSubsystem> SmartObjectSubsystemHandle;
+	TStateTreeExternalDataHandle<UMassEntitySubsystem> EntitySubsystemHandle;
 	TStateTreeExternalDataHandle<FTransformFragment> TransformHandle;
+	TStateTreeExternalDataHandle<URTSBuildingSubsystem> BuildingSubsystemHandle;
 	
 	TStateTreeInstanceDataPropertyHandle<TEnumAsByte<EResourceType>> ResourceTypeHandle;
-	TStateTreeInstanceDataPropertyHandle<bool> NeedsResourcesHandle;
+	TStateTreeInstanceDataPropertyHandle<bool> FoundSmartObjectFilterHandle;
 	TStateTreeInstanceDataPropertyHandle<FSmartObjectRequestFilter> FilterHandle;
-	
 };
