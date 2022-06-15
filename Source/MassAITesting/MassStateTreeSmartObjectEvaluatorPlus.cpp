@@ -14,6 +14,7 @@ bool FMassStateTreeSmartObjectEvaluatorPlus::Link(FStateTreeLinker& Linker)
 	Linker.LinkExternalData(MassSignalSubsystemHandle);
 	Linker.LinkExternalData(EntityTransformHandle);
 	Linker.LinkExternalData(SmartObjectUserHandle);
+	Linker.LinkExternalData(RTSAgentHandle);
 
 	Linker.LinkInstanceDataProperty(SearchRequestResultHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeSmartObjectEvaluatorPlusInstanceData, SearchRequestResult));
 	Linker.LinkInstanceDataProperty(CandidatesFoundHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeSmartObjectEvaluatorPlusInstanceData, bCandidatesFound));
@@ -41,6 +42,7 @@ void FMassStateTreeSmartObjectEvaluatorPlus::Evaluate(FStateTreeExecutionContext
 	FTransformFragment& TransformFragment = Context.GetExternalData(EntityTransformHandle);
 	UMassSignalSubsystem& SignalSubsystem = Context.GetExternalData(MassSignalSubsystemHandle);
 	FMassSmartObjectUserFragment& SOUser = Context.GetExternalData(SmartObjectUserHandle);
+	FRTSAgentFragment& RTSAgent = Context.GetExternalData(RTSAgentHandle);
 
 	FMassSmartObjectRequestResult& RequestResult = Context.GetInstanceData(SearchRequestResultHandle);
 	FSmartObjectRequestFilter& Filter = Context.GetInstanceData(FilterHandle);
@@ -50,6 +52,19 @@ void FMassStateTreeSmartObjectEvaluatorPlus::Evaluate(FStateTreeExecutionContext
 	const FTransform& Transform = TransformFragment.GetTransform();
 
 	bool bClaimed = SOUser.ClaimHandle.IsValid();
+
+	// We are returning to our claimed floor home, we dont need to perform any searching.
+	FGameplayTagQueryExpression Expression;
+	Filter.ActivityRequirements.GetQueryExpr(Expression);
+	if (RTSAgent.BuildingHandle.IsValid() && Expression.TagSet.Contains(FGameplayTag::RequestGameplayTag(TEXT("Object.Home"))))
+	{
+		RequestResult.Candidates[0] = FSmartObjectCandidate(RTSAgent.BuildingHandle, 0);
+		RequestResult.NumCandidates++;
+		RequestResult.bProcessed = true;
+		CandidatesFound = true;
+		
+		return;
+	}
 
 	// Already claimed, nothing to do
 	if (bClaimed)

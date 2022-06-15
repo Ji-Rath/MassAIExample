@@ -5,6 +5,7 @@
 #include "MassSignalSubsystem.h"
 #include "MassSmartObjectRequest.h"
 #include "MassStateTreeTypes.h"
+#include "RTSAgentTrait.h"
 #include "SmartObjectSubsystem.h"
 #include "MassStateTreeSmartObjectEvaluatorPlus.generated.h"
 
@@ -54,4 +55,5 @@ struct MASSAITESTING_API FMassStateTreeSmartObjectEvaluatorPlus : public FMassSt
 	TStateTreeExternalDataHandle<UMassSignalSubsystem> MassSignalSubsystemHandle;
 	TStateTreeExternalDataHandle<FTransformFragment> EntityTransformHandle;
 	TStateTreeExternalDataHandle<FMassSmartObjectUserFragment> SmartObjectUserHandle;
+	TStateTreeExternalDataHandle<FRTSAgentFragment> RTSAgentHandle;
 };
