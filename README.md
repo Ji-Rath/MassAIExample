@@ -44,7 +44,9 @@ would be to update the target location z during movement.
 - Filter entities using tags (FMassTag)
 - Traits contain fragments/tags (UMassEntityTraitBase)
 - Processors use fragment data to perform tasks on entities (UMassProcessor)
-- StateTree and Fragments is sortof like BehaviorTree and Blackboard
+- StateTree and Fragments are sortof like BehaviorTree and Blackboard
+- ObserverProcessors can observe more than one fragment/tag by overriding the
+Register() function.
 
 ### State Tree Information
 - Evaluators basically gather data to be used in the state tree
