@@ -12,7 +12,7 @@
 class UMassSignalSubsystem;
 struct FMassSmartObjectUserFragment;
 USTRUCT()
-struct FMassStateTreeClaimSmartObjectTaskInstanceData
+struct MASSAITESTING_API FMassStateTreeClaimSmartObjectTaskInstanceData
 {
 	GENERATED_BODY()
 
