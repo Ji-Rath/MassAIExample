@@ -27,7 +27,7 @@ void ABuildingBase::BeginPlay()
 	TimerDelegate.BindLambda([this]()
 	{
 		UE_LOG(LogTemp, Error, TEXT("Handle Valid: %s"), SmartObjectComp->GetRegisteredHandle().IsValid() ? TEXT("TRUE") : TEXT("FALSE"));
-		GetWorld()->GetSubsystem<URTSBuildingSubsystem>()->AddBuilding(SmartObjectComp->GetRegisteredHandle(), 4);
+		GetWorld()->GetSubsystem<URTSBuildingSubsystem>()->AddBuilding(SmartObjectComp->GetRegisteredHandle(), Floors);
 	});
 	GetWorldTimerManager().SetTimer(TimerHandle, TimerDelegate, 0.5f, false);
 	
