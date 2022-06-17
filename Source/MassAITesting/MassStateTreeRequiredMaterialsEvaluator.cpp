@@ -3,7 +3,6 @@
 
 #include "MassStateTreeRequiredMaterialsEvaluator.h"
 
-#include "BuildingFragments.h"
 #include "MassSmartObjectBehaviorDefinition.h"
 #include "MassStateTreeExecutionContext.h"
 #include "RTSBuildingSubsystem.h"
