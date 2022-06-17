@@ -36,6 +36,12 @@ void URTSConstructBuilding::Execute(UMassEntitySubsystem& EntitySubsystem, FMass
 
 				RTSAgent.BuildingHandle = FSmartObjectHandle::Invalid;
 				Context.Defer().RemoveTag<FRTSConstructFloor>(Context.GetEntity(EntityIndex));
+
+				int* ResourceAmount = RTSAgent.Inventory.Find(EResourceType::Rock);
+				*ResourceAmount -= 1;
+				ResourceAmount = RTSAgent.Inventory.Find(EResourceType::Tree);
+				*ResourceAmount -= 1;
+				
 			}
 		}
 	});
