@@ -34,7 +34,7 @@ struct MASSAITESTING_API FRTSGatherResourceFragment : public FMassFragment
 	EResourceType Resource = Tree;
 
 	// Amount of resource to gather
-	int Amount = 0;
+	int Amount = 1;
 };
 
 /**
@@ -50,17 +50,20 @@ public:
 	virtual void Initialize(UObject& Owner) override;
 
 	FMassEntityQuery EntityQuery;
+
+	UPROPERTY()
+	UMassRepresentationSubsystem* RepresentationSubsystem;
 };
 
 /**
  * @brief Base fragment for RTS Agents
  */
-USTRUCT()
+USTRUCT(BlueprintType)
 struct MASSAITESTING_API FRTSAgentFragment : public FMassFragment
 {
 	GENERATED_BODY()
 
-	UPROPERTY(VisibleAnywhere, Category = "")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "")
 	TMap<TEnumAsByte<EResourceType>, int> Inventory;
 
 	UPROPERTY()
@@ -70,7 +73,7 @@ struct MASSAITESTING_API FRTSAgentFragment : public FMassFragment
 	UPROPERTY()
 	FSmartObjectHandle BuildingHandle;
 
-	UPROPERTY(VisibleAnywhere, Category = "")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "")
 	TMap<TEnumAsByte<EResourceType>, int> RequiredResources;
 };
 

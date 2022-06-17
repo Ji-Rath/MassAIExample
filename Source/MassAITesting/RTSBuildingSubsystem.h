@@ -3,9 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "RTSAgentTrait.h"
 #include "SmartObjectSubsystem.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "RTSBuildingSubsystem.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUpdateInventory, FMassEntityHandle, Entity);
 
 USTRUCT()
 struct MASSAITESTING_API FBuilding
@@ -39,9 +42,30 @@ class MASSAITESTING_API URTSBuildingSubsystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
 
-public:
+protected:
 	TArray<FBuilding> QueuedBuildings;
 
+	TArray<FMassEntityHandle> RTSAgents;
+
+public:
+	UFUNCTION()
+	void AddRTSAgent(const FMassEntityHandle& Entity);
+
+	UFUNCTION(BlueprintCallable)
+	void SelectClosestAgent(const FVector& Location);
+
+	UFUNCTION(BlueprintCallable)
+	void GetAgentLocation(FVector& OutLocation);
+
+	UFUNCTION(BlueprintCallable)
+	void GetAgentInformation(FRTSAgentFragment& OutAgentInfo);
+
+	UPROPERTY()
+	FMassEntityHandle RTSAgent;
+
+	UPROPERTY(BlueprintCallable, BlueprintAssignable)
+	FUpdateInventory OnEntityUpdateInventory;
+	
 	/**
 	 * @brief Add a building to the subsystem for entities to build
 	 * @param BuildingRequest Smart Object Handle of the building
