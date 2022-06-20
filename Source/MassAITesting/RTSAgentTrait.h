@@ -69,12 +69,20 @@ struct MASSAITESTING_API FRTSAgentFragment : public FMassFragment
 	UPROPERTY()
 	float SkinIndex = -1;
 
+	UPROPERTY()
+	bool bPunching = false;
+
 	// todo Move these properties to another fragment when I find out how to handle state tree tasks missing fragments :(
+	// Building management
 	UPROPERTY()
 	FSmartObjectHandle BuildingHandle;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "")
 	TMap<TEnumAsByte<EResourceType>, int> RequiredResources;
+
+	// Item management
+	UPROPERTY()
+	FMassEntityHandle ItemHandle;
 };
 
 /**

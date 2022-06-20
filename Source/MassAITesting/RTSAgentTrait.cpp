@@ -192,7 +192,7 @@ void URTSAnimationProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMas
 					Anim = 0.5f;
 				else if (Speed >= 100.f)
 					Anim = 1.f;
-				const float AnimSpeed = FMath::Clamp(Velocity.Value.Length() / MoveFragment.DesiredSpeed.Get(),0.f,1.f);
+				//const float AnimSpeed = FMath::Clamp(Velocity.Value.Length() / MoveFragment.DesiredSpeed.Get(),0.f,1.f);
 				//UE_LOG(LogTemp, Error, TEXT("Velocity: %f | DesiredSpeed: %f | AnimSpeed: %f"), Velocity.Value.Length(), MoveFragment.DesiredSpeed.Get(), AnimSpeed);
 				TArray<float> CustomData;
 				CustomData.Reserve(3);
@@ -201,7 +201,7 @@ void URTSAnimationProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMas
 				// 1-2 - Anim Data
 				CustomData.Emplace(AgentFragment.SkinIndex);
 				CustomData.Emplace(Anim);
-				CustomData.Emplace(AnimSpeed);
+				CustomData.Emplace(AgentFragment.bPunching);
 				
 				//MeshInfo[Representation.StaticMeshDescIndex].AddBatchedCustomData<float>(Anim, RepresentationLOD.LODSignificance, Representation.PrevLODSignificance);
 				MeshInfo[Representation.StaticMeshDescIndex].AddBatchedCustomDataFloats(CustomData, RepresentationLOD.LODSignificance, Representation.PrevLODSignificance);
