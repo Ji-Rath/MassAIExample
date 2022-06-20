@@ -5,6 +5,7 @@
 
 #include "MassCommonFragments.h"
 #include "MassEntitySubsystem.h"
+#include "RTSItemTrait.h"
 
 void URTSBuildingSubsystem::AddBuilding(const FSmartObjectHandle& BuildingRequest, int Floors)
 {
@@ -22,6 +23,22 @@ void URTSBuildingSubsystem::ClaimFloor(FSmartObjectHandle& Building)
 		if (BuildStruct.FloorsNeeded <= 0)
 			QueuedBuildings.RemoveAt(0);
 	}
+}
+
+FMassEntityHandle URTSBuildingSubsystem::FindItem(FVector2D Location, float Radius, EResourceType ResourceType) const
+{
+	TPair<FMassEntityHandle, float> ItemHandle = ItemHashGrid.FindNearestInRadius(Location, Radius, [this, &Location](const FMassEntityHandle& Handle)
+	{
+		// Determine distancce
+		FVector2D& OtherLocation = GetWorld()->GetSubsystem<UMassEntitySubsystem>()->GetFragmentDataPtr<FItemFragment>(Handle)->OldLocation;
+		return FVector2D::Distance(OtherLocation, Location);
+	}, [this, &ResourceType](const FMassEntityHandle& Handle)
+	{
+		// Determine whether the entity is not claimed and the correct resource
+		FItemFragment& Item = GetWorld()->GetSubsystem<UMassEntitySubsystem>()->GetFragmentDataChecked<FItemFragment>(Handle);
+		return Item.bClaimed || Item.ItemType != ResourceType;
+	});
+	return ItemHandle.Key;
 }
 
 void URTSBuildingSubsystem::AddRTSAgent(const FMassEntityHandle& Entity)

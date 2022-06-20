@@ -5,10 +5,13 @@
 #include "CoreMinimal.h"
 #include "RTSAgentTrait.h"
 #include "SmartObjectSubsystem.h"
+#include "Spatial/PointHashGrid3.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "RTSBuildingSubsystem.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUpdateInventory, FMassEntityHandle, Entity);
+
+typedef UE::Geometry::TPointHashGrid3<FMassEntityHandle,Chaos::FReal> ItemHashGrid3D;
 
 USTRUCT()
 struct MASSAITESTING_API FBuilding
@@ -80,4 +83,7 @@ public:
 	 */
 	UFUNCTION()
 	void ClaimFloor(FSmartObjectHandle& Building);
+	FMassEntityHandle FindItem(FVector2D Location, float Radius, EResourceType ResourceType) const;
+
+	ItemHashGrid3D ItemHashGrid = ItemHashGrid3D(100.0f,FMassEntityHandle());
 };
