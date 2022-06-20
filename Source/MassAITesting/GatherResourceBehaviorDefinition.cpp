@@ -18,6 +18,9 @@ void UGatherResourceBehaviorDefinition::Activate(FMassCommandBuffer& CommandBuff
 	RTSResourceFragment.Resource = ResourceType;
 	RTSResourceFragment.Amount = ResourceAmount;
 	CommandBuffer.PushCommand(FCommandAddFragmentInstance(EntityContext.EntityView.GetEntity(), FConstStructView::Make(RTSResourceFragment)));
+
+	FRTSAgentFragment& Agent = EntityContext.EntityView.GetFragmentData<FRTSAgentFragment>();
+	Agent.bPunching = true;
 	
 	// Traditional way to spawn a default fragment
 	//CommandBuffer.AddFragment<FRTSGatherResourceFragment>(EntityContext.EntityView.GetEntity());
@@ -29,6 +32,9 @@ void UGatherResourceBehaviorDefinition::Deactivate(FMassCommandBuffer& CommandBu
 	Super::Deactivate(CommandBuffer, EntityContext);
 	
 	//CommandBuffer.RemoveFragment<FRTSGatherResourceFragment>(EntityContext.EntityView.GetEntity());
+	
+	FRTSAgentFragment& Agent = EntityContext.EntityView.GetFragmentData<FRTSAgentFragment>();
+	Agent.bPunching = false;
 	
 	const FMassSmartObjectUserFragment& SOUser = EntityContext.EntityView.GetFragmentData<FMassSmartObjectUserFragment>();
 	if (USmartObjectComponent* SOComp = EntityContext.SmartObjectSubsystem.GetSmartObjectComponent(SOUser.ClaimHandle))
