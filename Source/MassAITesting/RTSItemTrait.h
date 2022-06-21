@@ -30,7 +30,7 @@ struct MASSAITESTING_API FItemFragment : public FMassFragment
 	TEnumAsByte<EResourceType> ItemType;
 
 	UPROPERTY()
-	FVector2D OldLocation;
+	FVector OldLocation;
 
 	UPROPERTY()
 	bool bClaimed = false;

@@ -21,7 +21,7 @@ UItemInitializerProcessor::UItemInitializerProcessor()
 
 void UItemInitializerProcessor::ConfigureQueries()
 {
-	EntityQuery.AddRequirement<FItemFragment>(EMassFragmentAccess::None);
+	EntityQuery.AddRequirement<FItemFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 }
 
@@ -75,10 +75,9 @@ void UItemProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecuti
 		{
 			FItemFragment& Item = ItemFragments[EntityIndex];
 			const FVector& Location = Transforms[EntityIndex].GetTransform().GetLocation();
-			const FVector2D Location2D(Location.X, Location.Y);
 			
-			BuildingSubsystem->ItemHashGrid.UpdatePoint(Context.GetEntity(EntityIndex), Item.OldLocation, Location2D);
-			Item.OldLocation = Location2D;
+			BuildingSubsystem->ItemHashGrid.UpdatePoint(Context.GetEntity(EntityIndex), Item.OldLocation, Location);
+			Item.OldLocation = Location;
 		}
 	});
 }
@@ -107,10 +106,9 @@ void UItemInitializerProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, F
 			FItemFragment& Item = ItemFragments[EntityIndex];
 			const FTransform& Transform = Transforms[EntityIndex].GetTransform();
 			const FVector& Location = Transform.GetLocation();
-			const FVector2D Location2D(Location.X, Location.Y);
 			
-			BuildingSubsystem->ItemHashGrid.InsertPoint(Context.GetEntity(EntityIndex), Location2D);
-			Item.OldLocation = Location2D;
+			BuildingSubsystem->ItemHashGrid.InsertPoint(Context.GetEntity(EntityIndex), Location);
+			Item.OldLocation = Location;
 			
 			Context.Defer().AddTag<FItemAddedToGrid>(Context.GetEntity(EntityIndex));
 		}
