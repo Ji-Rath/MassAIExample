@@ -25,13 +25,13 @@ void URTSBuildingSubsystem::ClaimFloor(FSmartObjectHandle& Building)
 	}
 }
 
-FMassEntityHandle URTSBuildingSubsystem::FindItem(FVector2D Location, float Radius, EResourceType ResourceType) const
+FMassEntityHandle URTSBuildingSubsystem::FindItem(FVector& Location, float Radius, EResourceType ResourceType) const
 {
 	TPair<FMassEntityHandle, float> ItemHandle = ItemHashGrid.FindNearestInRadius(Location, Radius, [this, &Location](const FMassEntityHandle& Handle)
 	{
 		// Determine distancce
-		FVector2D& OtherLocation = GetWorld()->GetSubsystem<UMassEntitySubsystem>()->GetFragmentDataPtr<FItemFragment>(Handle)->OldLocation;
-		return FVector2D::Distance(OtherLocation, Location);
+		FVector& OtherLocation = GetWorld()->GetSubsystem<UMassEntitySubsystem>()->GetFragmentDataPtr<FItemFragment>(Handle)->OldLocation;
+		return FVector::Distance(OtherLocation, Location);
 	}, [this, &ResourceType](const FMassEntityHandle& Handle)
 	{
 		// Determine whether the entity is not claimed and the correct resource
@@ -39,6 +39,11 @@ FMassEntityHandle URTSBuildingSubsystem::FindItem(FVector2D Location, float Radi
 		return Item.bClaimed || Item.ItemType != ResourceType;
 	});
 	return ItemHandle.Key;
+}
+
+void URTSBuildingSubsystem::AddResourceQueue(FSmartObjectHandle& SOHandle)
+{
+	QueuedResources.Emplace(SOHandle);
 }
 
 void URTSBuildingSubsystem::AddRTSAgent(const FMassEntityHandle& Entity)

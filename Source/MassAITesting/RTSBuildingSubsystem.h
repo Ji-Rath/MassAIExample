@@ -46,11 +46,17 @@ class MASSAITESTING_API URTSBuildingSubsystem : public UWorldSubsystem
 	GENERATED_BODY()
 
 protected:
+	// @todo check performance implications of using tarray over other data structures
 	TArray<FBuilding> QueuedBuildings;
 
 	TArray<FMassEntityHandle> RTSAgents;
 
+	TArray<FSmartObjectHandle> QueuedResources;
+
 public:
+	UFUNCTION(BlueprintCallable)
+	void AddResourceQueue(FSmartObjectHandle& SOHandle);
+	
 	UFUNCTION()
 	void AddRTSAgent(const FMassEntityHandle& Entity);
 
@@ -83,7 +89,7 @@ public:
 	 */
 	UFUNCTION()
 	void ClaimFloor(FSmartObjectHandle& Building);
-	FMassEntityHandle FindItem(FVector2D Location, float Radius, EResourceType ResourceType) const;
+	FMassEntityHandle FindItem(FVector& Location, float Radius, EResourceType ResourceType) const;
 
 	ItemHashGrid3D ItemHashGrid = ItemHashGrid3D(100.0f,FMassEntityHandle());
 };
