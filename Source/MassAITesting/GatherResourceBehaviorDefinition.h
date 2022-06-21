@@ -7,6 +7,7 @@
 #include "RTSAgentTrait.h"
 #include "GatherResourceBehaviorDefinition.generated.h"
 
+class UMassEntityConfigAsset;
 struct FMassBehaviorEntityContext;
 /**
  * Used to gather a resource from a smart object
@@ -26,4 +27,7 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, Category = SmartObject)
 	TEnumAsByte<EResourceType> ResourceType = Tree;
+
+	UPROPERTY(EditDefaultsOnly, Category = SmartObject)
+	UMassEntityConfigAsset* ItemConfig;
 };

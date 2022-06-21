@@ -4,12 +4,17 @@
 #include "GatherResourceBehaviorDefinition.h"
 
 #include "MassCommandBuffer.h"
+#include "MassCommonFragments.h"
+#include "MassEntityConfigAsset.h"
 #include "MassSmartObjectFragments.h"
+#include "MassSpawnerSubsystem.h"
 #include "RTSAgentTrait.h"
+#include "RTSItemTrait.h"
 #include "SmartObjectComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 void UGatherResourceBehaviorDefinition::Activate(FMassCommandBuffer& CommandBuffer,
-                                                  const FMassBehaviorEntityContext& EntityContext) const
+                                                 const FMassBehaviorEntityContext& EntityContext) const
 {
 	Super::Activate(CommandBuffer, EntityContext);
 
@@ -18,6 +23,28 @@ void UGatherResourceBehaviorDefinition::Activate(FMassCommandBuffer& CommandBuff
 	RTSResourceFragment.Resource = ResourceType;
 	RTSResourceFragment.Amount = ResourceAmount;
 	CommandBuffer.PushCommand(FCommandAddFragmentInstance(EntityContext.EntityView.GetEntity(), FConstStructView::Make(RTSResourceFragment)));
+
+	UMassEntitySubsystem* EntitySubsystem = UWorld::GetSubsystem<UMassEntitySubsystem>(EntityContext.SmartObjectSubsystem.GetWorld());
+	UMassSpawnerSubsystem* SpawnerSubsystem = UWorld::GetSubsystem<UMassSpawnerSubsystem>(EntityContext.SmartObjectSubsystem.GetWorld());
+
+	// Spawn items on the ground
+	// @todo clean up this mess lol
+	TArray<FMassEntityHandle> Items;
+	const FMassEntityTemplate* EntityTemplate = ItemConfig->GetConfig().GetOrCreateEntityTemplate(*UGameplayStatics::GetPlayerPawn(EntityContext.SmartObjectSubsystem.GetWorld(), 0), *ItemConfig);
+	SpawnerSubsystem->SpawnEntities(*EntityTemplate, 5, Items);
+	
+	for(FMassEntityHandle ItemHandle : Items)
+	{
+		FTransformFragment* Transform = EntitySubsystem->GetFragmentDataPtr<FTransformFragment>(ItemHandle);
+		FItemFragment* Item =  EntitySubsystem->GetFragmentDataPtr<FItemFragment>(ItemHandle);
+		if (Transform)
+		{
+			FVector SpawnLocation = EntityContext.EntityView.GetFragmentDataPtr<FTransformFragment>()->GetTransform().GetLocation();
+			SpawnLocation += FVector(FMath::RandRange(-100,100),FMath::RandRange(-100,100),0.f);
+			Transform->GetMutableTransform().SetLocation(SpawnLocation);
+			Item->ItemType = ResourceType;
+		}
+	}
 
 	FRTSAgentFragment& Agent = EntityContext.EntityView.GetFragmentData<FRTSAgentFragment>();
 	Agent.bPunching = true;
