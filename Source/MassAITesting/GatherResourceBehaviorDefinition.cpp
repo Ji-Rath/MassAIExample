@@ -19,10 +19,12 @@ void UGatherResourceBehaviorDefinition::Activate(FMassCommandBuffer& CommandBuff
 	Super::Activate(CommandBuffer, EntityContext);
 
 	// Spawn resource fragment with set values
+	/*
 	FRTSGatherResourceFragment RTSResourceFragment;
 	RTSResourceFragment.Resource = ResourceType;
 	RTSResourceFragment.Amount = ResourceAmount;
 	CommandBuffer.PushCommand(FCommandAddFragmentInstance(EntityContext.EntityView.GetEntity(), FConstStructView::Make(RTSResourceFragment)));
+	*/
 
 	UMassEntitySubsystem* EntitySubsystem = UWorld::GetSubsystem<UMassEntitySubsystem>(EntityContext.SmartObjectSubsystem.GetWorld());
 	UMassSpawnerSubsystem* SpawnerSubsystem = UWorld::GetSubsystem<UMassSpawnerSubsystem>(EntityContext.SmartObjectSubsystem.GetWorld());
@@ -31,9 +33,9 @@ void UGatherResourceBehaviorDefinition::Activate(FMassCommandBuffer& CommandBuff
 	// @todo clean up this mess lol
 	TArray<FMassEntityHandle> Items;
 	const FMassEntityTemplate* EntityTemplate = ItemConfig->GetConfig().GetOrCreateEntityTemplate(*UGameplayStatics::GetPlayerPawn(EntityContext.SmartObjectSubsystem.GetWorld(), 0), *ItemConfig);
-	SpawnerSubsystem->SpawnEntities(*EntityTemplate, 5, Items);
+	SpawnerSubsystem->SpawnEntities(*EntityTemplate, 1, Items);
 	
-	for(FMassEntityHandle ItemHandle : Items)
+	for(const FMassEntityHandle& ItemHandle : Items)
 	{
 		FTransformFragment* Transform = EntitySubsystem->GetFragmentDataPtr<FTransformFragment>(ItemHandle);
 		FItemFragment* Item =  EntitySubsystem->GetFragmentDataPtr<FItemFragment>(ItemHandle);
@@ -48,6 +50,9 @@ void UGatherResourceBehaviorDefinition::Activate(FMassCommandBuffer& CommandBuff
 
 	FRTSAgentFragment& Agent = EntityContext.EntityView.GetFragmentData<FRTSAgentFragment>();
 	Agent.bPunching = true;
+
+	// Invalidate resource handle when complete
+	Agent.ResourceHandle.Reset();
 	
 	// Traditional way to spawn a default fragment
 	//CommandBuffer.AddFragment<FRTSGatherResourceFragment>(EntityContext.EntityView.GetEntity());
