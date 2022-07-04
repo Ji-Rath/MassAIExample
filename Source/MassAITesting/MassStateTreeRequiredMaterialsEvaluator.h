@@ -14,13 +14,19 @@ struct MASSAITESTING_API FMassStateTreeRequiredMaterialsEvaluatorInstanceData
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, Category = Output)
-	TEnumAsByte<EResourceType> ResourceNeeded = Tree;
-
-	UPROPERTY(EditAnywhere, Category = Output)
 	FSmartObjectRequestFilter Filter;
 
 	UPROPERTY(EditAnywhere, Category = Output)
-	bool bFoundSmartObjectFilter = false;
+	FSmartObjectHandle SmartObjectHandle;
+
+	UPROPERTY(EditAnywhere, Category = Output)
+	FMassEntityHandle ItemHandle;
+
+	UPROPERTY(EditAnywhere, Category = Output)
+	bool bFoundSmartObject = false;
+
+	UPROPERTY(EditAnywhere, Category = Output)
+	bool bFoundItemHandle = false;
 };
 
 /**
@@ -41,7 +47,9 @@ struct MASSAITESTING_API FMassStateTreeRequiredMaterialsEvaluator : public FMass
 	TStateTreeExternalDataHandle<FTransformFragment> TransformHandle;
 	TStateTreeExternalDataHandle<URTSBuildingSubsystem> BuildingSubsystemHandle;
 	
-	TStateTreeInstanceDataPropertyHandle<TEnumAsByte<EResourceType>> ResourceTypeHandle;
-	TStateTreeInstanceDataPropertyHandle<bool> FoundSmartObjectFilterHandle;
+	TStateTreeInstanceDataPropertyHandle<bool> FoundSmartObjectHandle;
 	TStateTreeInstanceDataPropertyHandle<FSmartObjectRequestFilter> FilterHandle;
+	TStateTreeInstanceDataPropertyHandle<bool> FoundItemHandle;
+	TStateTreeInstanceDataPropertyHandle<FSmartObjectHandle> SmartObjectHandle;
+	TStateTreeInstanceDataPropertyHandle<FMassEntityHandle> ItemHandle;
 };

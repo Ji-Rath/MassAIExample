@@ -6,34 +6,122 @@
 #include "MassSmartObjectBehaviorDefinition.h"
 #include "MassStateTreeExecutionContext.h"
 #include "RTSBuildingSubsystem.h"
+#include "RTSItemTrait.h"
 #include "SmartObjectSubsystem.h"
 #include "StateTreeExecutionContext.h"
 
 void FMassStateTreeRequiredMaterialsEvaluator::Evaluate(FStateTreeExecutionContext& Context,
                                                         const EStateTreeEvaluationType EvalType, const float DeltaTime) const
 {
+	// Since this eval does stuff thats not just...evaluating we need to make sure that it only gets called in the PreSelect
+	// to avoid unintended results.
+	// @todo move task-related logic to their own state tree tasks
+	if (EvalType == EStateTreeEvaluationType::Tick)
+		return;
+	
 	const FMassStateTreeExecutionContext& MassContext = static_cast<FMassStateTreeExecutionContext&>(Context);
 	
 	FRTSAgentFragment& RTSAgent = Context.GetExternalData(RTSAgentHandle);
 	USmartObjectSubsystem& SmartObjectSubsystem = Context.GetExternalData(SmartObjectSubsystemHandle);
 	UMassEntitySubsystem& EntitySubsystem = Context.GetExternalData(EntitySubsystemHandle);
 	URTSBuildingSubsystem& BuildingSubsystem = Context.GetExternalData(BuildingSubsystemHandle);
-	FTransform& Transform = Context.GetExternalData(TransformHandle).GetMutableTransform();
+	const FVector& Location = Context.GetExternalData(TransformHandle).GetTransform().GetLocation();
 	
-	TEnumAsByte<EResourceType>& ResourceType = Context.GetInstanceData(ResourceTypeHandle);
 	FSmartObjectRequestFilter& Filter = Context.GetInstanceData(FilterHandle);
-	bool& bFoundSmartObjectFilter = Context.GetInstanceData(FoundSmartObjectFilterHandle);
-	bFoundSmartObjectFilter = false;
+	bool& bFoundSmartObject = Context.GetInstanceData(FoundSmartObjectHandle);
+	bool& bFoundItemHandle = Context.GetInstanceData(FoundItemHandle);
+	FSmartObjectHandle& SOHandle = Context.GetInstanceData(SmartObjectHandle);
+	FMassEntityHandle& EntityHandle = Context.GetInstanceData(ItemHandle);
+
+	bFoundSmartObject = false;
+	bFoundItemHandle = false;
 
 	Filter.BehaviorDefinitionClass = USmartObjectMassBehaviorDefinition::StaticClass();
 
 	FSmartObjectRequest Request;
-	Request.QueryBox = FBox::BuildAABB(Transform.GetLocation(), FVector(5000.f));
+	Request.QueryBox = FBox::BuildAABB(Location, FVector(5000.f));
 
 	// Empty query, to setup for return filter
 	FGameplayTagQueryExpression Query;
 	Query.AllTagsMatch();
 
+	// Basic setup
+	// This evaluator should simply gather data for the state tree to evaluate
+	// In terms of priority, the ai should follow these rules
+	// 1. If there is a rock/wood pair and a floor to be built, claim floor and collect the items. Then build the floor
+	// 2. If there is a queued resource to be chopped, chop it down
+	// Outputs:
+	// - smart object filter, item handle
+	// - AgentState: Chopping Resources/Gathering Item/Building Floor
+
+	// We are currently gathering resources
+	if (!EntitySubsystem.IsEntityValid(EntityHandle) && RTSAgent.QueuedItems.Num() > 0)
+	{
+		EntityHandle = RTSAgent.QueuedItems.Pop();
+		bFoundItemHandle = true;
+		FItemFragment* ItemFragment = EntitySubsystem.GetFragmentDataPtr<FItemFragment>(EntityHandle);
+		if (ItemFragment)
+		{
+			ItemFragment->bClaimed = true;
+		}
+		return;
+	}
+	
+	// Check whether agent is waiting for a command
+	if (RTSAgent.QueuedItems.Num() <= 0 && !RTSAgent.BuildingHandle.IsValid())
+	{
+		// Before calculating items existence, we need to see if a building needs building
+		if (BuildingSubsystem.GetQueuedBuildings() > 0)
+		{
+			// Before giving commands, we need to make sure the item(s) are available
+			FMassEntityHandle TreeHandle;
+			FMassEntityHandle RockHandle;
+			if (BuildingSubsystem.FindItem(Location, 5000.f, Rock, TreeHandle))
+			{
+				if (BuildingSubsystem.FindItem(Location, 5000.f, Tree, RockHandle))
+				{
+					bFoundItemHandle = true;
+					// Since they are available, we can claim/give the agent the handles to fetch them
+					BuildingSubsystem.ClaimFloor(RTSAgent.BuildingHandle);
+					
+					RTSAgent.QueuedItems.Emplace(TreeHandle);
+					RTSAgent.QueuedItems.Emplace(RockHandle);
+					
+					EntityHandle = RTSAgent.QueuedItems.Pop();
+					FItemFragment* ItemFragment = EntitySubsystem.GetFragmentDataPtr<FItemFragment>(EntityHandle);
+					if (ItemFragment)
+					{
+						ItemFragment->bClaimed = true;
+					}
+					
+					return;
+				}
+			}
+		}
+	}
+
+	// We have finished collecting items and should head back to our building
+	if(RTSAgent.BuildingHandle.IsValid() && RTSAgent.QueuedItems.Num() == 0)
+	{
+		bFoundSmartObject = true;
+		SOHandle = RTSAgent.BuildingHandle;
+		return;
+	}
+
+	// We dont have the resources/dont have a floor to build, so check if there are queued resources to chop
+	TArray<FSmartObjectHandle> QueuedResources;
+	BuildingSubsystem.GetQueuedResources(QueuedResources);
+	if(QueuedResources.Num() > 0 && !RTSAgent.ResourceHandle.IsValid())
+	{
+		// We have queued resources to chop, so we should try to chop one
+		FSmartObjectHandle ResourceHandle;
+		bFoundSmartObject = true;
+		BuildingSubsystem.ClaimResource(ResourceHandle);
+		RTSAgent.ResourceHandle = ResourceHandle;
+		SOHandle = ResourceHandle;
+	}
+	
+	/*
 	// Check to see if the entity has any resources they need to gather
 	for(const TPair<EResourceType, int> Resource : RTSAgent.RequiredResources)
 	{
@@ -85,6 +173,7 @@ void FMassStateTreeRequiredMaterialsEvaluator::Evaluate(FStateTreeExecutionConte
 	}
 
 	Filter.ActivityRequirements.Build(Query);
+	*/
 }
 
 bool FMassStateTreeRequiredMaterialsEvaluator::Link(FStateTreeLinker& Linker)
@@ -94,10 +183,12 @@ bool FMassStateTreeRequiredMaterialsEvaluator::Link(FStateTreeLinker& Linker)
 	Linker.LinkExternalData(TransformHandle);
 	Linker.LinkExternalData(EntitySubsystemHandle);
 	Linker.LinkExternalData(BuildingSubsystemHandle);
-
-	Linker.LinkInstanceDataProperty(ResourceTypeHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeRequiredMaterialsEvaluatorInstanceData, ResourceNeeded));
-	Linker.LinkInstanceDataProperty(FoundSmartObjectFilterHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeRequiredMaterialsEvaluatorInstanceData, bFoundSmartObjectFilter));
+	
+	Linker.LinkInstanceDataProperty(FoundSmartObjectHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeRequiredMaterialsEvaluatorInstanceData, bFoundSmartObject));
 	Linker.LinkInstanceDataProperty(FilterHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeRequiredMaterialsEvaluatorInstanceData, Filter));
+	Linker.LinkInstanceDataProperty(FoundItemHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeRequiredMaterialsEvaluatorInstanceData, bFoundItemHandle));
+	Linker.LinkInstanceDataProperty(SmartObjectHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeRequiredMaterialsEvaluatorInstanceData, SmartObjectHandle));
+	Linker.LinkInstanceDataProperty(ItemHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeRequiredMaterialsEvaluatorInstanceData, ItemHandle));
 
 	return true;
 }
