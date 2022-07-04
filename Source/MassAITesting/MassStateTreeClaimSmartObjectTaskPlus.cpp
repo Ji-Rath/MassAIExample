@@ -3,15 +3,15 @@
 
 #include "MassStateTreeClaimSmartObjectTaskPlus.h"
 
+#include "MassSmartObjectBehaviorDefinition.h"
 #include "MassSmartObjectFragments.h"
 #include "SmartObjectSubsystem.h"
 #include "StateTreeExecutionContext.h"
 
 bool FMassStateTreeClaimSmartObjectTaskPlus::Link(FStateTreeLinker& Linker)
 {
-	Linker.LinkInstanceDataProperty(RequestResultHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeClaimSmartObjectTaskInstanceData, SearchRequestResult));
+	Linker.LinkInstanceDataProperty(SmartObjectHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeClaimSmartObjectTaskInstanceData, SOHandle));
 	Linker.LinkInstanceDataProperty(ClaimResultHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeClaimSmartObjectTaskInstanceData, ClaimResult));
-	Linker.LinkInstanceDataProperty(RequestFilterHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeClaimSmartObjectTaskInstanceData, Filter));
 
 	Linker.LinkExternalData(SmartObjectUserHandle);
 	Linker.LinkExternalData(SmartObjectSubsystemHandle);
@@ -22,22 +22,24 @@ bool FMassStateTreeClaimSmartObjectTaskPlus::Link(FStateTreeLinker& Linker)
 EStateTreeRunStatus FMassStateTreeClaimSmartObjectTaskPlus::EnterState(FStateTreeExecutionContext& Context,
 	const EStateTreeStateChangeType ChangeType, const FStateTreeTransitionResult& Transition) const
 {
-	const FMassSmartObjectRequestResult& SearchRequestResult = Context.GetInstanceData(RequestResultHandle);
+	const FSmartObjectHandle& SOHandle = Context.GetInstanceData(SmartObjectHandle);
 	EMassSmartObjectClaimResult& ClaimResult = Context.GetInstanceData(ClaimResultHandle);
-	FSmartObjectRequestFilter& Filter = Context.GetInstanceData(RequestFilterHandle);
+	
+	FSmartObjectRequestFilter Filter;
+	Filter.BehaviorDefinitionClass = USmartObjectMassBehaviorDefinition::StaticClass();
 	
 	// Retrieve fragments and subsystems
 	USmartObjectSubsystem& SmartObjectSubsystem = Context.GetExternalData(SmartObjectSubsystemHandle);
 	FMassSmartObjectUserFragment& SOUser = Context.GetExternalData(SmartObjectUserHandle);
 
 	// Setup MassSmartObject handler and claim
-	FSmartObjectClaimHandle ClaimHandle = SmartObjectSubsystem.Claim(SearchRequestResult.Candidates[0].Handle, Filter);
+	FSmartObjectClaimHandle ClaimHandle = SmartObjectSubsystem.Claim(SOHandle, Filter);
 
 	if (!ClaimHandle.IsValid())
 		return EStateTreeRunStatus::Failed;
 	SOUser.ClaimHandle = ClaimHandle;
 	SOUser.InteractionStatus = EMassSmartObjectInteractionStatus::Unset;
-	const FTransform Transform =SmartObjectSubsystem.GetSlotTransform(SOUser.ClaimHandle).Get(FTransform::Identity);
+	const FTransform Transform = SmartObjectSubsystem.GetSlotTransform(SOUser.ClaimHandle).Get(FTransform::Identity);
 	SOUser.TargetLocation = Transform.GetLocation();
 	SOUser.TargetDirection = Transform.GetRotation().Vector();
 

@@ -18,10 +18,7 @@ struct MASSAITESTING_API FMassStateTreeClaimSmartObjectTaskInstanceData
 
 	/** Result of the candidates search request (Input) */
 	UPROPERTY(VisibleAnywhere, Category = Input)
-	FMassSmartObjectRequestResult SearchRequestResult;
-
-	UPROPERTY(VisibleAnywhere, Category = Input)
-	FSmartObjectRequestFilter Filter;
+	FSmartObjectHandle SOHandle;
 
 	/** Result of the claim on potential candidates from the search results (Output) */
 	UPROPERTY(VisibleAnywhere, Category = Output)
@@ -40,9 +37,8 @@ struct MASSAITESTING_API FMassStateTreeClaimSmartObjectTaskPlus : public FMassSt
     virtual const UStruct* GetInstanceDataType() const override { return FMassStateTreeClaimSmartObjectTaskInstanceData::StaticStruct(); }
     virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const EStateTreeStateChangeType ChangeType, const FStateTreeTransitionResult& Transition) const override;
 
-	TStateTreeInstanceDataPropertyHandle<FMassSmartObjectRequestResult> RequestResultHandle;
+	TStateTreeInstanceDataPropertyHandle<FSmartObjectHandle> SmartObjectHandle;
 	TStateTreeInstanceDataPropertyHandle<EMassSmartObjectClaimResult> ClaimResultHandle;
-	TStateTreeInstanceDataPropertyHandle<FSmartObjectRequestFilter> RequestFilterHandle;
 
 	TStateTreeExternalDataHandle<FMassSmartObjectUserFragment> SmartObjectUserHandle;
 	TStateTreeExternalDataHandle<USmartObjectSubsystem> SmartObjectSubsystemHandle;
