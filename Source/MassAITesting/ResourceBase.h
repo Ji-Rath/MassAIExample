@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "SmartObjectComponent.h"
 #include "GameFramework/Actor.h"
-#include "BuildingBase.generated.h"
+#include "ResourceBase.generated.h"
 
 UCLASS()
 class MASSAITESTING_API AResourceBase : public AActor
