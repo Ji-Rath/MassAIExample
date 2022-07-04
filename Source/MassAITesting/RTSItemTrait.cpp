@@ -30,35 +30,6 @@ void UItemInitializerProcessor::Initialize(UObject& Owner)
 	BuildingSubsystem = UWorld::GetSubsystem<URTSBuildingSubsystem>(Owner.GetWorld());
 }
 
-UItemRemoverProcessor::UItemRemoverProcessor()
-{
-	ObservedType = FItemFragment::StaticStruct();
-	Operation = EMassObservedOperation::Remove;
-}
-
-void UItemRemoverProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context)
-{
-	EntityQuery.ParallelForEachEntityChunk(EntitySubsystem, Context, [this](FMassExecutionContext& Context)
-	{
-		TArrayView<FItemFragment> ItemFragments = Context.GetMutableFragmentView<FItemFragment>();
-		
-		for (int32 EntityIndex = 0; EntityIndex < Context.GetNumEntities(); ++EntityIndex)
-		{
-			BuildingSubsystem->ItemHashGrid.RemovePoint(Context.GetEntity(EntityIndex), ItemFragments[EntityIndex].OldLocation);
-		}
-	});
-}
-
-void UItemRemoverProcessor::ConfigureQueries()
-{
-	EntityQuery.AddRequirement<FItemFragment>(EMassFragmentAccess::None);
-}
-
-void UItemRemoverProcessor::Initialize(UObject& Owner)
-{
-	BuildingSubsystem = UWorld::GetSubsystem<URTSBuildingSubsystem>(Owner.GetWorld());
-}
-
 UItemProcessor::UItemProcessor()
 {
 	

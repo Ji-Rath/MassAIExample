@@ -61,24 +61,6 @@ public:
 };
 
 UCLASS()
-class MASSAITESTING_API UItemRemoverProcessor : public UMassObserverProcessor
-{
-	GENERATED_BODY()
-
-	UItemRemoverProcessor();
-
-public:
-	virtual void Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context) override;
-	virtual void ConfigureQueries() override;
-	virtual void Initialize(UObject& Owner) override;
-
-	FMassEntityQuery EntityQuery;
-
-	UPROPERTY()
-	URTSBuildingSubsystem* BuildingSubsystem;
-};
-
-UCLASS()
 class MASSAITESTING_API UItemProcessor : public UMassProcessor
 {
 	GENERATED_BODY()
