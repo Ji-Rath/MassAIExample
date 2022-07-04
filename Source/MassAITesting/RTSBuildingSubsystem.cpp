@@ -12,33 +12,53 @@ void URTSBuildingSubsystem::AddBuilding(const FSmartObjectHandle& BuildingReques
 	QueuedBuildings.Emplace(FBuilding(BuildingRequest, Floors));
 }
 
-void URTSBuildingSubsystem::ClaimFloor(FSmartObjectHandle& Building)
+bool URTSBuildingSubsystem::ClaimFloor(FSmartObjectHandle& OutBuilding)
 {
+	bool bSuccess = false;
 	if (QueuedBuildings.Num() > 0)
 	{
 		FBuilding& BuildStruct = QueuedBuildings[0];
-		Building = BuildStruct.BuildingRequest;
+		OutBuilding = BuildStruct.BuildingRequest;
 		BuildStruct.FloorsNeeded--;
 		//UE_LOG(LogTemp, Error, TEXT("Building ID: %s | Floors remaining: %d"), *LexToString(BuildStruct.BuildingRequest), BuildStruct.FloorsNeeded)
 		if (BuildStruct.FloorsNeeded <= 0)
 			QueuedBuildings.RemoveAt(0);
+		bSuccess = true;
 	}
+	return bSuccess;
 }
 
-FMassEntityHandle URTSBuildingSubsystem::FindItem(FVector& Location, float Radius, EResourceType ResourceType) const
+bool URTSBuildingSubsystem::FindItem(const FVector& Location, float Radius, EResourceType ResourceType, FMassEntityHandle& OutItemHandle) const
 {
-	TPair<FMassEntityHandle, float> ItemHandle = ItemHashGrid.FindNearestInRadius(Location, Radius, [this, &Location](const FMassEntityHandle& Handle)
+	UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
+	TPair<FMassEntityHandle, float> ItemHandle = ItemHashGrid.FindNearestInRadius(Location, Radius, [this, &Location, &EntitySubsystem](const FMassEntityHandle& Handle)
 	{
 		// Determine distancce
-		FVector& OtherLocation = GetWorld()->GetSubsystem<UMassEntitySubsystem>()->GetFragmentDataPtr<FItemFragment>(Handle)->OldLocation;
+		FVector& OtherLocation = EntitySubsystem->GetFragmentDataPtr<FItemFragment>(Handle)->OldLocation;
 		return FVector::Distance(OtherLocation, Location);
-	}, [this, &ResourceType](const FMassEntityHandle& Handle)
+	}, [this, &ResourceType, &EntitySubsystem](const FMassEntityHandle& Handle)
 	{
 		// Determine whether the entity is not claimed and the correct resource
-		FItemFragment& Item = GetWorld()->GetSubsystem<UMassEntitySubsystem>()->GetFragmentDataChecked<FItemFragment>(Handle);
+		FItemFragment& Item = EntitySubsystem->GetFragmentDataChecked<FItemFragment>(Handle);
 		return Item.bClaimed || Item.ItemType != ResourceType;
 	});
-	return ItemHandle.Key;
+	//if (ItemHandle.Key.IsValid())
+	//	EntitySubsystem->GetFragmentDataChecked<FItemFragment>(ItemHandle.Key).bClaimed = true;
+	OutItemHandle = ItemHandle.Key;
+	return ItemHandle.Key.IsValid();
+}
+
+bool URTSBuildingSubsystem::ClaimResource(FSmartObjectHandle& OutResourceHandle)
+{
+	bool bSuccess = false;
+	if (QueuedResources.Num() > 0)
+	{
+		OutResourceHandle = QueuedResources[0];
+		//UE_LOG(LogTemp, Error, TEXT("Building ID: %s | Floors remaining: %d"), *LexToString(BuildStruct.BuildingRequest), BuildStruct.FloorsNeeded)
+		QueuedResources.RemoveAt(0);
+		bSuccess = true;
+	}
+	return bSuccess;
 }
 
 void URTSBuildingSubsystem::AddResourceQueue(FSmartObjectHandle& SOHandle)

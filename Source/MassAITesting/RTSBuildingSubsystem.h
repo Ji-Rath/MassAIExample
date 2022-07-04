@@ -85,11 +85,18 @@ public:
 
 	/**
 	 * @brief Claim a 'random' building that needs construction of a floor
-	 * @param Building OUT Smart Object handle used for completing the construction when resources are collected
+	 * @param OutBuilding OUT Smart Object handle used for completing the construction when resources are collected
 	 */
 	UFUNCTION()
-	void ClaimFloor(FSmartObjectHandle& Building);
-	FMassEntityHandle FindItem(FVector& Location, float Radius, EResourceType ResourceType) const;
+	bool ClaimFloor(FSmartObjectHandle& OutBuilding);
+	
+	bool FindItem(const FVector& Location, float Radius, EResourceType ResourceType, FMassEntityHandle& OutItemHandle) const;
+
+	int GetQueuedBuildings() const { return QueuedBuildings.Num(); }
+
+	void GetQueuedResources(TArray<FSmartObjectHandle>& OutQueuedResources) const { OutQueuedResources = QueuedResources; }
+
+	bool ClaimResource(FSmartObjectHandle& OutResourceHandle);
 
 	ItemHashGrid3D ItemHashGrid = ItemHashGrid3D(100.0f,FMassEntityHandle());
 };
