@@ -32,17 +32,8 @@ void URTSGatherResourceProcessor::Execute(UMassEntitySubsystem& EntitySubsystem,
 			int* InventoryItem = &RTSAgent.Inventory.FindOrAdd(ResourceFragment.Resource);
 			*InventoryItem += ResourceFragment.Amount;
 
-			// Subtract from required resources
-			if (RTSAgent.RequiredResources.Contains(ResourceFragment.Resource))
-			{
-				InventoryItem = RTSAgent.RequiredResources.Find(ResourceFragment.Resource);
-				*InventoryItem -= ResourceFragment.Amount;
-				
-				if (*InventoryItem <= 0)
-				{
-					RTSAgent.RequiredResources.Remove(ResourceFragment.Resource);
-				}
-			}
+			// Subtract from required resources (janky)
+			//RTSAgent.QueuedItems.Pop();
 
 			// Remove fragment so we dont infinitely grant resources
 			// TODO: Consider using tags rather than just removing the fragment now

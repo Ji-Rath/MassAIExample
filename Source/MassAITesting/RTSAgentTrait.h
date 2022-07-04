@@ -22,6 +22,15 @@ enum EResourceType
 	Rock
 };
 
+UENUM()
+enum EAgentState
+{
+	Idle,
+	ChopResource,
+	CollectItem,
+	BuildFloor
+};
+
 /**
  * @brief Fragment given to entities to grant resources
  */
@@ -77,12 +86,13 @@ struct MASSAITESTING_API FRTSAgentFragment : public FMassFragment
 	UPROPERTY()
 	FSmartObjectHandle BuildingHandle;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "")
-	TMap<TEnumAsByte<EResourceType>, int> RequiredResources;
+	// Resource chopping management
+	UPROPERTY()
+	FSmartObjectHandle ResourceHandle;
 
 	// Item management
 	UPROPERTY()
-	FMassEntityHandle ItemHandle;
+	TArray<FMassEntityHandle> QueuedItems;
 };
 
 /**
