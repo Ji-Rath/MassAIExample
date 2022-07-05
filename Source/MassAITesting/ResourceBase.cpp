@@ -11,9 +11,9 @@ AResourceBase::AResourceBase()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
-	SmartObjectComp = CreateDefaultSubobject<USmartObjectComponent>(TEXT("Smart Object Component"));
-	SetRootComponent(SmartObjectComp);
+	
+	StaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Static Mesh Component"));
+	SetRootComponent(StaticMeshComp);
 }
 
 // Called when the game starts or when spawned
@@ -24,8 +24,11 @@ void AResourceBase::BeginPlay()
 
 void AResourceBase::AddToResourceQueue()
 {
-	FSmartObjectHandle SOHandle = SmartObjectComp->GetRegisteredHandle();
-	GetWorld()->GetSubsystem<URTSBuildingSubsystem>()->AddResourceQueue(SOHandle);
+	if (const USmartObjectComponent* SOComp = FindComponentByClass<USmartObjectComponent>())
+	{
+		FSmartObjectHandle SOHandle = SOComp->GetRegisteredHandle();
+		GetWorld()->GetSubsystem<URTSBuildingSubsystem>()->AddResourceQueue(SOHandle);
+	}
 }
 
 // Called every frame
