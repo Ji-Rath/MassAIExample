@@ -26,28 +26,6 @@ void UGatherResourceBehaviorDefinition::Activate(FMassCommandBuffer& CommandBuff
 	CommandBuffer.PushCommand(FCommandAddFragmentInstance(EntityContext.EntityView.GetEntity(), FConstStructView::Make(RTSResourceFragment)));
 	*/
 
-	UMassEntitySubsystem* EntitySubsystem = UWorld::GetSubsystem<UMassEntitySubsystem>(EntityContext.SmartObjectSubsystem.GetWorld());
-	UMassSpawnerSubsystem* SpawnerSubsystem = UWorld::GetSubsystem<UMassSpawnerSubsystem>(EntityContext.SmartObjectSubsystem.GetWorld());
-
-	// Spawn items on the ground
-	// @todo clean up this mess lol
-	TArray<FMassEntityHandle> Items;
-	const FMassEntityTemplate* EntityTemplate = ItemConfig->GetConfig().GetOrCreateEntityTemplate(*UGameplayStatics::GetPlayerPawn(EntityContext.SmartObjectSubsystem.GetWorld(), 0), *ItemConfig);
-	SpawnerSubsystem->SpawnEntities(*EntityTemplate, 1, Items);
-	
-	for(const FMassEntityHandle& ItemHandle : Items)
-	{
-		FTransformFragment* Transform = EntitySubsystem->GetFragmentDataPtr<FTransformFragment>(ItemHandle);
-		FItemFragment* Item =  EntitySubsystem->GetFragmentDataPtr<FItemFragment>(ItemHandle);
-		if (Transform)
-		{
-			FVector SpawnLocation = EntityContext.EntityView.GetFragmentDataPtr<FTransformFragment>()->GetTransform().GetLocation();
-			SpawnLocation += FVector(FMath::RandRange(-100,100),FMath::RandRange(-100,100),0.f);
-			Transform->GetMutableTransform().SetLocation(SpawnLocation);
-			Item->ItemType = ResourceType;
-		}
-	}
-
 	FRTSAgentFragment& Agent = EntityContext.EntityView.GetFragmentData<FRTSAgentFragment>();
 	Agent.bPunching = true;
 
@@ -64,17 +42,39 @@ void UGatherResourceBehaviorDefinition::Deactivate(FMassCommandBuffer& CommandBu
 	Super::Deactivate(CommandBuffer, EntityContext);
 	
 	//CommandBuffer.RemoveFragment<FRTSGatherResourceFragment>(EntityContext.EntityView.GetEntity());
-	
-	FRTSAgentFragment& Agent = EntityContext.EntityView.GetFragmentData<FRTSAgentFragment>();
-	Agent.bPunching = false;
-	
-	const FMassSmartObjectUserFragment& SOUser = EntityContext.EntityView.GetFragmentData<FMassSmartObjectUserFragment>();
-	if (USmartObjectComponent* SOComp = EntityContext.SmartObjectSubsystem.GetSmartObjectComponent(SOUser.ClaimHandle))
+
+	UMassEntitySubsystem* EntitySubsystem = UWorld::GetSubsystem<UMassEntitySubsystem>(EntityContext.SmartObjectSubsystem.GetWorld());
+	UMassSpawnerSubsystem* SpawnerSubsystem = UWorld::GetSubsystem<UMassSpawnerSubsystem>(EntityContext.SmartObjectSubsystem.GetWorld());
+
+	if (EntityContext.SmartObjectSubsystem.GetWorld() && UGameplayStatics::GetPlayerPawn(EntityContext.SmartObjectSubsystem.GetWorld(), 0))
 	{
-		CommandBuffer.PushCommand(FDeferredCommand([SOComp, EntityContext](UMassEntitySubsystem& System)
+		// Spawn items on the ground
+		// @todo clean up this mess lol
+		TArray<FMassEntityHandle> Items;
+		const FMassEntityTemplate* EntityTemplate = ItemConfig->GetConfig().GetOrCreateEntityTemplate(*UGameplayStatics::GetPlayerPawn(EntityContext.SmartObjectSubsystem.GetWorld(), 0), *ItemConfig);
+		SpawnerSubsystem->SpawnEntities(*EntityTemplate, 4, Items);
+	
+		for(const FMassEntityHandle& ItemHandle : Items)
 		{
-			EntityContext.SmartObjectSubsystem.UnregisterSmartObject(*SOComp);
-			SOComp->GetOwner()->Destroy();
-		}));
+			const FVector& SpawnLocation = EntityContext.EntityView.GetFragmentDataPtr<FTransformFragment>()->GetTransform().GetLocation();
+			
+			FItemFragment ItemFragment;
+			ItemFragment.ItemType = ResourceType;
+			ItemFragment.OldLocation = SpawnLocation;
+			CommandBuffer.PushCommand(FCommandAddFragmentInstance(ItemHandle, FConstStructView::Make(ItemFragment)));
+		}
+	
+		FRTSAgentFragment& Agent = EntityContext.EntityView.GetFragmentData<FRTSAgentFragment>();
+		Agent.bPunching = false;
+	
+		const FMassSmartObjectUserFragment& SOUser = EntityContext.EntityView.GetFragmentData<FMassSmartObjectUserFragment>();
+		if (USmartObjectComponent* SOComp = EntityContext.SmartObjectSubsystem.GetSmartObjectComponent(SOUser.ClaimHandle))
+		{
+			CommandBuffer.PushCommand(FDeferredCommand([SOComp, EntityContext](UMassEntitySubsystem& System)
+			{
+				EntityContext.SmartObjectSubsystem.UnregisterSmartObject(*SOComp);
+				SOComp->GetOwner()->Destroy();
+			}));
+		}
 	}
 }

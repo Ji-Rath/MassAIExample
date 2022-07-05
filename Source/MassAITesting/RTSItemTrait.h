@@ -58,6 +58,7 @@ public:
 
 	UPROPERTY()
 	URTSBuildingSubsystem* BuildingSubsystem;
+	
 };
 
 UCLASS()
@@ -75,4 +76,7 @@ public:
 
 	UPROPERTY()
 	URTSBuildingSubsystem* BuildingSubsystem;
+
+	UPROPERTY()
+	UMassRepresentationSubsystem* RepresentationSubsystem;
 };
