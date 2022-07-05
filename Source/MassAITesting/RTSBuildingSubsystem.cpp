@@ -31,7 +31,7 @@ bool URTSBuildingSubsystem::ClaimFloor(FSmartObjectHandle& OutBuilding)
 bool URTSBuildingSubsystem::FindItem(const FVector& Location, float Radius, EResourceType ResourceType, FMassEntityHandle& OutItemHandle) const
 {
 	UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
-	TPair<FMassEntityHandle, float> ItemHandle = ItemHashGrid.FindNearestInRadius(Location, Radius, [this, &Location, &EntitySubsystem](const FMassEntityHandle& Handle)
+	const TPair<FMassEntityHandle, float> ItemHandle = ItemHashGrid.FindNearestInRadius(Location, Radius, [this, &Location, &EntitySubsystem](const FMassEntityHandle& Handle)
 	{
 		// Determine distancce
 		FVector& OtherLocation = EntitySubsystem->GetFragmentDataPtr<FItemFragment>(Handle)->OldLocation;
@@ -45,7 +45,7 @@ bool URTSBuildingSubsystem::FindItem(const FVector& Location, float Radius, ERes
 	//if (ItemHandle.Key.IsValid())
 	//	EntitySubsystem->GetFragmentDataChecked<FItemFragment>(ItemHandle.Key).bClaimed = true;
 	OutItemHandle = ItemHandle.Key;
-	return ItemHandle.Key.IsValid();
+	return EntitySubsystem->IsEntityValid(ItemHandle.Key);
 }
 
 bool URTSBuildingSubsystem::ClaimResource(FSmartObjectHandle& OutResourceHandle)
@@ -63,7 +63,10 @@ bool URTSBuildingSubsystem::ClaimResource(FSmartObjectHandle& OutResourceHandle)
 
 void URTSBuildingSubsystem::AddResourceQueue(FSmartObjectHandle& SOHandle)
 {
-	QueuedResources.Emplace(SOHandle);
+	if (QueuedResources.Find(SOHandle) == INDEX_NONE)
+	{
+		QueuedResources.Emplace(SOHandle);
+	}
 }
 
 void URTSBuildingSubsystem::AddRTSAgent(const FMassEntityHandle& Entity)

@@ -98,5 +98,5 @@ public:
 
 	bool ClaimResource(FSmartObjectHandle& OutResourceHandle);
 
-	ItemHashGrid3D ItemHashGrid = ItemHashGrid3D(100.0f,FMassEntityHandle());
+	ItemHashGrid3D ItemHashGrid = ItemHashGrid3D(500.0f,FMassEntityHandle());
 };
