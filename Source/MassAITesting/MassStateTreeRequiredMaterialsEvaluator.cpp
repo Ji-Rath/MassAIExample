@@ -58,14 +58,18 @@ void FMassStateTreeRequiredMaterialsEvaluator::Evaluate(FStateTreeExecutionConte
 	if (!EntitySubsystem.IsEntityValid(EntityHandle) && RTSAgent.QueuedItems.Num() > 0)
 	{
 		EntityHandle = RTSAgent.QueuedItems.Pop();
-		bFoundItemHandle = true;
-		FItemFragment* ItemFragment = EntitySubsystem.GetFragmentDataPtr<FItemFragment>(EntityHandle);
-		if (ItemFragment)
+		if (EntitySubsystem.IsEntityValid(EntityHandle))
 		{
-			ItemFragment->bClaimed = true;
+			bFoundItemHandle = true;
+			FItemFragment* ItemFragment = EntitySubsystem.GetFragmentDataPtr<FItemFragment>(EntityHandle);
+			if (ItemFragment)
+			{
+				ItemFragment->bClaimed = true;
+			}
+			return;
 		}
-		return;
 	}
+
 	
 	// Check whether agent is waiting for a command
 	if (RTSAgent.QueuedItems.Num() <= 0 && !RTSAgent.BuildingHandle.IsValid())
@@ -76,9 +80,9 @@ void FMassStateTreeRequiredMaterialsEvaluator::Evaluate(FStateTreeExecutionConte
 			// Before giving commands, we need to make sure the item(s) are available
 			FMassEntityHandle TreeHandle;
 			FMassEntityHandle RockHandle;
-			if (BuildingSubsystem.FindItem(Location, 5000.f, Rock, TreeHandle))
+			if (BuildingSubsystem.FindItem(Location, 5000.f, Rock, RockHandle))
 			{
-				if (BuildingSubsystem.FindItem(Location, 5000.f, Tree, RockHandle))
+				if (BuildingSubsystem.FindItem(Location, 5000.f, Tree, TreeHandle))
 				{
 					bFoundItemHandle = true;
 					// Since they are available, we can claim/give the agent the handles to fetch them
@@ -99,7 +103,8 @@ void FMassStateTreeRequiredMaterialsEvaluator::Evaluate(FStateTreeExecutionConte
 			}
 		}
 	}
-
+	
+	
 	// We have finished collecting items and should head back to our building
 	if(RTSAgent.BuildingHandle.IsValid() && RTSAgent.QueuedItems.Num() == 0)
 	{
