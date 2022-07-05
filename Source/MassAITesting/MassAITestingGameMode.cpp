@@ -33,8 +33,8 @@ void AMassAITestingGameMode::BeginPlay()
 		{
 			if (USmartObjectSubsystem* SmartObjectSubsystem = GetWorld()->GetSubsystem<USmartObjectSubsystem>())
 			{
-				SmartObjectSubsystem->UnregisterSmartObject(*SmartObjectComp);
-				SmartObjectSubsystem->RegisterSmartObject(*SmartObjectComp);
+				//SmartObjectSubsystem->UnregisterSmartObject(*SmartObjectComp);
+				//SmartObjectSubsystem->RegisterSmartObject(*SmartObjectComp);
 			}
 		}
 	} 
