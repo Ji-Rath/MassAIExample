@@ -16,10 +16,10 @@ bool FMassStateTreeSmartObjectEvaluatorPlus::Link(FStateTreeLinker& Linker)
 	Linker.LinkExternalData(SmartObjectUserHandle);
 	Linker.LinkExternalData(RTSAgentHandle);
 
-	Linker.LinkInstanceDataProperty(SearchRequestResultHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeSmartObjectEvaluatorPlusInstanceData, SearchRequestResult));
+	Linker.LinkInstanceDataProperty(SmartObjectHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeSmartObjectEvaluatorPlusInstanceData, SOHandle));
 	Linker.LinkInstanceDataProperty(CandidatesFoundHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeSmartObjectEvaluatorPlusInstanceData, bCandidatesFound));
-	Linker.LinkInstanceDataProperty(FilterHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeSmartObjectEvaluatorPlusInstanceData, Filter));
 	Linker.LinkInstanceDataProperty(RangeHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeSmartObjectEvaluatorPlusInstanceData, Range));
+	Linker.LinkInstanceDataProperty(SmartObjectHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeSmartObjectEvaluatorPlusInstanceData, SOHandle));
 
 	return true;
 }
@@ -46,6 +46,7 @@ void FMassStateTreeSmartObjectEvaluatorPlus::Evaluate(FStateTreeExecutionContext
 
 	FMassSmartObjectRequestResult& RequestResult = Context.GetInstanceData(SearchRequestResultHandle);
 	FSmartObjectRequestFilter& Filter = Context.GetInstanceData(FilterHandle);
+	FSmartObjectHandle& SOHandle = Context.GetInstanceData(SmartObjectHandle);
 	bool& CandidatesFound = Context.GetInstanceData(CandidatesFoundHandle);
 	float& Range = Context.GetInstanceData(RangeHandle);
 

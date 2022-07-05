@@ -25,8 +25,11 @@ struct MASSAITESTING_API FMassStateTreeSmartObjectEvaluatorPlusInstanceData
 	UPROPERTY(EditAnywhere, Category = Output)
 	bool bCandidatesFound = false;
 
-	UPROPERTY(EditAnywhere, Category = Parameter)
-	FSmartObjectRequestFilter Filter = FSmartObjectRequestFilter();
+	UPROPERTY(EditAnywhere, Category = Input)
+	FSmartObjectRequestFilter Filter;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	FSmartObjectHandle SOHandle;
 
 	UPROPERTY(EditAnywhere, Category = Parameter)
 	float Range = 5000.f;
@@ -56,4 +59,5 @@ struct MASSAITESTING_API FMassStateTreeSmartObjectEvaluatorPlus : public FMassSt
 	TStateTreeExternalDataHandle<FTransformFragment> EntityTransformHandle;
 	TStateTreeExternalDataHandle<FMassSmartObjectUserFragment> SmartObjectUserHandle;
 	TStateTreeExternalDataHandle<FRTSAgentFragment> RTSAgentHandle;
+	TStateTreeInstanceDataPropertyHandle<FSmartObjectHandle> SmartObjectHandle;
 };
