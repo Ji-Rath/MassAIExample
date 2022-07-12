@@ -33,11 +33,15 @@ bool URTSBuildingSubsystem::FindItem(const FVector& Location, float Radius, ERes
 	UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
 	const TPair<FMassEntityHandle, float> ItemHandle = ItemHashGrid.FindNearestInRadius(Location, Radius, [this, &Location, &EntitySubsystem](const FMassEntityHandle& Handle)
 	{
+		if (!EntitySubsystem->IsEntityValid(Handle))
+			return 9999.0;
 		// Determine distancce
 		FVector& OtherLocation = EntitySubsystem->GetFragmentDataPtr<FItemFragment>(Handle)->OldLocation;
 		return FVector::Distance(OtherLocation, Location);
 	}, [this, &ResourceType, &EntitySubsystem](const FMassEntityHandle& Handle)
 	{
+		if (!EntitySubsystem->IsEntityValid(Handle))
+			return true;
 		// Determine whether the entity is not claimed and the correct resource
 		FItemFragment& Item = EntitySubsystem->GetFragmentDataChecked<FItemFragment>(Handle);
 		return Item.bClaimed || Item.ItemType != ResourceType;

@@ -64,6 +64,7 @@ void URTSAgentTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildContext
 	check(EntitySubsystem);
 	
 	BuildContext.AddFragment<FRTSAgentFragment>();
+	BuildContext.AddFragment<FAgentAnimationData>();
 	BuildContext.AddTag<FRTSAgent>();
 	
 	const FConstSharedStruct RTSAgentFragment = EntitySubsystem->GetOrCreateConstSharedFragment(UE::StructUtils::GetStructCrc32(FConstStructView::Make(AgentParameters)), AgentParameters);
@@ -131,6 +132,14 @@ void URTSAgentInitializer::Initialize(UObject& Owner)
 //----------------------------------------------------------------------//
 // URTSAnimationProcessor
 //----------------------------------------------------------------------//
+
+URTSAnimationProcessor::URTSAnimationProcessor()
+{
+	bAutoRegisterWithProcessingPhases = true;
+	ExecutionFlags = (int32)EProcessorExecutionFlags::All;
+	ExecutionOrder.ExecuteBefore.Add(UE::Mass::ProcessorGroupNames::Representation);
+}
+
 void URTSAnimationProcessor::Initialize(UObject& Owner)
 {
 	Super::Initialize(Owner);
@@ -147,11 +156,12 @@ void URTSAnimationProcessor::ConfigureQueries()
 	EntityQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FRTSAgentFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.AddRequirement<FAgentAnimationData>(EMassFragmentAccess::ReadWrite);
 }
 
 void URTSAnimationProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context)
 {
-	EntityQuery.ForEachEntityChunk(EntitySubsystem, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ParallelForEachEntityChunk(EntitySubsystem, Context, [this](FMassExecutionContext& Context)
 	{
 		TConstArrayView<FMassMoveTargetFragment> MoveFragments = Context.GetFragmentView<FMassMoveTargetFragment>();
 		TConstArrayView<FMassVelocityFragment> VelocityFragments = Context.GetFragmentView<FMassVelocityFragment>();
@@ -159,6 +169,7 @@ void URTSAnimationProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMas
 		TConstArrayView<FMassRepresentationLODFragment> RepresentationLODFragments = Context.GetFragmentView<FMassRepresentationLODFragment>();
 		TArrayView<FRTSAgentFragment> AgentFragments = Context.GetMutableFragmentView<FRTSAgentFragment>();
 		TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
+		TArrayView<FAgentAnimationData> AgentAnimationDatas = Context.GetMutableFragmentView<FAgentAnimationData>();
 		
 		FMassInstancedStaticMeshInfoArrayView MeshInfo = RepresentationSubsystem->GetMutableInstancedStaticMeshInfos();
 		
@@ -169,6 +180,7 @@ void URTSAnimationProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMas
 			FMassRepresentationFragment& Representation = RepresentationFragments[EntityIndex];
 			const FMassRepresentationLODFragment& RepresentationLOD = RepresentationLODFragments[EntityIndex];
 			FRTSAgentFragment& AgentFragment = AgentFragments[EntityIndex];
+			FAgentAnimationData& AnimationData = AgentAnimationDatas[EntityIndex];
 			FTransform& Transform = Transforms[EntityIndex].GetMutableTransform();
 
 			if (AgentFragment.SkinIndex == -1)
@@ -183,25 +195,55 @@ void URTSAnimationProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMas
 					Anim = 0.5f;
 				else if (Speed >= 100.f)
 					Anim = 1.f;
-				//const float AnimSpeed = FMath::Clamp(Velocity.Value.Length() / MoveFragment.DesiredSpeed.Get(),0.f,1.f);
-				//UE_LOG(LogTemp, Error, TEXT("Velocity: %f | DesiredSpeed: %f | AnimSpeed: %f"), Velocity.Value.Length(), MoveFragment.DesiredSpeed.Get(), AnimSpeed);
-				TArray<float> CustomData;
-				CustomData.Reserve(3);
-
-				// 0 - Skin Data
-				// 1-2 - Anim Data
-				CustomData.Emplace(AgentFragment.SkinIndex);
-				CustomData.Emplace(Anim);
-				CustomData.Emplace(AgentFragment.bPunching);
 				
-				//MeshInfo[Representation.StaticMeshDescIndex].AddBatchedCustomData<float>(Anim, RepresentationLOD.LODSignificance, Representation.PrevLODSignificance);
-				MeshInfo[Representation.StaticMeshDescIndex].AddBatchedCustomDataFloats(CustomData, RepresentationLOD.LODSignificance, Representation.PrevLODSignificance);
+				AnimationData.AnimState = Anim;
+				AnimationData.IsPunching = AgentFragment.bPunching;
+				AnimationData.SkinIndex = AgentFragment.SkinIndex;
 				
-				//MeshInfo[Representation.StaticMeshDescIndex].WriteCustomDataFloatsAtStartIndex(0, CustomData, RepresentationLOD.LODSignificance, 3, 0, Representation.PrevLODSignificance);
-
-				Representation.PrevTransform = Transforms[EntityIndex].GetTransform();
-				Representation.PrevLODSignificance = RepresentationLOD.LODSignificance;
 			}
+			Representation.PrevTransform = Transforms[EntityIndex].GetTransform();
+			Representation.PrevLODSignificance = RepresentationLOD.LODSignificance;
 		}
 	});
+}
+
+URTSAnimationInitializer::URTSAnimationInitializer()
+{
+	bAutoRegisterWithProcessingPhases = true;
+	ObservedType = FAgentAnimationData::StaticStruct();
+	Operation = EMassObservedOperation::Add;
+}
+
+void URTSAnimationInitializer::Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context)
+{
+	EntityQuery.ParallelForEachEntityChunk(EntitySubsystem, Context, [this](FMassExecutionContext& Context)
+	{
+		FMassInstancedStaticMeshInfoArrayView MeshInfo = RepresentationSubsystem->GetMutableInstancedStaticMeshInfos();
+		TArrayView<FMassRepresentationFragment> RepresentationFragments = Context.GetMutableFragmentView<FMassRepresentationFragment>();
+		TConstArrayView<FMassRepresentationLODFragment> RepresentationLODFragments = Context.GetFragmentView<FMassRepresentationLODFragment>();
+		TConstArrayView<FAgentAnimationData> AnimationDatas = Context.GetFragmentView<FAgentAnimationData>();
+		
+		for (int32 EntityIndex = 0; EntityIndex < Context.GetNumEntities(); ++EntityIndex)
+		{
+			FMassRepresentationFragment& Representation = RepresentationFragments[EntityIndex];
+			const FMassRepresentationLODFragment& RepresentationLOD = RepresentationLODFragments[EntityIndex];
+			const FAgentAnimationData& AnimationData = AnimationDatas[EntityIndex];
+			// Initialize animation data so FAgentAnimationData is synced with ISM data
+
+			MeshInfo[Representation.StaticMeshDescIndex].AddBatchedCustomData(AnimationData, RepresentationLOD.LODSignificance, Representation.PrevLODSignificance);
+		}
+	});
+}
+
+void URTSAnimationInitializer::ConfigureQueries()
+{
+	EntityQuery.AddTagRequirement<FRTSAgent>(EMassFragmentPresence::All);
+	EntityQuery.AddRequirement<FAgentAnimationData>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.AddRequirement<FMassRepresentationFragment>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.AddRequirement<FMassRepresentationLODFragment>(EMassFragmentAccess::ReadOnly);
+}
+
+void URTSAnimationInitializer::Initialize(UObject& Owner)
+{
+	RepresentationSubsystem = UWorld::GetSubsystem<UMassRepresentationSubsystem>(Owner.GetWorld());
 }

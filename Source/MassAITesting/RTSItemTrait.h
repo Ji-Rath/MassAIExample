@@ -58,6 +58,9 @@ public:
 
 	UPROPERTY()
 	URTSBuildingSubsystem* BuildingSubsystem;
+
+	UPROPERTY()
+	TObjectPtr<UMassRepresentationSubsystem> RepresentationSubsystem;
 	
 };
 
