@@ -108,6 +108,11 @@ to determine which animation to play
 **FMassRepresentationFragment**, **FMassRepresentationLODFragment**, and **RepresentationSubsystem**
 should be all you need to get started with instance custom data.
 (See URTSAnimationProcessor)
+
+### HashGrids
+- TPointHashGrid3 performance is considerably worse compared to THierarchicalHashGrid2D
+- This could be caused by the extra dimension, testing scenario, or more efficient logic for mass (as THierarchicalHashGrid2D is used in MassAvoidance)
+- Worst case scenario for similar search query: 235.9μs -> 8μs (x30 performance boost!)
 ### TODO
 - Find a way to use Mass SmartObject Eval effectively in the State Tree (DONE)
 - Convert logic in RTSMovementProcessor to State Tree (KINDOF DONE)
