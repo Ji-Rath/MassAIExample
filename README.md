@@ -23,6 +23,8 @@ https://user-images.githubusercontent.com/1747157/170729609-3c2716ae-a6a0-40c5-8
 - Mass Viewer Info Fragment
 - Mass Actor Fragment (For actor visualization)
 - Mass Visualization LOD Processor (Index 41)
+- LODCollectorProcessor is disabled by default for some reason, which is needed when
+entity counts are high
 
 ### Mass LOD
 - Mass LOD Collector Trait
