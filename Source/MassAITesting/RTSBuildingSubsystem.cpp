@@ -5,7 +5,7 @@
 
 #include "MassCommonFragments.h"
 #include "MassEntitySubsystem.h"
-#include "RTSItemTrait.h"
+#include "Mass/RTSItemTrait.h"
 
 void URTSBuildingSubsystem::AddBuilding(const FSmartObjectHandle& BuildingRequest, int Floors)
 {
@@ -20,7 +20,7 @@ bool URTSBuildingSubsystem::ClaimFloor(FSmartObjectHandle& OutBuilding)
 		FBuilding& BuildStruct = QueuedBuildings[0];
 		OutBuilding = BuildStruct.BuildingRequest;
 		BuildStruct.FloorsNeeded--;
-		//UE_LOG(LogTemp, Error, TEXT("Building ID: %s | Floors remaining: %d"), *LexToString(BuildStruct.BuildingRequest), BuildStruct.FloorsNeeded)
+		
 		if (BuildStruct.FloorsNeeded <= 0)
 			QueuedBuildings.RemoveAt(0);
 		bSuccess = true;
@@ -30,26 +30,37 @@ bool URTSBuildingSubsystem::ClaimFloor(FSmartObjectHandle& OutBuilding)
 
 bool URTSBuildingSubsystem::FindItem(const FVector& Location, float Radius, EResourceType ResourceType, FMassEntityHandle& OutItemHandle) const
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(TEXT("ResourceFindItem"));
 	UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
-	const TPair<FMassEntityHandle, float> ItemHandle = ItemHashGrid.FindNearestInRadius(Location, Radius, [this, &Location, &EntitySubsystem](const FMassEntityHandle& Handle)
+
+	// Query items in radius
+	TArray<FMassEntityHandle> Entities;
+	const FBox Bounds(Location - FVector(Radius, Radius, 0.f), Location + FVector(Radius, Radius, 0.f));
+	ItemHashGrid.Query(Bounds,Entities);
+
+	// Sort potential entities by distance
+	Entities.Sort([&EntitySubsystem, &Location](const FMassEntityHandle& A, const FMassEntityHandle& B)
 	{
-		if (!EntitySubsystem->IsEntityValid(Handle))
-			return 9999.0;
-		// Determine distancce
-		FVector& OtherLocation = EntitySubsystem->GetFragmentDataPtr<FItemFragment>(Handle)->OldLocation;
-		return FVector::Distance(OtherLocation, Location);
-	}, [this, &ResourceType, &EntitySubsystem](const FMassEntityHandle& Handle)
-	{
-		if (!EntitySubsystem->IsEntityValid(Handle))
-			return true;
-		// Determine whether the entity is not claimed and the correct resource
-		FItemFragment& Item = EntitySubsystem->GetFragmentDataChecked<FItemFragment>(Handle);
-		return Item.bClaimed || Item.ItemType != ResourceType;
+		const FVector& LocA = EntitySubsystem->GetFragmentDataPtr<FTransformFragment>(A)->GetTransform().GetLocation();
+		const FVector& LocB = EntitySubsystem->GetFragmentDataPtr<FTransformFragment>(B)->GetTransform().GetLocation();
+		
+		return FVector::Dist(Location, LocA) < FVector::Dist(Location, LocB);
 	});
-	//if (ItemHandle.Key.IsValid())
-	//	EntitySubsystem->GetFragmentDataChecked<FItemFragment>(ItemHandle.Key).bClaimed = true;
-	OutItemHandle = ItemHandle.Key;
-	return EntitySubsystem->IsEntityValid(ItemHandle.Key);
+
+	// Perform filtering
+	for(const FMassEntityHandle& Entity : Entities)
+	{
+		if (const FItemFragment* Item = EntitySubsystem->GetFragmentDataPtr<FItemFragment>(Entity))
+		{
+			if (Item->ItemType == ResourceType && !Item->bClaimed)
+			{
+				OutItemHandle = Entity;
+				return EntitySubsystem->IsEntityValid(Entity);
+			}
+		}
+	}
+	
+	return false;
 }
 
 bool URTSBuildingSubsystem::ClaimResource(FSmartObjectHandle& OutResourceHandle)

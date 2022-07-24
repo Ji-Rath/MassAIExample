@@ -3,15 +3,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "RTSAgentTrait.h"
+#include "HierarchicalHashGrid2D.h"
 #include "SmartObjectSubsystem.h"
-#include "Spatial/PointHashGrid3.h"
+#include "Mass/RTSAgentTrait.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "RTSBuildingSubsystem.generated.h"
 
+struct FRTSAgentFragment;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUpdateInventory, FMassEntityHandle, Entity);
 
-typedef UE::Geometry::TPointHashGrid3<FMassEntityHandle,Chaos::FReal> ItemHashGrid3D;
+typedef THierarchicalHashGrid2D<2, 4, FMassEntityHandle> HItemHashGrid2D;
 
 USTRUCT()
 struct MASSAITESTING_API FBuilding
@@ -96,7 +97,9 @@ public:
 
 	void GetQueuedResources(TArray<FSmartObjectHandle>& OutQueuedResources) const { OutQueuedResources = QueuedResources; }
 
+	int GetNumQueuedResources() const { return QueuedResources.Num(); }
+
 	bool ClaimResource(FSmartObjectHandle& OutResourceHandle);
 
-	ItemHashGrid3D ItemHashGrid = ItemHashGrid3D(500.0f,FMassEntityHandle());
+	HItemHashGrid2D ItemHashGrid = HItemHashGrid2D();
 };
