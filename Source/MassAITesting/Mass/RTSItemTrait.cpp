@@ -3,11 +3,11 @@
 
 #include "RTSItemTrait.h"
 
-#include "RTSBuildingSubsystem.h"
 #include "MassCommonFragments.h"
 #include "MassEntityTemplateRegistry.h"
 #include "MassRepresentationFragments.h"
 #include "Engine/World.h"
+#include "MassAITesting/RTSBuildingSubsystem.h"
 
 void URTSItemTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, UWorld& World) const
 {
@@ -38,11 +38,11 @@ void UItemProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecuti
 			const FMassRepresentationLODFragment& RepresentationLOD = RepresentationLODFragments[EntityIndex];
 
 			// Update Item Hash Grid with new position (Probably does not need to be done for an item...that should keep the same location)
-			BuildingSubsystem->ItemHashGrid.UpdatePoint(Context.GetEntity(EntityIndex), Item.OldLocation, Location);
+			//BuildingSubsystem->ItemHashGrid.UpdatePoint(Context.GetEntity(EntityIndex), Item.OldLocation, Location);
 			Item.OldLocation = Location;
-			
-			Representation.PrevTransform = Transforms[EntityIndex].GetTransform();
-			Representation.PrevLODSignificance = RepresentationLOD.LODSignificance;
+
+			//@todo move this to its own processor
+			MeshInfo[Representation.StaticMeshDescIndex].AddBatchedCustomData<float>(Item.ItemType == Rock ? 0.f : 1.f, RepresentationLOD.LODSignificance, Representation.PrevLODSignificance);
 		}
 	});
 }
@@ -54,6 +54,8 @@ void UItemProcessor::ConfigureQueries()
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FMassRepresentationFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FMassRepresentationLODFragment>(EMassFragmentAccess::ReadOnly);
+	EntityQuery.AddChunkRequirement<FMassVisualizationChunkFragment>(EMassFragmentAccess::ReadOnly);
+	EntityQuery.SetChunkFilter(&FMassVisualizationChunkFragment::AreAnyEntitiesVisibleInChunk);
 }
 
 void UItemProcessor::Initialize(UObject& Owner)
@@ -65,8 +67,7 @@ void UItemProcessor::Initialize(UObject& Owner)
 
 UItemInitializerProcessor::UItemInitializerProcessor()
 {
-	bAutoRegisterWithProcessingPhases = true;
-	ObservedType = FTransformFragment::StaticStruct();
+	ObservedType = FItemFragment::StaticStruct();
 	Operation = EMassObservedOperation::Add;
 }
 
@@ -110,9 +111,9 @@ void UItemInitializerProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, F
 				Transform.SetLocation(Item.OldLocation);
 			}
 			// Old location stores the initial spawn location
-			BuildingSubsystem->ItemHashGrid.InsertPoint(Context.GetEntity(EntityIndex), Item.OldLocation);
-
-			//MeshInfo[Representation.StaticMeshDescIndex].AddBatchedCustomData<float>(Item.ItemType == Rock ? 0.f : 1.f, RepresentationLOD.LODSignificance, Representation.PrevLODSignificance);
+			float Radius = 25.f;
+			const FBox NewBounds(Item.OldLocation - FVector(Radius, Radius, 0.f), Item.OldLocation + FVector(Radius, Radius, 0.f));
+			Item.CellLoc = BuildingSubsystem->ItemHashGrid.Add(Context.GetEntity(EntityIndex), NewBounds);
 			
 			Context.Defer().AddTag<FItemAddedToGrid>(Context.GetEntity(EntityIndex));
 		}

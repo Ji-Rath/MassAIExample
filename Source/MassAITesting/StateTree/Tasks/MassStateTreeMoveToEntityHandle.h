@@ -5,11 +5,11 @@
 #include "CoreMinimal.h"
 #include "MassSmartObjectRequest.h"
 #include "MassSmartObjectTypes.h"
-#include "MassStateTreeRequiredMaterialsEvaluator.h"
 #include "MassStateTreeTypes.h"
 #include "SmartObjectSubsystem.h"
 #include "MassStateTreeMoveToEntityHandle.generated.h"
 
+class URTSBuildingSubsystem;
 struct FMassMoveTargetFragment;
 struct FTransformFragment;
 struct FMassSmartObjectUserFragment;

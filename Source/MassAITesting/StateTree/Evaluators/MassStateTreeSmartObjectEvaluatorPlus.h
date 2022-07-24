@@ -5,10 +5,10 @@
 #include "MassSignalSubsystem.h"
 #include "MassSmartObjectRequest.h"
 #include "MassStateTreeTypes.h"
-#include "RTSAgentTrait.h"
 #include "SmartObjectSubsystem.h"
 #include "MassStateTreeSmartObjectEvaluatorPlus.generated.h"
 
+struct FRTSAgentFragment;
 struct FMassSmartObjectUserFragment;
 struct FTransformFragment;
 

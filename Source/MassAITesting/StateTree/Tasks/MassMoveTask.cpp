@@ -4,7 +4,6 @@
 #include "MassMoveTask.h"
 
 #include "MassStateTreeExecutionContext.h"
-#include "NavMeshMovementTrait.h"
 
 bool FMassMoveTask::Link(FStateTreeLinker& Linker)
 {
@@ -20,19 +19,12 @@ bool FMassMoveTask::Link(FStateTreeLinker& Linker)
 
 EStateTreeRunStatus FMassMoveTask::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
 {
-	Super::Tick(Context, DeltaTime);
-	UE_LOG(LogTemp, Error, TEXT("TASK RUNNING!"));
-	
 	return EStateTreeRunStatus::Succeeded;
 }
 
 
 EStateTreeRunStatus FMassMoveTask::EnterState(FStateTreeExecutionContext& Context, const EStateTreeStateChangeType ChangeType, const FStateTreeTransitionResult& Transition) const
 {
-	Super::EnterState(Context, ChangeType, Transition);
-	UE_LOG(LogTemp, Error, TEXT("ENTER STATE!"));
-	const FMassStateTreeExecutionContext& MassContext = static_cast<FMassStateTreeExecutionContext&>(Context);
-	//FNavMeshPathFragment& PathFragment = MassContext.GetExternalData(PathHandle);
 	const float Duration = Context.GetInstanceData(DurationHandle);
-	return EStateTreeRunStatus::Running;
+	return EStateTreeRunStatus::Failed;
 }

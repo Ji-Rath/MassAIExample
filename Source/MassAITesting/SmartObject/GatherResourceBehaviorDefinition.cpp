@@ -8,10 +8,9 @@
 #include "MassEntityConfigAsset.h"
 #include "MassSmartObjectFragments.h"
 #include "MassSpawnerSubsystem.h"
-#include "RTSAgentTrait.h"
-#include "RTSItemTrait.h"
 #include "SmartObjectComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "MassAITesting/Mass/RTSItemTrait.h"
 
 void UGatherResourceBehaviorDefinition::Activate(FMassCommandBuffer& CommandBuffer,
                                                  const FMassBehaviorEntityContext& EntityContext) const
@@ -72,7 +71,6 @@ void UGatherResourceBehaviorDefinition::Deactivate(FMassCommandBuffer& CommandBu
 		{
 			CommandBuffer.PushCommand(FDeferredCommand([SOComp, EntityContext](UMassEntitySubsystem& System)
 			{
-				EntityContext.SmartObjectSubsystem.UnregisterSmartObject(*SOComp);
 				SOComp->GetOwner()->Destroy();
 			}));
 		}

@@ -160,27 +160,6 @@ class URTSAnimationProcessor : public UMassProcessor
 	TObjectPtr<UMassRepresentationSubsystem> RepresentationSubsystem;
 };
 
-/**
- * @brief Initializes Animation state
- */
-UCLASS()
-class MASSAITESTING_API URTSAnimationInitializer : public UMassObserverProcessor
-{
-	GENERATED_BODY()
-
-	URTSAnimationInitializer();
-	
-	virtual void Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context) override;
-	virtual void ConfigureQueries() override;
-	virtual void Initialize(UObject& Owner) override;
-
-	TObjectPtr<URTSBuildingSubsystem> RTSMovementSubsystem;
-	TObjectPtr<USmartObjectSubsystem> SmartObjectSubsystem;
-	TObjectPtr<UMassRepresentationSubsystem> RepresentationSubsystem;
-
-	FMassEntityQuery EntityQuery;
-};
-
 // Animation state of the ISM agent
 
 // Stores data of the ISM agent for instanced custom data

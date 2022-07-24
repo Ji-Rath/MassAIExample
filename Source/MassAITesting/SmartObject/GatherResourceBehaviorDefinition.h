@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "MassSmartObjectBehaviorDefinition.h"
-#include "RTSAgentTrait.h"
+#include "MassAITesting/Mass/RTSAgentTrait.h"
 #include "GatherResourceBehaviorDefinition.generated.h"
 
 class UMassEntityConfigAsset;

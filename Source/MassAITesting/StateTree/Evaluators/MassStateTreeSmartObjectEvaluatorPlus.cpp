@@ -7,6 +7,7 @@
 #include "MassCommonFragments.h"
 #include "MassSmartObjectFragments.h"
 #include "StateTreeExecutionContext.h"
+#include "MassAITesting/Mass/RTSAgentTrait.h"
 
 bool FMassStateTreeSmartObjectEvaluatorPlus::Link(FStateTreeLinker& Linker)
 {

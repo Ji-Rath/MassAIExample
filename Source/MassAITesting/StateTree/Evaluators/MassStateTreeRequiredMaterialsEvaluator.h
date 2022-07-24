@@ -3,11 +3,12 @@
 #pragma once
 
 #include "MassCommonFragments.h"
-#include "RTSAgentTrait.h"
 #include "MassStateTreeTypes.h"
 #include "SmartObjectSubsystem.h"
 #include "MassStateTreeRequiredMaterialsEvaluator.generated.h"
 
+class URTSBuildingSubsystem;
+struct FRTSAgentFragment;
 USTRUCT()
 struct MASSAITESTING_API FMassStateTreeRequiredMaterialsEvaluatorInstanceData
 {

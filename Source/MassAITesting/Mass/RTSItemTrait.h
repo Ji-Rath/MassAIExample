@@ -7,6 +7,7 @@
 #include "MassEntityTraitBase.h"
 #include "MassEntityTypes.h"
 #include "MassObserverProcessor.h"
+#include "MassAITesting/RTSBuildingSubsystem.h"
 #include "RTSItemTrait.generated.h"
 
 struct FMassEntityTemplateBuildContext;
@@ -34,6 +35,8 @@ struct MASSAITESTING_API FItemFragment : public FMassFragment
 
 	UPROPERTY()
 	bool bClaimed = false;
+
+	HItemHashGrid2D::FCellLocation CellLoc;
 };
 
 USTRUCT()

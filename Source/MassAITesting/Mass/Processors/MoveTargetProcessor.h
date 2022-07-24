@@ -4,24 +4,28 @@
 
 #include "CoreMinimal.h"
 #include "MassProcessor.h"
-#include "UObject/Object.h"
-#include "SimpleRandomMovementProcessor.generated.h"
+#include "MoveTargetProcessor.generated.h"
 
+class UMassSignalSubsystem;
 /**
  * 
  */
 UCLASS()
-class MASSAITESTING_API USimpleRandomMovementProcessor : public UMassProcessor
+class MASSAITESTING_API UMoveTargetProcessor : public UMassProcessor
 {
 	GENERATED_BODY()
 
-	USimpleRandomMovementProcessor();
+	UMoveTargetProcessor();
 
 protected:
 	virtual void ConfigureQueries() override;
 
 	virtual void Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context) override;
 
+	virtual void Initialize(UObject& Owner) override;
+
 private:
 	FMassEntityQuery EntityQuery;
+	
+	TObjectPtr<UMassSignalSubsystem> SignalSubsystem;
 };

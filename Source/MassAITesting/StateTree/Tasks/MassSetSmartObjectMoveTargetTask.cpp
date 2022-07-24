@@ -34,7 +34,7 @@ EStateTreeRunStatus FMassSetSmartObjectMoveTargetTask::EnterState(FStateTreeExec
 	
 	MoveTarget.Center = SOUserFragment.TargetLocation;
 	MoveTarget.Forward = SOUserFragment.TargetDirection;
-	MoveTarget.SlackRadius = 25.f;
+	MoveTarget.SlackRadius = 100.f;
 	MoveTarget.DesiredSpeed.Set(MoveParameters.DefaultDesiredSpeed);
 	MoveTarget.CreateNewAction(EMassMovementAction::Move, *Context.GetWorld());
 	MoveTarget.IntentAtGoal = EMassMovementAction::Stand;
@@ -45,18 +45,10 @@ EStateTreeRunStatus FMassSetSmartObjectMoveTargetTask::EnterState(FStateTreeExec
 EStateTreeRunStatus FMassSetSmartObjectMoveTargetTask::Tick(FStateTreeExecutionContext& Context,
                                                             const float DeltaTime) const
 {
-	const FMassStateTreeExecutionContext& MassContext = static_cast<FMassStateTreeExecutionContext&>(Context);
-	UMassSignalSubsystem& MassSignalSubsystem = Context.GetExternalData(MassSignalSubsystemHandle);
-	MassSignalSubsystem.DelaySignalEntity(UE::Mass::Signals::FollowPointPathDone, MassContext.GetEntity(), 1);
-	
 	// When entity reaches target, mark as complete
-	FMassMoveTargetFragment& MoveTarget = Context.GetExternalData(MoveTargetHandle);
-	const FTransform& Transform = Context.GetExternalData(TransformHandle).GetTransform();
+	const FMassMoveTargetFragment& MoveTarget = Context.GetExternalData(MoveTargetHandle);
 
-	MoveTarget.DistanceToGoal = (MoveTarget.Center - Transform.GetLocation()).Length();
-	MoveTarget.Forward = (MoveTarget.Center - Transform.GetLocation()).GetSafeNormal();
-
-	if (MoveTarget.DistanceToGoal <= MoveTarget.SlackRadius+100.f)
+	if (MoveTarget.DistanceToGoal <= MoveTarget.SlackRadius)
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}

@@ -2,13 +2,16 @@
 
 
 #include "MassStateTreeMoveToEntityHandle.h"
+
+#include "MassCommandBuffer.h"
 #include "MassMovementFragments.h"
 #include "MassSignalSubsystem.h"
 #include "MassSmartObjectFragments.h"
 #include "MassStateTreeExecutionContext.h"
 #include "MassNavigationTypes.h"
 #include "MassSetSmartObjectMoveTargetTask.h"
-#include "RTSBuildingSubsystem.h"
+#include "MassAITesting/RTSBuildingSubsystem.h"
+#include "MassAITesting/Mass/RTSItemTrait.h"
 
 bool FMassStateTreeMoveToEntityHandle::Link(FStateTreeLinker& Linker)
 {
@@ -39,7 +42,7 @@ EStateTreeRunStatus FMassStateTreeMoveToEntityHandle::EnterState(FStateTreeExecu
 	const FVector& Location = EntitySubsystem.GetFragmentDataChecked<FTransformFragment>(ItemHandle).GetTransform().GetLocation();
 	
 	MoveTarget.Center = Location;
-	MoveTarget.SlackRadius = 25.f;
+	MoveTarget.SlackRadius = 100.f;
 	MoveTarget.DesiredSpeed.Set(MoveParameters.DefaultDesiredSpeed);
 	MoveTarget.CreateNewAction(EMassMovementAction::Move, *Context.GetWorld());
 	MoveTarget.IntentAtGoal = EMassMovementAction::Stand;
@@ -52,22 +55,19 @@ EStateTreeRunStatus FMassStateTreeMoveToEntityHandle::Tick(FStateTreeExecutionCo
 {
 	const FMassEntityHandle& ItemHandle = Context.GetInstanceData(EntityHandle);
 	UMassEntitySubsystem& EntitySubsystem = Context.GetExternalData(EntitySubsystemHandle);
-	const FMassStateTreeExecutionContext& MassContext = static_cast<FMassStateTreeExecutionContext&>(Context);
-	UMassSignalSubsystem& MassSignalSubsystem = Context.GetExternalData(MassSignalSubsystemHandle);
 	URTSBuildingSubsystem& BuildingSubsystem = Context.GetExternalData(BuildingSubsystemHandle);
-	MassSignalSubsystem.DelaySignalEntity(UE::Mass::Signals::FollowPointPathDone, MassContext.GetEntity(), 1);
 	
 	// When entity reaches target, mark as complete
 	FMassMoveTargetFragment& MoveTarget = Context.GetExternalData(MoveTargetHandle);
-	const FTransform& Transform = Context.GetExternalData(TransformHandle).GetTransform();
 
-	MoveTarget.DistanceToGoal = (MoveTarget.Center - Transform.GetLocation()).Length();
-	MoveTarget.Forward = (MoveTarget.Center - Transform.GetLocation()).GetSafeNormal();
-
-	if (MoveTarget.DistanceToGoal <= MoveTarget.SlackRadius+100.f)
+	if (MoveTarget.DistanceToGoal <= MoveTarget.SlackRadius)
 	{
-		EntitySubsystem.Defer().DestroyEntity(ItemHandle);
-		BuildingSubsystem.ItemHashGrid.RemovePoint(ItemHandle, MoveTarget.Center);
+		if (EntitySubsystem.IsEntityValid(ItemHandle))
+		{
+			const FItemFragment* Item = EntitySubsystem.GetFragmentDataPtr<FItemFragment>(ItemHandle);
+			BuildingSubsystem.ItemHashGrid.Remove(ItemHandle, Item->CellLoc);
+			EntitySubsystem.Defer().DestroyEntity(ItemHandle);
+		}
 		return EStateTreeRunStatus::Succeeded;
 	}
 	

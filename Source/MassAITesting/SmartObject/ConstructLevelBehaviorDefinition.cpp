@@ -3,9 +3,9 @@
 
 #include "ConstructLevelBehaviorDefinition.h"
 
+#include "MassCommandBuffer.h"
 #include "MassSmartObjectFragments.h"
-#include "RTSAgentTrait.h"
-#include "RTSConstruction.h"
+#include "MassAITesting/Mass/RTSConstruction.h"
 
 void UConstructLevelBehaviorDefinition::Activate(FMassCommandBuffer& CommandBuffer,
                                                  const FMassBehaviorEntityContext& EntityContext) const
