@@ -46,10 +46,11 @@ EStateTreeRunStatus FMassSetSmartObjectMoveTargetTask::Tick(FStateTreeExecutionC
                                                             const float DeltaTime) const
 {
 	// When entity reaches target, mark as complete
-	const FMassMoveTargetFragment& MoveTarget = Context.GetExternalData(MoveTargetHandle);
+	FMassMoveTargetFragment& MoveTarget = Context.GetExternalData(MoveTargetHandle);
 
 	if (MoveTarget.DistanceToGoal <= MoveTarget.SlackRadius)
 	{
+		MoveTarget.CreateNewAction(EMassMovementAction::Stand, *Context.GetWorld());
 		return EStateTreeRunStatus::Succeeded;
 	}
 	
