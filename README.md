@@ -110,6 +110,27 @@ to determine which animation to play
 **FMassRepresentationFragment**, **FMassRepresentationLODFragment**, and **RepresentationSubsystem**
 should be all you need to get started with instance custom data.
 (See URTSAnimationProcessor)
+
+### City Sample and AnimToTexture Plugin
+#### This is in regards to how ISM processors get anim data and update custom data
+- Processors get their data from MassRepresentationSubsystem. At some point,
+actor templates are added via **FindOrAddTemplateActor()**. (Update: This is done for us most likely
+somewhere in the visualization/representation processors if you have actor visualization)
+- The CDO is then retrieved via **GetDefaultObject()** and data can be retrieved. 
+In this case, it is a **CrowdCharacterDataAsset**.
+- A **FCrowdCharacterDefinition** is generated based on the data asset which contains
+the key info for animation among other things. (its a little more complex than described
+since the data is really retrieved from the **FCrowdCharacterDefinition**, just selected
+based on the human's properties)
+- Finally, the animation data (**UAnimToTextureDataAsset**) is saved to the entities **FCrowdAnimationFragment** for
+future use in processors
+- Note: Data assets appear to be added to the character BP (high actor visualization), this is why the data can be accessed.
+- The actor can be retrieved using **FMassRepresentationFragment.HighResTemplateActorIndex** and **RepresentationSubsystem->GetTemplateActorClass**
+- To be honest, a simple SharedFragment is probably sufficient for simple use-cases.
+I definitely might change my mind when I attempt to sync actor/ISM animation
+- Actual anim state index is updated in **UMassProcessor_Animation** and custom data is updated at
+**UMassCrowdUpdateISMVertexAnimationProcessor::UpdateISMVertexAnimation** in various processors
+
 ### TODO
 - Find a way to use Mass SmartObject Eval effectively in the State Tree (DONE)
 - Convert logic in RTSMovementProcessor to State Tree (KINDOF DONE)
