@@ -31,7 +31,6 @@ EStateTreeRunStatus FMassStateTreeMoveToEntityHandle::EnterState(FStateTreeExecu
                                                                  const EStateTreeStateChangeType ChangeType, const FStateTreeTransitionResult& Transition) const
 {
 	FMassMoveTargetFragment& MoveTarget = Context.GetExternalData(MoveTargetHandle);
-	const FMassSmartObjectUserFragment& SOUserFragment = Context.GetExternalData(SOUserHandle);
 	const FMassMovementParameters& MoveParameters = Context.GetExternalData(MoveParametersHandle);
 	const FMassEntityHandle& ItemHandle = Context.GetInstanceData(EntityHandle);
 	UMassEntitySubsystem& EntitySubsystem = Context.GetExternalData(EntitySubsystemHandle);
@@ -53,21 +52,12 @@ EStateTreeRunStatus FMassStateTreeMoveToEntityHandle::EnterState(FStateTreeExecu
 EStateTreeRunStatus FMassStateTreeMoveToEntityHandle::Tick(FStateTreeExecutionContext& Context,
 	const float DeltaTime) const
 {
-	const FMassEntityHandle& ItemHandle = Context.GetInstanceData(EntityHandle);
-	UMassEntitySubsystem& EntitySubsystem = Context.GetExternalData(EntitySubsystemHandle);
-	URTSBuildingSubsystem& BuildingSubsystem = Context.GetExternalData(BuildingSubsystemHandle);
-	
 	// When entity reaches target, mark as complete
 	FMassMoveTargetFragment& MoveTarget = Context.GetExternalData(MoveTargetHandle);
 
 	if (MoveTarget.DistanceToGoal <= MoveTarget.SlackRadius)
 	{
-		if (EntitySubsystem.IsEntityValid(ItemHandle))
-		{
-			const FItemFragment* Item = EntitySubsystem.GetFragmentDataPtr<FItemFragment>(ItemHandle);
-			BuildingSubsystem.ItemHashGrid.Remove(ItemHandle, Item->CellLoc);
-			EntitySubsystem.Defer().DestroyEntity(ItemHandle);
-		}
+		MoveTarget.CreateNewAction(EMassMovementAction::Stand, *Context.GetWorld());
 		return EStateTreeRunStatus::Succeeded;
 	}
 	
