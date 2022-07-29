@@ -3,8 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SmartObjectComponent.h"
-#include "GameFramework/Actor.h"
+#include "GenericSmartObject.h"
 #include "BuildingBase.generated.h"
 
 UCLASS()
@@ -24,9 +23,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	USmartObjectComponent* SmartObjectComp;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int Floors = 1;
+
+	int CurrentFloor = 0;
 };
