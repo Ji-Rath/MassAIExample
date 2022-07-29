@@ -77,3 +77,5 @@ DerivedDataCache/*
 .idea/
 *.user
 Plugins/Developer/RiderLink*
+
+Content/Characters/KenneyCharacter/Licensed*
