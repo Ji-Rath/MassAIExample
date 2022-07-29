@@ -9,6 +9,7 @@
 #include "MassRepresentationFragments.h"
 #include "SmartObjectSubsystem.h"
 #include "Components/InstancedStaticMeshComponent.h"
+#include "AnimToTextureInstancePlaybackHelpers.h"
 #include "MassAITesting/RTSBuildingSubsystem.h"
 
 //----------------------------------------------------------------------//
@@ -64,7 +65,7 @@ void URTSAgentTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildContext
 	check(EntitySubsystem);
 	
 	BuildContext.AddFragment<FRTSAgentFragment>();
-	BuildContext.AddFragment<FAgentAnimationData>();
+	BuildContext.AddFragment<FRTSAnimationFragment>();
 	BuildContext.AddTag<FRTSAgent>();
 	
 	const FConstSharedStruct RTSAgentFragment = EntitySubsystem->GetOrCreateConstSharedFragment(UE::StructUtils::GetStructCrc32(FConstStructView::Make(AgentParameters)), AgentParameters);
@@ -86,6 +87,7 @@ void URTSAgentInitializer::Execute(UMassEntitySubsystem& EntitySubsystem, FMassE
 	{
 		const TArrayView<FRTSAgentFragment> RTSMoveFragmentList = Context.GetMutableFragmentView<FRTSAgentFragment>();
 		const FRTSAgentParameters& RTSAgentParameters = Context.GetConstSharedFragment<FRTSAgentParameters>();
+		TArrayView<FRTSAnimationFragment> AnimationFragments = Context.GetMutableFragmentView<FRTSAnimationFragment>();
 		TArrayView<FMassRepresentationFragment> RepresentationFragments = Context.GetMutableFragmentView<FMassRepresentationFragment>();
 		UMassRepresentationSubsystem* RepresentationSubsystem = GetWorld()->GetSubsystem<UMassRepresentationSubsystem>();
 		URTSBuildingSubsystem* BuildingSubsystem = GetWorld()->GetSubsystem<URTSBuildingSubsystem>();
@@ -95,7 +97,13 @@ void URTSAgentInitializer::Execute(UMassEntitySubsystem& EntitySubsystem, FMassE
 			// Simply refresh the required resources
 			FRTSAgentFragment& RTSAgent = RTSMoveFragmentList[EntityIndex];
 			FMassRepresentationFragment& RepresentationFragment = RepresentationFragments[EntityIndex];
+			FRTSAnimationFragment& AnimationFragment = AnimationFragments[EntityIndex];
 			BuildingSubsystem->AddRTSAgent(Context.GetEntity(EntityIndex));
+
+			UAnimToTextureDataAsset* Anim = RTSAgentParameters.AnimData.Get();
+			if (!Anim)
+				Anim = RTSAgentParameters.AnimData.LoadSynchronous();
+			AnimationFragment.AnimToTextureData = Anim;
 		}
 	}));
 }
@@ -106,6 +114,7 @@ void URTSAgentInitializer::ConfigureQueries()
 	EntityQuery.AddConstSharedRequirement<FRTSAgentParameters>(EMassFragmentPresence::All);
 	EntityQuery.AddTagRequirement<FRTSAgent>(EMassFragmentPresence::All);
 	EntityQuery.AddRequirement<FMassRepresentationFragment>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.AddRequirement<FRTSAnimationFragment>(EMassFragmentAccess::ReadWrite);
 }
 
 void URTSAgentInitializer::Initialize(UObject& Owner)
@@ -143,7 +152,8 @@ void URTSAnimationProcessor::ConfigureQueries()
 	EntityQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FRTSAgentFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
-	EntityQuery.AddRequirement<FAgentAnimationData>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.AddRequirement<FRTSAnimationFragment>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.AddConstSharedRequirement<FRTSAgentParameters>(EMassFragmentPresence::All);
 	EntityQuery.AddChunkRequirement<FMassVisualizationChunkFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.SetChunkFilter(&FMassVisualizationChunkFragment::AreAnyEntitiesVisibleInChunk);
 }
@@ -158,7 +168,9 @@ void URTSAnimationProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMas
 		TConstArrayView<FMassRepresentationLODFragment> RepresentationLODFragments = Context.GetFragmentView<FMassRepresentationLODFragment>();
 		TArrayView<FRTSAgentFragment> AgentFragments = Context.GetMutableFragmentView<FRTSAgentFragment>();
 		TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
-		TArrayView<FAgentAnimationData> AgentAnimationDatas = Context.GetMutableFragmentView<FAgentAnimationData>();
+		TArrayView<FRTSAnimationFragment> AgentAnimationDatas = Context.GetMutableFragmentView<FRTSAnimationFragment>();
+
+		const FRTSAgentParameters& AgentParameters = Context.GetConstSharedFragment<FRTSAgentParameters>();
 		
 		FMassInstancedStaticMeshInfoArrayView MeshInfo = RepresentationSubsystem->GetMutableInstancedStaticMeshInfos();
 		
@@ -169,7 +181,7 @@ void URTSAnimationProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMas
 			FMassRepresentationFragment& Representation = RepresentationFragments[EntityIndex];
 			const FMassRepresentationLODFragment& RepresentationLOD = RepresentationLODFragments[EntityIndex];
 			FRTSAgentFragment& AgentFragment = AgentFragments[EntityIndex];
-			FAgentAnimationData& AnimationData = AgentAnimationDatas[EntityIndex];
+			FRTSAnimationFragment& AnimationData = AgentAnimationDatas[EntityIndex];
 			FTransform& Transform = Transforms[EntityIndex].GetMutableTransform();
 
 			if (AgentFragment.SkinIndex == -1)
@@ -178,19 +190,62 @@ void URTSAnimationProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMas
 			// todo, find a way to iterate and update animations based on current action state. can also be used to update other ISM things
 			if (Representation.CurrentRepresentation == EMassRepresentationType::StaticMeshInstance)
 			{
-				float Anim = 0.f;
-				const float Speed = Velocity.Value.Length();
-				if (Speed > 20.f && Speed < 200.f)
-					Anim = 0.5f;
-				else if (Speed >= 100.f)
-					Anim = 1.f;
-				
-				AnimationData.AnimState = Anim;
-				AnimationData.IsPunching = AgentFragment.bPunching;
-				AnimationData.SkinIndex = AgentFragment.SkinIndex;
+				// 0-4 is anim data
 
-				MeshInfo[Representation.StaticMeshDescIndex].AddBatchedCustomData(AnimationData, RepresentationLOD.LODSignificance, Representation.PrevLODSignificance);
+				const float PrevPlayRate = AnimationData.PlayRate;
+				float GlobalTime = GetWorld()->GetTimeSeconds();
+				if (AnimationData.bCustomAnimation)
+				{
+					// Custom animation - handled by other processor/task
+					AnimationData.PlayRate = 2.f;
+
+					// Need to conserve current frame on a playrate switch so (GlobalTime - Offset1) * Playrate1 == (GlobalTime - Offset2) * Playrate2
+					//AnimationData.GlobalStartTime = (GlobalTime - AnimationData.GlobalStartTime) / AnimationData.PlayRate;// - AnimationData.AnimPosition;
+					AnimationData.GlobalStartTime = GlobalTime - PrevPlayRate * (GlobalTime - AnimationData.GlobalStartTime) / AnimationData.PlayRate;
+					//AnimationData.AnimPosition += 1;
+				}
+				else
+				{
+					int32 Anim = 0;
+					const float SpeedSq = Velocity.Value.SizeSquared();
+					const float StandCutoff = 20.f;
+					const float WalkCutoff = 300.f;
+					if (SpeedSq > StandCutoff*StandCutoff && SpeedSq <= WalkCutoff*WalkCutoff)
+					{
+						Anim = 1;
+						AnimationData.PlayRate = FMath::Clamp(FMath::Sqrt(SpeedSq), 0.6f, 2.0f);
+					}
+					if (SpeedSq > WalkCutoff*WalkCutoff)
+					{
+						Anim = 2;
+						AnimationData.PlayRate = FMath::Clamp(FMath::Sqrt(SpeedSq / (WalkCutoff*WalkCutoff)), 0.6f, 2.0f);
+					}
+					Anim = AgentFragment.bPunching ? 3 : Anim;
+					AnimationData.AnimationStateIndex = Anim;
+					
+					// Need to conserve current frame on a playrate switch so (GlobalTime - Offset1) * Playrate1 == (GlobalTime - Offset2) * Playrate2
+					AnimationData.GlobalStartTime = GlobalTime - PrevPlayRate * (GlobalTime - AnimationData.GlobalStartTime) / AnimationData.PlayRate;
+					//UE_LOG(LogTemp, Error, TEXT("Global Start Time: %f"), AnimationData.GlobalStartTime);
+				}
+				
+				
+				//AnimationData.IsPunching = AgentFragment.bPunching;
+				//AnimationData.SkinIndex = AgentFragment.SkinIndex;
+
+				//@todo update skinindex and punching custom data (might be useful to use montage method in City Sample)
+				
+				UpdateISMVertexAnimation(MeshInfo[Representation.StaticMeshDescIndex], AnimationData, RepresentationLOD.LODSignificance, Representation.PrevLODSignificance, 0);
+				MeshInfo[Representation.StaticMeshDescIndex].AddBatchedCustomData<float>(AgentFragment.SkinIndex, RepresentationLOD.LODSignificance, Representation.PrevLODSignificance, 4);
 			}
 		}
 	});
+}
+
+void URTSAnimationProcessor::UpdateISMVertexAnimation(FMassInstancedStaticMeshInfo& ISMInfo, FRTSAnimationFragment& AnimationData, const float LODSignificance, const float PrevLODSignificance, const int32 NumFloatsToPad /*= 0*/)
+{
+	FAnimToTextureInstancePlaybackData InstanceData;
+	UAnimToTextureInstancePlaybackLibrary::AnimStateFromDataAsset(AnimationData.AnimToTextureData.Get(), AnimationData.AnimationStateIndex, InstanceData.CurrentState);
+	InstanceData.CurrentState.GlobalStartTime = AnimationData.GlobalStartTime;
+	InstanceData.CurrentState.PlayRate = AnimationData.PlayRate;
+	ISMInfo.AddBatchedCustomData<FAnimToTextureInstancePlaybackData>(InstanceData, LODSignificance, PrevLODSignificance, NumFloatsToPad);
 }

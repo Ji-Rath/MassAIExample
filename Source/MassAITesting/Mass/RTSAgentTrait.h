@@ -9,6 +9,7 @@
 #include "MassRepresentationSubsystem.h"
 #include "MassSignalSubsystem.h"
 #include "SmartObjectSubsystem.h"
+#include "../../../Plugins/AnimToTexture/Source/AnimToTexture/Public/AnimToTextureDataAsset.h"
 #include "RTSAgentTrait.generated.h"
 
 class UMassEntitySubsystem;
@@ -95,6 +96,23 @@ struct MASSAITESTING_API FRTSAgentFragment : public FMassFragment
 	TArray<FMassEntityHandle> QueuedItems;
 };
 
+USTRUCT()
+struct MASSAITESTING_API FRTSAnimationFragment : public FMassFragment
+{
+	GENERATED_BODY()
+	
+	TWeakObjectPtr<UAnimToTextureDataAsset> AnimToTextureData;
+	float GlobalStartTime = 0.0f;
+	float PlayRate = 1.0f;
+	int32 AnimationStateIndex = 0;
+	bool bSwappedThisFrame = false;
+	bool bCustomAnimation = false;
+	int AnimPosition = 0;
+	
+	//float SkinIndex = -1.f;
+	//float IsPunching = 0.f;
+};
+
 /**
  * @brief Base parameters for FRTSAgentTrait
  */
@@ -103,8 +121,12 @@ struct MASSAITESTING_API FRTSAgentParameters : public FMassSharedFragment
 {
 	GENERATED_BODY()
 	
-	UPROPERTY(EditAnywhere);
+	UPROPERTY(EditAnywhere)
 	TMap<TEnumAsByte<EResourceType>, int> DefaultRequiredResources;
+
+	// Since all rts agents current share animation data, its easiest to setup in a shared fragment for now
+	UPROPERTY(EditAnywhere)
+	TSoftObjectPtr<UAnimToTextureDataAsset> AnimData;
 };
 
 /**
@@ -154,6 +176,8 @@ class URTSAnimationProcessor : public UMassProcessor
 	virtual void Initialize(UObject& Owner) override;
 	virtual void ConfigureQueries() override;
 	virtual void Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context) override;
+	void UpdateISMVertexAnimation(FMassInstancedStaticMeshInfo& ISMInfo, FRTSAnimationFragment& AnimationData,
+	                              float LODSignificance, float PrevLODSignificance, int32 NumFloatsToPad);
 
 	FMassEntityQuery EntityQuery;
 
@@ -161,19 +185,6 @@ class URTSAnimationProcessor : public UMassProcessor
 };
 
 // Animation state of the ISM agent
-
-// Stores data of the ISM agent for instanced custom data
-USTRUCT()
-struct FAgentAnimationData : public FMassFragment
-{
-    GENERATED_BODY()
-
-	float SkinIndex = -1.f;
-	
-    float AnimState = 0.f;
-	
-	float IsPunching = 0.f;
-};
 
 /**
  * @brief Basic tag to declare entity as RTS Agent
