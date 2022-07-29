@@ -5,6 +5,10 @@
 #include "RTSAgentTrait.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "SmartObjectComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "MassAITesting/BuildingBase.h"
+#include "MassAITesting/BuildingManager.h"
+#include "MassAITesting/MassAITestingGameMode.h"
 
 //----------------------------------------------------------------------//
 // URTSConstructBuilding
@@ -28,11 +32,20 @@ void URTSConstructBuilding::Execute(UMassEntitySubsystem& EntitySubsystem, FMass
 			
 			if (const USmartObjectComponent* SmartObjectComponent = SmartObjectSubsystem->GetSmartObjectComponent(SOUser.ClaimHandle))
 			{
-				const AActor* Actor = SmartObjectComponent->GetOwner();
-				UInstancedStaticMeshComponent* InstancedStaticMeshComp = Actor->FindComponentByClass<UInstancedStaticMeshComponent>();
-				FTransform Transform;
-				Transform.SetLocation(FVector(0,0,IncrementHeight*InstancedStaticMeshComp->GetInstanceCount()));
-				InstancedStaticMeshComp->AddInstance(Transform);
+				ABuildingBase* Actor = SmartObjectComponent->GetOwner<ABuildingBase>();
+				ABuildingManager* BuildingManager = Cast<ABuildingManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ABuildingManager::StaticClass()));
+				UInstancedStaticMeshComponent* InstancedStaticMeshComp = nullptr;
+				if (Actor && BuildingManager)
+				{
+					// Essentially pick the correct ISM based on the floor level (Floor, Mid, Roof)
+					InstancedStaticMeshComp = Actor->CurrentFloor == 0 ? BuildingManager->FloorISM : Actor->CurrentFloor == Actor->Floors-1 ? BuildingManager->RoofISM : BuildingManager->MidISM;
+				
+					FTransform Transform;
+					Transform.SetLocation(FVector(0,0,BuildingManager->FloorHeight*Actor->CurrentFloor)+Actor->GetActorLocation());
+					Transform.SetRotation(FRotator(0.0,FMath::RandRange(0,3)*90.0,0.0).Quaternion());
+					InstancedStaticMeshComp->AddInstance(Transform, true);
+					Actor->CurrentFloor++;
+				}
 
 				RTSAgent.BuildingHandle = FSmartObjectHandle::Invalid;
 				Context.Defer().RemoveTag<FRTSConstructFloor>(Context.GetEntity(EntityIndex));
