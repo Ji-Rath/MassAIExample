@@ -131,6 +131,10 @@ I definitely might change my mind when I attempt to sync actor/ISM animation
 - Actual anim state index is updated in **UMassProcessor_Animation** and custom data is updated at
 **UMassCrowdUpdateISMVertexAnimationProcessor::UpdateISMVertexAnimation** in various processors
 
+### HashGrids
+- TPointHashGrid3 performance is considerably worse compared to THierarchicalHashGrid2D
+- This could be caused by the extra dimension, testing scenario, or more efficient logic for mass (as THierarchicalHashGrid2D is used in MassAvoidance)
+- Worst case scenario for similar search query: 235.9μs -> 8μs (x30 performance boost!)
 ### TODO
 - Find a way to use Mass SmartObject Eval effectively in the State Tree (DONE)
 - Convert logic in RTSMovementProcessor to State Tree (KINDOF DONE)
