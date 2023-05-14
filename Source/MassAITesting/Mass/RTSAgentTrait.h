@@ -127,6 +127,7 @@ struct MASSAITESTING_API FRTSAgentParameters : public FMassSharedFragment
 	// Since all rts agents current share animation data, its easiest to setup in a shared fragment for now
 	UPROPERTY(EditAnywhere)
 	TSoftObjectPtr<UAnimToTextureDataAsset> AnimData;
+	
 };
 
 /**
