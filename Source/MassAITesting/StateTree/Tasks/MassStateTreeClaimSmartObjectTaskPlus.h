@@ -9,6 +9,7 @@
 #include "SmartObjectSubsystem.h"
 #include "MassStateTreeClaimSmartObjectTaskPlus.generated.h"
 
+
 class UMassSignalSubsystem;
 struct FMassSmartObjectUserFragment;
 USTRUCT()
@@ -44,3 +45,4 @@ struct MASSAITESTING_API FMassStateTreeClaimSmartObjectTaskPlus : public FMassSt
 	TStateTreeExternalDataHandle<USmartObjectSubsystem> SmartObjectSubsystemHandle;
 
 };
+

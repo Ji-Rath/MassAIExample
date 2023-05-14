@@ -46,6 +46,10 @@
 		{
 			"Name": "MassGameplay",
 			"Enabled": true
+		},
+		{
+			"Name": "TDxUnrealEditor",
+			"Enabled": true
 		}
 	]
 }

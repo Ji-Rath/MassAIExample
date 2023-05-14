@@ -2,9 +2,9 @@
 
 
 #include "MassStateTreeClaimSmartObjectTaskPlus.h"
-
 #include "MassSmartObjectBehaviorDefinition.h"
 #include "MassSmartObjectFragments.h"
+#include "MassSmartObjectTypes.h"
 #include "SmartObjectSubsystem.h"
 #include "StateTreeExecutionContext.h"
 
@@ -12,7 +12,7 @@ bool FMassStateTreeClaimSmartObjectTaskPlus::Link(FStateTreeLinker& Linker)
 {
 	Linker.LinkInstanceDataProperty(SmartObjectHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeClaimSmartObjectTaskInstanceData, SOHandle));
 	Linker.LinkInstanceDataProperty(ClaimResultHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeClaimSmartObjectTaskInstanceData, ClaimResult));
-
+	
 	Linker.LinkExternalData(SmartObjectUserHandle);
 	Linker.LinkExternalData(SmartObjectSubsystemHandle);
 
