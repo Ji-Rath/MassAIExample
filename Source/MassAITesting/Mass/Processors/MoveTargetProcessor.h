@@ -20,7 +20,7 @@ class MASSAITESTING_API UMoveTargetProcessor : public UMassProcessor
 protected:
 	virtual void ConfigureQueries() override;
 
-	virtual void Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context) override;
+	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
 
 	virtual void Initialize(UObject& Owner) override;
 

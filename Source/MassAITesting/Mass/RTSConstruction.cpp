@@ -19,9 +19,9 @@ URTSConstructBuilding::URTSConstructBuilding()
 	Operation = EMassObservedOperation::Add;
 }
 
-void URTSConstructBuilding::Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context)
+void URTSConstructBuilding::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	EntityQuery.ParallelForEachEntityChunk(EntitySubsystem, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
 	{
 		TArrayView<FRTSAgentFragment> RTSAgents = Context.GetMutableFragmentView<FRTSAgentFragment>();
 		TConstArrayView<FMassSmartObjectUserFragment> SOUsers = Context.GetFragmentView<FMassSmartObjectUserFragment>();
@@ -30,7 +30,7 @@ void URTSConstructBuilding::Execute(UMassEntitySubsystem& EntitySubsystem, FMass
 			FRTSAgentFragment& RTSAgent = RTSAgents[EntityIndex];
 			const FMassSmartObjectUserFragment& SOUser = SOUsers[EntityIndex];
 			
-			if (const USmartObjectComponent* SmartObjectComponent = SmartObjectSubsystem->GetSmartObjectComponent(SOUser.ClaimHandle))
+			if (const USmartObjectComponent* SmartObjectComponent = SmartObjectSubsystem->GetSmartObjectComponent(SOUser.InteractionHandle))
 			{
 				ABuildingBase* Actor = SmartObjectComponent->GetOwner<ABuildingBase>();
 				ABuildingManager* BuildingManager = Cast<ABuildingManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ABuildingManager::StaticClass()));

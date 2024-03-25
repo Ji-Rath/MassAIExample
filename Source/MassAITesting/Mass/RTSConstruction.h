@@ -14,7 +14,7 @@ class MASSAITESTING_API URTSConstructBuilding : public UMassObserverProcessor
 
 	URTSConstructBuilding();
 	
-	virtual void Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context) override;
+	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
 	virtual void ConfigureQueries() override;
 	virtual void Initialize(UObject& Owner) override;
 

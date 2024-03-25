@@ -7,6 +7,7 @@
 #include "AITypes.h"
 #include "MassCommonFragments.h"
 #include "MassEntityTemplateRegistry.h"
+#include "MassExecutionContext.h"
 #include "MassMovementFragments.h"
 #include "MassNavigationFragments.h"
 #include "NavigationSystem.h"
@@ -15,7 +16,7 @@
 struct FMassMoveTargetFragment;
 struct FMassMovementParameters;
 
-void UNavMeshMovementTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, UWorld& World) const
+void UNavMeshMovementTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const
 {
 	BuildContext.AddTag<FNavAgent>();
 	BuildContext.AddFragment<FNavMeshPathFragment>();
@@ -28,9 +29,9 @@ UNavMeshMovementProcessor::UNavMeshMovementProcessor()
 	ExecutionOrder.ExecuteBefore.Add(UE::Mass::ProcessorGroupNames::Avoidance);
 }
 
-void UNavMeshMovementProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context)
+void UNavMeshMovementProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	EntityQuery.ForEachEntityChunk(EntitySubsystem, Context, ([this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(EntityManager, Context, ([this](FMassExecutionContext& Context)
 	{
 		const TConstArrayView<FTransformFragment> TransformsList = Context.GetFragmentView<FTransformFragment>();
 		const TArrayView<FMassMoveTargetFragment> NavTargetsList = Context.GetMutableFragmentView<FMassMoveTargetFragment>();

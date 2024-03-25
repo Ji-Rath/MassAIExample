@@ -9,7 +9,7 @@
 #include "Engine/World.h"
 #include "MassAITesting/RTSBuildingSubsystem.h"
 
-void URTSItemTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, UWorld& World) const
+void URTSItemTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const
 {
 	BuildContext.AddFragment<FItemFragment>();
 }
@@ -19,9 +19,9 @@ UItemProcessor::UItemProcessor()
 	
 }
 
-void UItemProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context)
+void UItemProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	EntityQuery.ParallelForEachEntityChunk(EntitySubsystem, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
 	{
 		TConstArrayView<FTransformFragment> Transforms = Context.GetFragmentView<FTransformFragment>();
 		TArrayView<FItemFragment> ItemFragments = Context.GetMutableFragmentView<FItemFragment>();
@@ -85,9 +85,9 @@ void UItemInitializerProcessor::Initialize(UObject& Owner)
 	RepresentationSubsystem = UWorld::GetSubsystem<UMassRepresentationSubsystem>(Owner.GetWorld());
 }
 
-void UItemInitializerProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context)
+void UItemInitializerProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	EntityQuery.ForEachEntityChunk(EntitySubsystem, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
 	{
 		TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
 		TArrayView<FItemFragment> ItemFragments = Context.GetMutableFragmentView<FItemFragment>();

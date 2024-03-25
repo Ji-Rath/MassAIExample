@@ -4,18 +4,20 @@
 #include "MassStateTreeMoveToEntityHandle.h"
 
 #include "MassCommandBuffer.h"
+#include "MassEntitySubsystem.h"
 #include "MassMovementFragments.h"
 #include "MassSignalSubsystem.h"
 #include "MassSmartObjectFragments.h"
 #include "MassStateTreeExecutionContext.h"
 #include "MassNavigationTypes.h"
 #include "MassSetSmartObjectMoveTargetTask.h"
+#include "StateTreeLinker.h"
 #include "MassAITesting/RTSBuildingSubsystem.h"
 #include "MassAITesting/Mass/RTSItemTrait.h"
 
 bool FMassStateTreeMoveToEntityHandle::Link(FStateTreeLinker& Linker)
 {
-	Linker.LinkInstanceDataProperty(EntityHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeMoveToEntityHandleInstanceData, ItemHandle));
+	//Linker.LinkInstanceDataProperty(EntityHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeMoveToEntityHandleInstanceData, ItemHandle));
 
 	Linker.LinkExternalData(MoveTargetHandle);
 	Linker.LinkExternalData(TransformHandle);
@@ -27,18 +29,17 @@ bool FMassStateTreeMoveToEntityHandle::Link(FStateTreeLinker& Linker)
 	return true;
 }
 
-EStateTreeRunStatus FMassStateTreeMoveToEntityHandle::EnterState(FStateTreeExecutionContext& Context,
-                                                                 const EStateTreeStateChangeType ChangeType, const FStateTreeTransitionResult& Transition) const
+EStateTreeRunStatus FMassStateTreeMoveToEntityHandle::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
 	FMassMoveTargetFragment& MoveTarget = Context.GetExternalData(MoveTargetHandle);
 	const FMassMovementParameters& MoveParameters = Context.GetExternalData(MoveParametersHandle);
-	const FMassEntityHandle& ItemHandle = Context.GetInstanceData(EntityHandle);
+	const FMassEntityHandle& ItemHandle = Context.GetInstanceData<FMassEntityHandle>(*this);
 	UMassEntitySubsystem& EntitySubsystem = Context.GetExternalData(EntitySubsystemHandle);
 
-	if (!EntitySubsystem.IsEntityValid(ItemHandle))
+	if (!EntitySubsystem.GetEntityManager().IsEntityValid(ItemHandle))
 		return EStateTreeRunStatus::Failed;
 
-	const FVector& Location = EntitySubsystem.GetFragmentDataChecked<FTransformFragment>(ItemHandle).GetTransform().GetLocation();
+	const FVector& Location = EntitySubsystem.GetEntityManager().GetFragmentDataChecked<FTransformFragment>(ItemHandle).GetTransform().GetLocation();
 	
 	MoveTarget.Center = Location;
 	MoveTarget.SlackRadius = 100.f;

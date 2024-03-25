@@ -21,8 +21,8 @@ struct MASSAITESTING_API FMassStateTreeClaimSmartObjectTaskInstanceData
 	FSmartObjectHandle SOHandle;
 
 	/** Result of the claim on potential candidates from the search results (Output) */
-	UPROPERTY(VisibleAnywhere, Category = Output)
-	EMassSmartObjectClaimResult ClaimResult = EMassSmartObjectClaimResult::Unset;
+	//UPROPERTY(VisibleAnywhere, Category = Output)
+	//EMassSmartObjectClaimResult ClaimResult = EMassSmartObjectClaimResult::Unset;
 };
 
 /**
@@ -33,12 +33,11 @@ struct MASSAITESTING_API FMassStateTreeClaimSmartObjectTaskPlus : public FMassSt
 {
 	GENERATED_BODY()
 
+	using FInstanceDataType = FMassStateTreeClaimSmartObjectTaskInstanceData;
+
 	virtual bool Link(FStateTreeLinker& Linker) override;
     virtual const UStruct* GetInstanceDataType() const override { return FMassStateTreeClaimSmartObjectTaskInstanceData::StaticStruct(); }
-    virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const EStateTreeStateChangeType ChangeType, const FStateTreeTransitionResult& Transition) const override;
-
-	TStateTreeInstanceDataPropertyHandle<FSmartObjectHandle> SmartObjectHandle;
-	TStateTreeInstanceDataPropertyHandle<EMassSmartObjectClaimResult> ClaimResultHandle;
+	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 
 	TStateTreeExternalDataHandle<FMassSmartObjectUserFragment> SmartObjectUserHandle;
 	TStateTreeExternalDataHandle<USmartObjectSubsystem> SmartObjectSubsystemHandle;

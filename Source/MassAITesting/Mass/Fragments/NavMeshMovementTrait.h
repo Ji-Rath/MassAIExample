@@ -38,7 +38,7 @@ class MASSAITESTING_API UNavMeshMovementTrait : public UMassEntityTraitBase
 {
 	GENERATED_BODY()
 
-	virtual void BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, UWorld& World) const override;
+	virtual void BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const override;
 };
 
 UCLASS()
@@ -48,7 +48,7 @@ class MASSAITESTING_API UNavMeshMovementProcessor : public UMassProcessor
 
 	UNavMeshMovementProcessor();
 	
-	virtual void Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context) override;
+	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
 	virtual void ConfigureQueries() override;
 
 	FMassEntityQuery EntityQuery;

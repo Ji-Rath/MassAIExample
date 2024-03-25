@@ -19,7 +19,7 @@ class MASSAITESTING_API URTSItemTrait : public UMassEntityTraitBase
 {
 	GENERATED_BODY()
 
-	virtual void BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, UWorld& World) const override;
+	virtual void BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const override;
 };
 
 USTRUCT()
@@ -53,7 +53,7 @@ class MASSAITESTING_API UItemInitializerProcessor : public UMassObserverProcesso
 	UItemInitializerProcessor();
 
 public:
-	virtual void Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context) override;
+	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
 	virtual void ConfigureQueries() override;
 	virtual void Initialize(UObject& Owner) override;
 
@@ -74,7 +74,7 @@ class MASSAITESTING_API UItemProcessor : public UMassProcessor
 	
 	UItemProcessor();
 public:
-	virtual void Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context) override;
+	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
 	virtual void ConfigureQueries() override;
 	virtual void Initialize(UObject& Owner) override;
 

@@ -5,36 +5,36 @@
 
 #include "MassSignalSubsystem.h"
 #include "MassStateTreeExecutionContext.h"
+#include "StateTreeLinker.h"
 
 bool FMassPlayAnimationTask::Link(FStateTreeLinker& Linker)
 {
 	Linker.LinkExternalData(MoveTargetHandle);
 	Linker.LinkExternalData(MassSignalSubsystemHandle);
 	Linker.LinkExternalData(AnimationHandle);
-	Linker.LinkInstanceDataProperty(DurationHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassPlayAnimationTaskInstanceData, Duration));
-	Linker.LinkInstanceDataProperty(TimeHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassPlayAnimationTaskInstanceData, Time));
-	Linker.LinkInstanceDataProperty(AnimationIndexHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassPlayAnimationTaskInstanceData, AnimationIndex));
+	//Linker.LinkInstanceDataProperty(DurationHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassPlayAnimationTaskInstanceData, Duration));
+	//Linker.LinkInstanceDataProperty(TimeHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassPlayAnimationTaskInstanceData, Time));
+	//Linker.LinkInstanceDataProperty(AnimationIndexHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassPlayAnimationTaskInstanceData, AnimationIndex));
 	
 	return true;
 }
 
-EStateTreeRunStatus FMassPlayAnimationTask::EnterState(FStateTreeExecutionContext& Context,
-	const EStateTreeStateChangeType ChangeType, const FStateTreeTransitionResult& Transition) const
+EStateTreeRunStatus FMassPlayAnimationTask::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
 	// Update MoveTarget location
 	const FMassStateTreeExecutionContext& MassContext = static_cast<FMassStateTreeExecutionContext&>(Context);
 	FMassMoveTargetFragment& MoveTarget = Context.GetExternalData(MoveTargetHandle);
 	FRTSAnimationFragment& AnimationFragment = Context.GetExternalData(AnimationHandle);
 
-	float& Time = Context.GetInstanceData(TimeHandle);
+	float& Time = Context.GetInstanceData<float>(*this);
 	Time = 0;
 
 	AnimationFragment.bCustomAnimation = true;
 	AnimationFragment.AnimPosition = 0;
-	AnimationFragment.AnimationStateIndex = Context.GetInstanceData(AnimationIndexHandle);
+	AnimationFragment.AnimationStateIndex = Context.GetInstanceData<int32>(*this);
 	MoveTarget.CreateNewAction(EMassMovementAction::Animate, *Context.GetWorld());
 
-	const float Duration = Context.GetInstanceData(DurationHandle);
+	const float Duration = Context.GetInstanceData<float>(*this);
 	if (Duration > 0.0f)
 	{
 		UMassSignalSubsystem& MassSignalSubsystem = MassContext.GetExternalData(MassSignalSubsystemHandle);
@@ -51,8 +51,8 @@ EStateTreeRunStatus FMassPlayAnimationTask::Tick(FStateTreeExecutionContext& Con
 	const FMassMoveTargetFragment& MoveTarget = Context.GetExternalData(MoveTargetHandle);
 	FRTSAnimationFragment& AnimationFragment = Context.GetExternalData(AnimationHandle);
 
-	float& Time = Context.GetInstanceData(TimeHandle);
-	const float Duration = Context.GetInstanceData(DurationHandle);
+	float& Time = Context.GetInstanceData<float>(*this);
+	const float Duration = Context.GetInstanceData<float>(*this);
 	
 	Time += DeltaTime;
 

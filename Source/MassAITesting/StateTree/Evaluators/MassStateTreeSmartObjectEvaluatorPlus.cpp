@@ -7,6 +7,7 @@
 #include "MassCommonFragments.h"
 #include "MassSmartObjectFragments.h"
 #include "StateTreeExecutionContext.h"
+#include "StateTreeLinker.h"
 #include "MassAITesting/Mass/RTSAgentTrait.h"
 
 bool FMassStateTreeSmartObjectEvaluatorPlus::Link(FStateTreeLinker& Linker)
@@ -17,51 +18,41 @@ bool FMassStateTreeSmartObjectEvaluatorPlus::Link(FStateTreeLinker& Linker)
 	Linker.LinkExternalData(SmartObjectUserHandle);
 	Linker.LinkExternalData(RTSAgentHandle);
 
-	Linker.LinkInstanceDataProperty(SmartObjectHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeSmartObjectEvaluatorPlusInstanceData, SOHandle));
-	Linker.LinkInstanceDataProperty(CandidatesFoundHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeSmartObjectEvaluatorPlusInstanceData, bCandidatesFound));
-	Linker.LinkInstanceDataProperty(RangeHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeSmartObjectEvaluatorPlusInstanceData, Range));
-	Linker.LinkInstanceDataProperty(SmartObjectHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeSmartObjectEvaluatorPlusInstanceData, SOHandle));
-
 	return true;
 }
 
-void FMassStateTreeSmartObjectEvaluatorPlus::ExitState(FStateTreeExecutionContext& Context,
-	const EStateTreeStateChangeType ChangeType, const FStateTreeTransitionResult& Transition) const
+void FMassStateTreeSmartObjectEvaluatorPlus::TreeStop(FStateTreeExecutionContext& Context) const
 {
-	if (ChangeType != EStateTreeStateChangeType::Changed)
-	{
-		return;
-	}
-
 	Reset(Context);
 }
 
-void FMassStateTreeSmartObjectEvaluatorPlus::Evaluate(FStateTreeExecutionContext& Context,
-	const EStateTreeEvaluationType EvalType, const float DeltaTime) const
+void FMassStateTreeSmartObjectEvaluatorPlus::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
 {
+	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
+	
 	USmartObjectSubsystem& SmartObjectSubsystem = Context.GetExternalData(SmartObjectSubsystemHandle);
 	FTransformFragment& TransformFragment = Context.GetExternalData(EntityTransformHandle);
 	UMassSignalSubsystem& SignalSubsystem = Context.GetExternalData(MassSignalSubsystemHandle);
 	FMassSmartObjectUserFragment& SOUser = Context.GetExternalData(SmartObjectUserHandle);
 	FRTSAgentFragment& RTSAgent = Context.GetExternalData(RTSAgentHandle);
 
-	FMassSmartObjectRequestResult& RequestResult = Context.GetInstanceData(SearchRequestResultHandle);
-	FSmartObjectRequestFilter& Filter = Context.GetInstanceData(FilterHandle);
-	FSmartObjectHandle& SOHandle = Context.GetInstanceData(SmartObjectHandle);
-	bool& CandidatesFound = Context.GetInstanceData(CandidatesFoundHandle);
-	float& Range = Context.GetInstanceData(RangeHandle);
+	FMassSmartObjectRequestResultFragment& RequestResult = InstanceData.SearchRequestResult;
+	FSmartObjectRequestFilter& Filter = InstanceData.Filter;
+	FSmartObjectHandle& SOHandle = InstanceData.SOHandle;
+	bool& CandidatesFound = InstanceData.bCandidatesFound;
+	float& Range = InstanceData.Range;
 
 	const FTransform& Transform = TransformFragment.GetTransform();
 
-	bool bClaimed = SOUser.ClaimHandle.IsValid();
+	bool bClaimed = SOUser.InteractionHandle.IsValid();
 
 	// We are returning to our claimed floor home, we dont need to perform any searching.
 	FGameplayTagQueryExpression Expression;
 	Filter.ActivityRequirements.GetQueryExpr(Expression);
 	if (RTSAgent.BuildingHandle.IsValid() && Expression.TagSet.Contains(FGameplayTag::RequestGameplayTag(TEXT("Object.Home"))))
 	{
-		RequestResult.Candidates[0] = FSmartObjectCandidate(RTSAgent.BuildingHandle, 0);
-		RequestResult.NumCandidates++;
+		//RequestResult.Candidates[0] = FSmartObjectCandidate(RTSAgent.BuildingHandle, 0);
+		//RequestResult.NumCandidates++;
 		RequestResult.bProcessed = true;
 		CandidatesFound = true;
 		
@@ -80,8 +71,8 @@ void FMassStateTreeSmartObjectEvaluatorPlus::Evaluate(FStateTreeExecutionContext
 	FSmartObjectRequestResult Result = SmartObjectSubsystem.FindSmartObject(Request);
 	if (Result.IsValid())
 	{
-		RequestResult.Candidates[0] = FSmartObjectCandidate(Result.SmartObjectHandle, 0);
-		RequestResult.NumCandidates++;
+		//RequestResult.Candidates[0] = FSmartObjectCandidate(Result.SmartObjectHandle, 0);
+		//RequestResult.NumCandidates++;
 		RequestResult.bProcessed = true;
 		CandidatesFound = true;
 	}
@@ -89,9 +80,10 @@ void FMassStateTreeSmartObjectEvaluatorPlus::Evaluate(FStateTreeExecutionContext
 
 void FMassStateTreeSmartObjectEvaluatorPlus::Reset(FStateTreeExecutionContext& Context) const
 {
-	bool& bCandidatesFound = Context.GetInstanceData(CandidatesFoundHandle);
-	FMassSmartObjectRequestResult& RequestResult = Context.GetInstanceData(SearchRequestResultHandle);
+	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
+	bool& bCandidatesFound = InstanceData.bCandidatesFound;
+	FMassSmartObjectRequestResultFragment& RequestResult = InstanceData.SearchRequestResult;
 	bCandidatesFound = false;
 	RequestResult.bProcessed = false;
-	RequestResult.NumCandidates = 0;
+	//RequestResult.NumCandidates = 0;
 }

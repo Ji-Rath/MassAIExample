@@ -7,6 +7,7 @@
 #include "SmartObjectSubsystem.h"
 #include "MassStateTreeRequiredMaterialsEvaluator.generated.h"
 
+class UMassEntitySubsystem;
 class URTSBuildingSubsystem;
 struct FRTSAgentFragment;
 USTRUCT()
@@ -38,7 +39,9 @@ struct MASSAITESTING_API FMassStateTreeRequiredMaterialsEvaluator : public FMass
 {
 	GENERATED_BODY()
 
-	virtual void Evaluate(FStateTreeExecutionContext& Context, const EStateTreeEvaluationType EvalType, const float DeltaTime) const override;
+	using FInstanceDataType = FMassStateTreeRequiredMaterialsEvaluatorInstanceData;
+	
+	virtual void TreeStart(FStateTreeExecutionContext& Context) const override;
 	virtual bool Link(FStateTreeLinker& Linker) override;
 	virtual const UStruct* GetInstanceDataType() const override { return FMassStateTreeRequiredMaterialsEvaluatorInstanceData::StaticStruct(); }
 
@@ -47,10 +50,4 @@ struct MASSAITESTING_API FMassStateTreeRequiredMaterialsEvaluator : public FMass
 	TStateTreeExternalDataHandle<UMassEntitySubsystem> EntitySubsystemHandle;
 	TStateTreeExternalDataHandle<FTransformFragment> TransformHandle;
 	TStateTreeExternalDataHandle<URTSBuildingSubsystem> BuildingSubsystemHandle;
-	
-	TStateTreeInstanceDataPropertyHandle<bool> FoundSmartObjectHandle;
-	TStateTreeInstanceDataPropertyHandle<FSmartObjectRequestFilter> FilterHandle;
-	TStateTreeInstanceDataPropertyHandle<bool> FoundItemHandle;
-	TStateTreeInstanceDataPropertyHandle<FSmartObjectHandle> SmartObjectHandle;
-	TStateTreeInstanceDataPropertyHandle<FMassEntityHandle> ItemHandle;
 };

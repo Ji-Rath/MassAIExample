@@ -8,6 +8,7 @@
 #include "MassEntityTypes.h"
 #include "MassStateTreeTakeItemTask.generated.h"
 
+class UMassEntitySubsystem;
 class URTSBuildingSubsystem;
 USTRUCT()
 struct FMassStateTreeTakeItemTaskInstanceData
@@ -28,9 +29,9 @@ struct MASSAITESTING_API FMassStateTreeTakeItemTask : public FMassStateTreeTaskB
 	
 	virtual bool Link(FStateTreeLinker& Linker) override;
 	virtual const UStruct* GetInstanceDataType() const override { return FMassStateTreeTakeItemTaskInstanceData::StaticStruct(); }
-	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const EStateTreeStateChangeType ChangeType, const FStateTreeTransitionResult& Transition) const override;
+	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 
-	TStateTreeInstanceDataPropertyHandle<FMassEntityHandle> EntityHandle;
+	//TStateTreeInstanceDataPropertyHandle<FMassEntityHandle> EntityHandle;
 
 	TStateTreeExternalDataHandle<UMassEntitySubsystem> EntitySubsystemHandle;
 	TStateTreeExternalDataHandle<URTSBuildingSubsystem> BuildingSubsystemHandle;

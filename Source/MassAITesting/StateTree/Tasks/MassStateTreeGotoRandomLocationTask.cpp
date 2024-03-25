@@ -5,23 +5,23 @@
 
 #include "MassCommonFragments.h"
 #include "MassSetSmartObjectMoveTargetTask.h"
+#include "StateTreeLinker.h"
 #include "MassAITesting/Mass/RTSItemTrait.h"
 
 bool FMassStateTreeGotoRandomLocationTask::Link(FStateTreeLinker& Linker)
 {
-	Linker.LinkInstanceDataProperty(RadiusHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeGotoRandomLocationTaskInstanceData, Radius));
+	//Linker.LinkInstanceDataProperty(RadiusHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeGotoRandomLocationTaskInstanceData, Radius));
 	
 	Linker.LinkExternalData(TransformHandle);
 	Linker.LinkExternalData(MoveTargetHandle);
 	return true;
 }
 
-EStateTreeRunStatus FMassStateTreeGotoRandomLocationTask::EnterState(FStateTreeExecutionContext& Context,
-	const EStateTreeStateChangeType ChangeType, const FStateTreeTransitionResult& Transition) const
+EStateTreeRunStatus FMassStateTreeGotoRandomLocationTask::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
 	FMassMoveTargetFragment& MoveTargetFragment = Context.GetExternalData(MoveTargetHandle);
 	const FTransform& Transform = Context.GetExternalData(TransformHandle).GetTransform();
-	const float& Radius = Context.GetInstanceData(RadiusHandle);
+	const float& Radius = Context.GetInstanceData<float>(*this);
 	FVector RandomLocation = FVector(FMath::RandRange(-Radius, Radius), FMath::RandRange(-Radius, Radius), 0.f);
 	RandomLocation += Transform.GetLocation();
 

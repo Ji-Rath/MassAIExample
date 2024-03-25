@@ -41,8 +41,8 @@ bool URTSBuildingSubsystem::FindItem(const FVector& Location, float Radius, ERes
 	// Sort potential entities by distance
 	Entities.Sort([&EntitySubsystem, &Location](const FMassEntityHandle& A, const FMassEntityHandle& B)
 	{
-		const FVector& LocA = EntitySubsystem->GetFragmentDataPtr<FTransformFragment>(A)->GetTransform().GetLocation();
-		const FVector& LocB = EntitySubsystem->GetFragmentDataPtr<FTransformFragment>(B)->GetTransform().GetLocation();
+		const FVector& LocA = EntitySubsystem->GetEntityManager().GetFragmentDataPtr<FTransformFragment>(A)->GetTransform().GetLocation();
+		const FVector& LocB = EntitySubsystem->GetEntityManager().GetFragmentDataPtr<FTransformFragment>(B)->GetTransform().GetLocation();
 		
 		return FVector::Dist(Location, LocA) < FVector::Dist(Location, LocB);
 	});
@@ -50,12 +50,12 @@ bool URTSBuildingSubsystem::FindItem(const FVector& Location, float Radius, ERes
 	// Perform filtering
 	for(const FMassEntityHandle& Entity : Entities)
 	{
-		if (const FItemFragment* Item = EntitySubsystem->GetFragmentDataPtr<FItemFragment>(Entity))
+		if (const FItemFragment* Item = EntitySubsystem->GetEntityManager().GetFragmentDataPtr<FItemFragment>(Entity))
 		{
 			if (Item->ItemType == ResourceType && !Item->bClaimed)
 			{
 				OutItemHandle = Entity;
-				return EntitySubsystem->IsEntityValid(Entity);
+				return EntitySubsystem->GetEntityManager().IsEntityValid(Entity);
 			}
 		}
 	}
@@ -95,7 +95,7 @@ void URTSBuildingSubsystem::SelectClosestAgent(const FVector& Location)
 	UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
 	for(const FMassEntityHandle& Entity : RTSAgents)
 	{
-		const FVector& EntityLocation = EntitySubsystem->GetFragmentDataPtr<FTransformFragment>(Entity)->GetTransform().GetLocation();
+		const FVector& EntityLocation = EntitySubsystem->GetEntityManager().GetFragmentDataPtr<FTransformFragment>(Entity)->GetTransform().GetLocation();
 		float Distance = FVector::Dist(EntityLocation, Location);
 		if (ClosestDistance == -1 || Distance < ClosestDistance)
 		{
@@ -110,7 +110,7 @@ void URTSBuildingSubsystem::GetAgentLocation(FVector& OutLocation)
 	UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
 	if (EntitySubsystem && RTSAgent.IsValid())
 	{
-		OutLocation = EntitySubsystem->GetFragmentDataPtr<FTransformFragment>(RTSAgent)->GetTransform().GetLocation();
+		OutLocation = EntitySubsystem->GetEntityManager().GetFragmentDataPtr<FTransformFragment>(RTSAgent)->GetTransform().GetLocation();
 	}
 }
 
@@ -119,6 +119,6 @@ void URTSBuildingSubsystem::GetAgentInformation(FRTSAgentFragment& OutAgentInfo)
 	UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
 	if (EntitySubsystem && RTSAgent.IsValid())
 	{
-		OutAgentInfo = *EntitySubsystem->GetFragmentDataPtr<FRTSAgentFragment>(RTSAgent);
+		OutAgentInfo = *EntitySubsystem->GetEntityManager().GetFragmentDataPtr<FRTSAgentFragment>(RTSAgent);
 	}
 }
