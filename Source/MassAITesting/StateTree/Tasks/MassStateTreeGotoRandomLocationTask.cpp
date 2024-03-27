@@ -21,7 +21,9 @@ EStateTreeRunStatus FMassStateTreeGotoRandomLocationTask::EnterState(FStateTreeE
 {
 	FMassMoveTargetFragment& MoveTargetFragment = Context.GetExternalData(MoveTargetHandle);
 	const FTransform& Transform = Context.GetExternalData(TransformHandle).GetTransform();
-	const float& Radius = Context.GetInstanceData<float>(*this);
+	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
+	
+	const float& Radius = InstanceData.Radius;
 	FVector RandomLocation = FVector(FMath::RandRange(-Radius, Radius), FMath::RandRange(-Radius, Radius), 0.f);
 	RandomLocation += Transform.GetLocation();
 

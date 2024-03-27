@@ -14,17 +14,19 @@
 void FMassStateTreeRequiredMaterialsEvaluator::TreeStart(FStateTreeExecutionContext& Context) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(TEXT("RequiredMaterialsEvaluator"));
+
+	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 	
 	FRTSAgentFragment& RTSAgent = Context.GetExternalData(RTSAgentHandle);
 	UMassEntitySubsystem& EntitySubsystem = Context.GetExternalData(EntitySubsystemHandle);
 	URTSBuildingSubsystem& BuildingSubsystem = Context.GetExternalData(BuildingSubsystemHandle);
 	const FVector& Location = Context.GetExternalData(TransformHandle).GetTransform().GetLocation();
 	
-	FSmartObjectRequestFilter& Filter = Context.GetInstanceData<FSmartObjectRequestFilter>(*this);
-	bool& bFoundSmartObject = Context.GetInstanceData<bool>(*this);
-	bool& bFoundItemHandle = Context.GetInstanceData<bool>(*this);
-	FSmartObjectHandle& SOHandle = Context.GetInstanceData<FSmartObjectHandle>(*this);
-	FMassEntityHandle& EntityHandle = Context.GetInstanceData<FMassEntityHandle>(*this);
+	FSmartObjectRequestFilter& Filter = InstanceData.Filter;
+	bool& bFoundSmartObject = InstanceData.bFoundSmartObject;
+	bool& bFoundItemHandle = InstanceData.bFoundItemHandle;
+	FSmartObjectHandle& SOHandle = InstanceData.SmartObjectHandle;
+	FMassEntityHandle& EntityHandle = InstanceData.ItemHandle;
 
 	bFoundSmartObject = false;
 	bFoundItemHandle = false;
@@ -121,14 +123,6 @@ bool FMassStateTreeRequiredMaterialsEvaluator::Link(FStateTreeLinker& Linker)
 	Linker.LinkExternalData(TransformHandle);
 	Linker.LinkExternalData(EntitySubsystemHandle);
 	Linker.LinkExternalData(BuildingSubsystemHandle);
-
-	/*
-	Linker.LinkInstanceDataProperty(FoundSmartObjectHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeRequiredMaterialsEvaluatorInstanceData, bFoundSmartObject));
-	Linker.LinkInstanceDataProperty(FilterHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeRequiredMaterialsEvaluatorInstanceData, Filter));
-	Linker.LinkInstanceDataProperty(FoundItemHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeRequiredMaterialsEvaluatorInstanceData, bFoundItemHandle));
-	Linker.LinkInstanceDataProperty(SmartObjectHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeRequiredMaterialsEvaluatorInstanceData, SmartObjectHandle));
-	Linker.LinkInstanceDataProperty(ItemHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeRequiredMaterialsEvaluatorInstanceData, ItemHandle));
-	*/
 
 	return true;
 }

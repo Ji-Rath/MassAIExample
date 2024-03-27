@@ -39,6 +39,8 @@ struct MASSAITESTING_API FMassMoveTask : public FMassStateTreeTaskBase
 {
 	GENERATED_BODY()
 
+	using FInstanceDataType = FMassMoveTaskInstanceData;
+
 	virtual bool Link(FStateTreeLinker& Linker) override;
 	virtual const UStruct* GetInstanceDataType() const override { return FMassMoveTaskInstanceData::StaticStruct(); }
 

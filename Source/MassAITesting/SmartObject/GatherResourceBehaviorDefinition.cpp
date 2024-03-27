@@ -6,6 +6,7 @@
 #include "MassCommandBuffer.h"
 #include "MassCommonFragments.h"
 #include "MassEntityConfigAsset.h"
+#include "MassEntitySubsystem.h"
 #include "MassSmartObjectFragments.h"
 #include "MassSpawnerSubsystem.h"
 #include "SmartObjectComponent.h"
@@ -60,7 +61,7 @@ void UGatherResourceBehaviorDefinition::Deactivate(FMassCommandBuffer& CommandBu
 			FItemFragment ItemFragment;
 			ItemFragment.ItemType = ResourceType;
 			ItemFragment.OldLocation = SpawnLocation;
-			CommandBuffer.PushCommand<FMassCommandAddFragmentInstances>(ItemHandle, FConstStructView::Make(ItemFragment));
+			CommandBuffer.PushCommand<FMassCommandAddFragmentInstances>(ItemHandle, ItemFragment);
 		}
 	
 		FRTSAgentFragment& Agent = EntityContext.EntityView.GetFragmentData<FRTSAgentFragment>();
@@ -69,7 +70,7 @@ void UGatherResourceBehaviorDefinition::Deactivate(FMassCommandBuffer& CommandBu
 		const FMassSmartObjectUserFragment& SOUser = EntityContext.EntityView.GetFragmentData<FMassSmartObjectUserFragment>();
 		if (USmartObjectComponent* SOComp = EntityContext.SmartObjectSubsystem.GetSmartObjectComponent(SOUser.InteractionHandle))
 		{
-			CommandBuffer.PushCommand<FMassDeferredAddCommand>([SOComp, EntityContext](UMassEntitySubsystem& System)
+			CommandBuffer.PushCommand<FMassDeferredAddCommand>([SOComp, EntityContext](FMassEntityManager& System)
 			{
 				SOComp->GetOwner()->Destroy();
 			});

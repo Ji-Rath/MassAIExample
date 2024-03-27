@@ -26,15 +26,17 @@ EStateTreeRunStatus FMassPlayAnimationTask::EnterState(FStateTreeExecutionContex
 	FMassMoveTargetFragment& MoveTarget = Context.GetExternalData(MoveTargetHandle);
 	FRTSAnimationFragment& AnimationFragment = Context.GetExternalData(AnimationHandle);
 
-	float& Time = Context.GetInstanceData<float>(*this);
+	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
+
+	float& Time = InstanceData.Time;
 	Time = 0;
 
 	AnimationFragment.bCustomAnimation = true;
 	AnimationFragment.AnimPosition = 0;
-	AnimationFragment.AnimationStateIndex = Context.GetInstanceData<int32>(*this);
+	AnimationFragment.AnimationStateIndex = InstanceData.AnimationIndex;
 	MoveTarget.CreateNewAction(EMassMovementAction::Animate, *Context.GetWorld());
 
-	const float Duration = Context.GetInstanceData<float>(*this);
+	const float Duration = InstanceData.Duration;
 	if (Duration > 0.0f)
 	{
 		UMassSignalSubsystem& MassSignalSubsystem = MassContext.GetExternalData(MassSignalSubsystemHandle);
@@ -51,8 +53,10 @@ EStateTreeRunStatus FMassPlayAnimationTask::Tick(FStateTreeExecutionContext& Con
 	const FMassMoveTargetFragment& MoveTarget = Context.GetExternalData(MoveTargetHandle);
 	FRTSAnimationFragment& AnimationFragment = Context.GetExternalData(AnimationHandle);
 
-	float& Time = Context.GetInstanceData<float>(*this);
-	const float Duration = Context.GetInstanceData<float>(*this);
+	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
+
+	float& Time = InstanceData.Time;
+	const float Duration = InstanceData.Duration;
 	
 	Time += DeltaTime;
 

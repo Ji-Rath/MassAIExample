@@ -36,6 +36,8 @@ USTRUCT()
 struct MASSAITESTING_API FMassPlayAnimationTask : public FMassStateTreeTaskBase
 {
 	GENERATED_BODY()
+
+	using FInstanceDataType = FMassPlayAnimationTaskInstanceData;
 	
 	virtual bool Link(FStateTreeLinker& Linker) override;
 	virtual const UStruct* GetInstanceDataType() const override { return FMassPlayAnimationTaskInstanceData::StaticStruct(); }

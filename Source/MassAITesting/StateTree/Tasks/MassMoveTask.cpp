@@ -25,6 +25,7 @@ EStateTreeRunStatus FMassMoveTask::Tick(FStateTreeExecutionContext& Context, con
 
 EStateTreeRunStatus FMassMoveTask::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	const float Duration = Context.GetInstanceData()
+	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
+	const float Duration = InstanceData.Duration;
 	return EStateTreeRunStatus::Failed;
 }

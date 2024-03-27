@@ -540,7 +540,7 @@ UStaticMesh* FVertexAnimUtils::ConvertMeshesToStaticMesh(const TArray<UMeshCompo
 		if (bValidData)
 		{
 			// Then find/create it.
-			UPackage* Package = CreatePackage(NULL, *PackageName);
+			UPackage* Package = CreatePackage(*PackageName);
 			check(Package);
 
 			// Create StaticMesh object

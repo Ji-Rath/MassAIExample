@@ -12,7 +12,6 @@
 #include "RTSAgentTrait.generated.h"
 
 class UAnimToTextureDataAsset;
-class UMassEntitySubsystem;
 class URTSBuildingSubsystem;
 class USmartObjectSubsystem;
 

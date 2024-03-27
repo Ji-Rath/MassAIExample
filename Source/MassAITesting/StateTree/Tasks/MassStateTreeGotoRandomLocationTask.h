@@ -28,6 +28,8 @@ USTRUCT()
 struct MASSAITESTING_API FMassStateTreeGotoRandomLocationTask : public FMassStateTreeTaskBase
 {
 	GENERATED_BODY()
+
+	using FInstanceDataType = FMassStateTreeGotoRandomLocationTaskInstanceData;
 	
 	virtual bool Link(FStateTreeLinker& Linker) override;
 	virtual const UStruct* GetInstanceDataType() const override { return FMassStateTreeGotoRandomLocationTaskInstanceData::StaticStruct(); }
