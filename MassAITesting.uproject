@@ -32,6 +32,10 @@
 			]
 		},
 		{
+			"Name": "AnimToTexture",
+			"Enabled": true
+		},
+		{
 			"Name": "MassEntity",
 			"Enabled": true
 		},
