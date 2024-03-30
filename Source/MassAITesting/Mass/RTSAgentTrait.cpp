@@ -52,6 +52,7 @@ void URTSGatherResourceProcessor::ConfigureQueries()
 {
 	EntityQuery.AddRequirement<FRTSGatherResourceFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FRTSAgentFragment>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void URTSGatherResourceProcessor::Initialize(UObject& Owner)
@@ -118,6 +119,7 @@ void URTSAgentInitializer::ConfigureQueries()
 	EntityQuery.AddTagRequirement<FRTSAgent>(EMassFragmentPresence::All);
 	EntityQuery.AddRequirement<FMassRepresentationFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FRTSAnimationFragment>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void URTSAgentInitializer::Initialize(UObject& Owner)
@@ -159,6 +161,7 @@ void URTSAnimationProcessor::ConfigureQueries()
 	EntityQuery.AddConstSharedRequirement<FRTSAgentParameters>(EMassFragmentPresence::All);
 	EntityQuery.AddChunkRequirement<FMassVisualizationChunkFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.SetChunkFilter(&FMassVisualizationChunkFragment::AreAnyEntitiesVisibleInChunk);
+	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void URTSAnimationProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)

@@ -20,6 +20,7 @@ void UMoveTargetProcessor::ConfigureQueries()
 	EntityQuery.AddRequirement<FMassMoveTargetFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddChunkRequirement<FMassSimulationVariableTickChunkFragment>(EMassFragmentAccess::ReadOnly, EMassFragmentPresence::Optional);
 	EntityQuery.SetChunkFilter(&FMassSimulationVariableTickChunkFragment::ShouldTickChunkThisFrame);
+	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void UMoveTargetProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)

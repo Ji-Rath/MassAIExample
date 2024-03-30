@@ -56,6 +56,7 @@ void UItemProcessor::ConfigureQueries()
 	EntityQuery.AddRequirement<FMassRepresentationLODFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddChunkRequirement<FMassVisualizationChunkFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.SetChunkFilter(&FMassVisualizationChunkFragment::AreAnyEntitiesVisibleInChunk);
+	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void UItemProcessor::Initialize(UObject& Owner)
@@ -77,6 +78,7 @@ void UItemInitializerProcessor::ConfigureQueries()
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FMassRepresentationFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FMassRepresentationLODFragment>(EMassFragmentAccess::ReadOnly);
+	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void UItemInitializerProcessor::Initialize(UObject& Owner)

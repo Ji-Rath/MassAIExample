@@ -8,7 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "MassAITesting/BuildingBase.h"
 #include "MassAITesting/BuildingManager.h"
-#include "MassAITesting/MassAITestingGameMode.h"
+#include "MassExecutionContext.h"
 
 //----------------------------------------------------------------------//
 // URTSConstructBuilding
@@ -66,6 +66,7 @@ void URTSConstructBuilding::ConfigureQueries()
 {
 	EntityQuery.AddRequirement<FRTSAgentFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FMassSmartObjectUserFragment>(EMassFragmentAccess::ReadOnly);
+	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void URTSConstructBuilding::Initialize(UObject& Owner)
