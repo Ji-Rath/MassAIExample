@@ -38,7 +38,11 @@ void UItemProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionCo
 			const FMassRepresentationLODFragment& RepresentationLOD = RepresentationLODFragments[EntityIndex];
 
 			// Update Item Hash Grid with new position (Probably does not need to be done for an item...that should keep the same location)
-			//BuildingSubsystem->ItemHashGrid.UpdatePoint(Context.GetEntity(EntityIndex), Item.OldLocation, Location);
+			float Radius = 25.f;
+			const FBox OldBounds(Item.OldLocation - FVector(Radius, Radius, 0.f), Item.OldLocation + FVector(Radius, Radius, 0.f));
+			const FBox NewBounds(Location - FVector(Radius, Radius, 0.f), Location + FVector(Radius, Radius, 0.f));
+			
+			Item.CellLoc = BuildingSubsystem->ItemHashGrid.Move(Context.GetEntity(EntityIndex), OldBounds, NewBounds);
 			Item.OldLocation = Location;
 
 			//@todo move this to its own processor
@@ -76,8 +80,6 @@ void UItemInitializerProcessor::ConfigureQueries()
 {
 	EntityQuery.AddRequirement<FItemFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
-	EntityQuery.AddRequirement<FMassRepresentationFragment>(EMassFragmentAccess::ReadWrite);
-	EntityQuery.AddRequirement<FMassRepresentationLODFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.RegisterWithProcessor(*this);
 }
 
@@ -93,15 +95,11 @@ void UItemInitializerProcessor::Execute(FMassEntityManager& EntityManager, FMass
 	{
 		TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
 		TArrayView<FItemFragment> ItemFragments = Context.GetMutableFragmentView<FItemFragment>();
-		TArrayView<FMassRepresentationFragment> RepresentationFragments = Context.GetMutableFragmentView<FMassRepresentationFragment>();
-		TConstArrayView<FMassRepresentationLODFragment> RepresentationLODFragments = Context.GetFragmentView<FMassRepresentationLODFragment>();
 
 		FMassInstancedStaticMeshInfoArrayView MeshInfo = RepresentationSubsystem->GetMutableInstancedStaticMeshInfos();
 		
 		for (int32 EntityIndex = 0; EntityIndex < Context.GetNumEntities(); ++EntityIndex)
 		{
-			FMassRepresentationFragment& Representation = RepresentationFragments[EntityIndex];
-			const FMassRepresentationLODFragment& RepresentationLOD = RepresentationLODFragments[EntityIndex];
 			FItemFragment& Item = ItemFragments[EntityIndex];
 			FTransform& Transform = Transforms[EntityIndex].GetMutableTransform();
 

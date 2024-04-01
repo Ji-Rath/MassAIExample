@@ -5,6 +5,7 @@
 
 #include "MassEntitySubsystem.h"
 #include "MassSmartObjectBehaviorDefinition.h"
+#include "MassStateTreeExecutionContext.h"
 #include "SmartObjectSubsystem.h"
 #include "StateTreeExecutionContext.h"
 #include "StateTreeLinker.h"
@@ -12,6 +13,14 @@
 #include "MassAITesting/Mass/RTSItemTrait.h"
 
 void FMassStateTreeRequiredMaterialsEvaluator::TreeStart(FStateTreeExecutionContext& Context) const
+{
+	// Signal task tick
+	const FMassStateTreeExecutionContext& MassContext = static_cast<FMassStateTreeExecutionContext&>(Context);
+	//auto& MassSignalSubsystem = Context.GetExternalData(MassSignalSubsystemHandle);
+	//MassSignalSubsystem.DelaySignalEntity(UE::Mass::Signals::StateTreeActivate, MassContext.GetEntity(), 1.f);
+}
+
+void FMassStateTreeRequiredMaterialsEvaluator::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(TEXT("RequiredMaterialsEvaluator"));
 
@@ -123,6 +132,7 @@ bool FMassStateTreeRequiredMaterialsEvaluator::Link(FStateTreeLinker& Linker)
 	Linker.LinkExternalData(TransformHandle);
 	Linker.LinkExternalData(EntitySubsystemHandle);
 	Linker.LinkExternalData(BuildingSubsystemHandle);
+	Linker.LinkExternalData(MassSignalSubsystemHandle);
 
 	return true;
 }

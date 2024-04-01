@@ -38,6 +38,13 @@ bool URTSBuildingSubsystem::FindItem(const FVector& Location, float Radius, ERes
 	const FBox Bounds(Location - FVector(Radius, Radius, 0.f), Location + FVector(Radius, Radius, 0.f));
 	ItemHashGrid.Query(Bounds,Entities);
 
+	
+	Entities = Entities.FilterByPredicate([&EntitySubsystem](const FMassEntityHandle& A)
+	{
+		return EntitySubsystem->GetEntityManager().IsEntityValid(A);
+	});
+	
+
 	// Sort potential entities by distance
 	Entities.Sort([&EntitySubsystem, &Location](const FMassEntityHandle& A, const FMassEntityHandle& B)
 	{

@@ -34,6 +34,8 @@ struct MASSAITESTING_API FMassStateTreeMoveToEntityHandle : public FMassStateTre
 {
 	GENERATED_BODY()
 
+	using FInstanceDataType = FMassStateTreeMoveToEntityHandleInstanceData;
+
 	virtual bool Link(FStateTreeLinker& Linker) override;
 	virtual const UStruct* GetInstanceDataType() const override { return FMassStateTreeMoveToEntityHandleInstanceData::StaticStruct(); }
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;

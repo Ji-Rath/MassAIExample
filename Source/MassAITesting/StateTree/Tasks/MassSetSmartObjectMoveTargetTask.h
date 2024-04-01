@@ -17,6 +17,9 @@ USTRUCT()
 struct MASSAITESTING_API FMassSetSmartObjectMoveTargetInstanceData
 {
 	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category=Input)
+	FSmartObjectClaimHandle ClaimHandle;
 };
 
 /**
@@ -26,6 +29,8 @@ USTRUCT()
 struct MASSAITESTING_API FMassSetSmartObjectMoveTargetTask : public FMassStateTreeTaskBase
 {
 	GENERATED_BODY()
+
+	using FInstanceDataType = FMassSetSmartObjectMoveTargetInstanceData;
 	
 	virtual bool Link(FStateTreeLinker& Linker) override;
 	virtual const UStruct* GetInstanceDataType() const override { return FMassSetSmartObjectMoveTargetInstanceData::StaticStruct(); }
@@ -41,4 +46,5 @@ protected:
 	TStateTreeExternalDataHandle<FMassSmartObjectUserFragment> SOUserHandle;
 	TStateTreeExternalDataHandle<UMassSignalSubsystem> MassSignalSubsystemHandle;
 	TStateTreeExternalDataHandle<FMassMovementParameters> MoveParametersHandle;
+	TStateTreeExternalDataHandle<USmartObjectSubsystem> SmartObjectSubsystemHandle;
 };

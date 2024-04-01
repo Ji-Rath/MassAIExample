@@ -20,6 +20,9 @@ struct MASSAITESTING_API FMassStateTreeClaimSmartObjectTaskInstanceData
 	UPROPERTY(VisibleAnywhere, Category = Input)
 	FSmartObjectHandle SOHandle;
 
+	UPROPERTY(VisibleAnywhere, Category = Output)
+	FSmartObjectClaimHandle ClaimHandle;
+
 	/** Result of the claim on potential candidates from the search results (Output) */
 	//UPROPERTY(VisibleAnywhere, Category = Output)
 	//EMassSmartObjectClaimResult ClaimResult = EMassSmartObjectClaimResult::Unset;

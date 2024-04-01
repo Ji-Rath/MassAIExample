@@ -26,6 +26,8 @@ USTRUCT()
 struct MASSAITESTING_API FMassStateTreeTakeItemTask : public FMassStateTreeTaskBase
 {
 	GENERATED_BODY()
+
+	using FInstanceDataType = FMassStateTreeTakeItemTaskInstanceData;
 	
 	virtual bool Link(FStateTreeLinker& Linker) override;
 	virtual const UStruct* GetInstanceDataType() const override { return FMassStateTreeTakeItemTaskInstanceData::StaticStruct(); }

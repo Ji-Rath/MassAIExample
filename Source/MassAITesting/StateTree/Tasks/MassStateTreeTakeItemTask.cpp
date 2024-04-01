@@ -10,8 +10,6 @@
 
 bool FMassStateTreeTakeItemTask::Link(FStateTreeLinker& Linker)
 {
-	//Linker.LinkInstanceDataProperty(EntityHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeTakeItemTaskInstanceData, ItemHandle));
-	
 	Linker.LinkExternalData(EntitySubsystemHandle);
 	Linker.LinkExternalData(BuildingSubsystemHandle);
 	return true;
@@ -19,7 +17,8 @@ bool FMassStateTreeTakeItemTask::Link(FStateTreeLinker& Linker)
 
 EStateTreeRunStatus FMassStateTreeTakeItemTask::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	const FMassEntityHandle& ItemHandle = Context.GetInstanceData<FMassEntityHandle>(*this);
+	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
+	FMassEntityHandle& ItemHandle = InstanceData.ItemHandle;
 	UMassEntitySubsystem& EntitySubsystem = Context.GetExternalData(EntitySubsystemHandle);
 	URTSBuildingSubsystem& BuildingSubsystem = Context.GetExternalData(BuildingSubsystemHandle);
 	

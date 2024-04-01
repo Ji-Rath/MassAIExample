@@ -44,6 +44,7 @@ void UMoveTargetProcessor::Execute(FMassEntityManager& EntityManager, FMassExecu
 				if (MoveTarget.DistanceToGoal <= MoveTarget.SlackRadius)
 				{
 					EntitiesToSignal.Add(Context.GetEntity(EntityIndex));
+					MoveTarget.CreateNewAction(EMassMovementAction::Stand, *Context.GetWorld());
 				}
 			}
 		}

@@ -16,6 +16,7 @@ bool FMassSetSmartObjectMoveTargetTask::Link(FStateTreeLinker& Linker)
 	Linker.LinkExternalData(SOUserHandle);
 	Linker.LinkExternalData(MassSignalSubsystemHandle);
 	Linker.LinkExternalData(MoveParametersHandle);
+	Linker.LinkExternalData(SmartObjectSubsystemHandle);
 	
 	return true;
 }
@@ -27,13 +28,11 @@ EStateTreeRunStatus FMassSetSmartObjectMoveTargetTask::EnterState(FStateTreeExec
 	FMassMoveTargetFragment& MoveTarget = Context.GetExternalData(MoveTargetHandle);
 	const FMassSmartObjectUserFragment& SOUserFragment = Context.GetExternalData(SOUserHandle);
 	const FMassMovementParameters& MoveParameters = Context.GetExternalData(MoveParametersHandle);
-
-	if (!SOUserFragment.InteractionHandle.IsValid())
-		return EStateTreeRunStatus::Failed;
-
+	auto& SmartObjectSubsystem = Context.GetExternalData(SmartObjectSubsystemHandle);
+	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 	
-	MoveTarget.Center = FVector::ZeroVector; //SOUserFragment.TargetLocation;
-	MoveTarget.Forward = FVector::ZeroVector; //SOUserFragment.TargetDirection;
+	MoveTarget.Center = SmartObjectSubsystem.GetSlotLocation(InstanceData.ClaimHandle).Get(FVector::ZeroVector);
+	//MoveTarget.Forward = SOUserFragment.InteractionHandle;
 	MoveTarget.SlackRadius = 100.f;
 	MoveTarget.DesiredSpeed.Set(MoveParameters.DefaultDesiredSpeed);
 	MoveTarget.CreateNewAction(EMassMovementAction::Move, *Context.GetWorld());

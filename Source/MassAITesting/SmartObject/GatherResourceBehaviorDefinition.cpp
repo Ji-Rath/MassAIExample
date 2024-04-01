@@ -19,12 +19,10 @@ void UGatherResourceBehaviorDefinition::Activate(FMassCommandBuffer& CommandBuff
 	Super::Activate(CommandBuffer, EntityContext);
 
 	// Spawn resource fragment with set values
-	/*
 	FRTSGatherResourceFragment RTSResourceFragment;
 	RTSResourceFragment.Resource = ResourceType;
 	RTSResourceFragment.Amount = ResourceAmount;
-	CommandBuffer.PushCommand(FCommandAddFragmentInstance(EntityContext.EntityView.GetEntity(), FConstStructView::Make(RTSResourceFragment)));
-	*/
+	CommandBuffer.PushCommand<FMassCommandAddFragmentInstances>(EntityContext.EntityView.GetEntity(), RTSResourceFragment);
 
 	FRTSAgentFragment& Agent = EntityContext.EntityView.GetFragmentData<FRTSAgentFragment>();
 	Agent.bPunching = true;

@@ -33,7 +33,8 @@ EStateTreeRunStatus FMassStateTreeMoveToEntityHandle::EnterState(FStateTreeExecu
 {
 	FMassMoveTargetFragment& MoveTarget = Context.GetExternalData(MoveTargetHandle);
 	const FMassMovementParameters& MoveParameters = Context.GetExternalData(MoveParametersHandle);
-	const FMassEntityHandle& ItemHandle = Context.GetInstanceData<FMassEntityHandle>(*this);
+	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
+	const FMassEntityHandle& ItemHandle = InstanceData.ItemHandle;
 	UMassEntitySubsystem& EntitySubsystem = Context.GetExternalData(EntitySubsystemHandle);
 
 	if (!EntitySubsystem.GetEntityManager().IsEntityValid(ItemHandle))

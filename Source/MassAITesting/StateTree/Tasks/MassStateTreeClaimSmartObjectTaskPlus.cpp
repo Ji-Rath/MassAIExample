@@ -32,12 +32,19 @@ EStateTreeRunStatus FMassStateTreeClaimSmartObjectTaskPlus::EnterState(FStateTre
 	FMassSmartObjectUserFragment& SOUser = Context.GetExternalData(SmartObjectUserHandle);
 
 	// Setup MassSmartObject handler and claim
-	FSmartObjectClaimHandle ClaimHandle = SmartObjectSubsystem.Claim(SOHandle, Filter);
+	TArray<FSmartObjectSlotHandle> SOSlots;
+	SmartObjectSubsystem.FindSlots(SOHandle, Filter, SOSlots);
+	if (!SOSlots.IsEmpty() && SmartObjectSubsystem.CanBeClaimed(SOSlots[0]))
+	{
+		InstanceData.ClaimHandle = SmartObjectSubsystem.MarkSlotAsClaimed(SOSlots[0]);
+		
+	}
+	
 
-	if (!ClaimHandle.IsValid())
+	if (!InstanceData.ClaimHandle.IsValid())
 		return EStateTreeRunStatus::Failed;
-	SOUser.InteractionHandle = ClaimHandle;
-	SOUser.InteractionStatus = EMassSmartObjectInteractionStatus::Unset;
+	//SOUser.InteractionHandle = InstanceData.ClaimHandle;
+	//SOUser.InteractionStatus = EMassSmartObjectInteractionStatus::Unset;
 	const FTransform Transform = SmartObjectSubsystem.GetSlotTransform(SOUser.InteractionHandle).Get(FTransform::Identity);
 	//@todo fix this
 	//SOUser.TargetLocation = Transform.GetLocation();

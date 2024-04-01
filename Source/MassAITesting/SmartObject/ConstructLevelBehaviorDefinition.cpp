@@ -13,8 +13,7 @@ void UConstructLevelBehaviorDefinition::Activate(FMassCommandBuffer& CommandBuff
 	Super::Activate(CommandBuffer, EntityContext);
 	
 	FMassSmartObjectUserFragment& SOUser = EntityContext.EntityView.GetFragmentData<FMassSmartObjectUserFragment>();
-	//@todo find out how to fix
-	//CommandBuffer.PushCommand<FMassCommandAddTag>(EntityContext.EntityView.GetEntity(), FRTSConstructFloor::StaticStruct());
+	CommandBuffer.PushCommand<FMassCommandAddTag<FRTSConstructFloor>>(EntityContext.EntityView.GetEntity());
 }
 
 void UConstructLevelBehaviorDefinition::Deactivate(FMassCommandBuffer& CommandBuffer,
