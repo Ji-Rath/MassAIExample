@@ -10,7 +10,7 @@ bool FMassMoveTask::Link(FStateTreeLinker& Linker)
 	//Linker.LinkExternalData(MassSignalSubsystemHandle);
 	//Linker.LinkExternalData(PathHandle);
 
-	Linker.LinkInstanceDataProperty(DurationHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassMoveTaskInstanceData, Duration));
+	//Linker.LinkInstanceDataProperty(DurationHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassMoveTaskInstanceData, Duration));
 	//Linker.LinkInstanceDataProperty(TargetEntityHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassLookAtTaskInstanceData, TargetEntity));
 	//Linker.LinkInstanceDataProperty(TimeHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassLookAtTaskInstanceData, Time));
 	
@@ -23,8 +23,9 @@ EStateTreeRunStatus FMassMoveTask::Tick(FStateTreeExecutionContext& Context, con
 }
 
 
-EStateTreeRunStatus FMassMoveTask::EnterState(FStateTreeExecutionContext& Context, const EStateTreeStateChangeType ChangeType, const FStateTreeTransitionResult& Transition) const
+EStateTreeRunStatus FMassMoveTask::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	const float Duration = Context.GetInstanceData(DurationHandle);
+	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
+	const float Duration = InstanceData.Duration;
 	return EStateTreeRunStatus::Failed;
 }

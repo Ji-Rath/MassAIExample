@@ -10,7 +10,7 @@
 	"DocsURL": "https://github.com/Rexocrates/Vertex_Anim_Toolset/blob/main/Vertex%20Anim%20Toolset%20Documentation.pdf",
 	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/d998b22372a44975b312e85cf663bbab",
 	"SupportURL": "https://github.com/Rexocrates/Vertex_Anim_Toolset/issues",
-	"EngineVersion": "5.0.0",
+	"EngineVersion": "5.3.0",
 	"CanContainContent": true,
 	"Installed": false,
 	"Modules": [

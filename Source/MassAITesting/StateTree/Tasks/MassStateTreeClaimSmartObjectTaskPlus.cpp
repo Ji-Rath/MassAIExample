@@ -7,23 +7,22 @@
 #include "MassSmartObjectFragments.h"
 #include "SmartObjectSubsystem.h"
 #include "StateTreeExecutionContext.h"
+#include "StateTreeLinker.h"
 
 bool FMassStateTreeClaimSmartObjectTaskPlus::Link(FStateTreeLinker& Linker)
 {
-	Linker.LinkInstanceDataProperty(SmartObjectHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeClaimSmartObjectTaskInstanceData, SOHandle));
-	Linker.LinkInstanceDataProperty(ClaimResultHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeClaimSmartObjectTaskInstanceData, ClaimResult));
-
 	Linker.LinkExternalData(SmartObjectUserHandle);
 	Linker.LinkExternalData(SmartObjectSubsystemHandle);
 
 	return true;
 }
 
-EStateTreeRunStatus FMassStateTreeClaimSmartObjectTaskPlus::EnterState(FStateTreeExecutionContext& Context,
-	const EStateTreeStateChangeType ChangeType, const FStateTreeTransitionResult& Transition) const
+EStateTreeRunStatus FMassStateTreeClaimSmartObjectTaskPlus::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	const FSmartObjectHandle& SOHandle = Context.GetInstanceData(SmartObjectHandle);
-	EMassSmartObjectClaimResult& ClaimResult = Context.GetInstanceData(ClaimResultHandle);
+	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
+	
+	const FSmartObjectHandle& SOHandle = InstanceData.SOHandle;
+	//EMassSmartObjectClaimResult& ClaimResult = InstanceData.ClaimResult;
 	
 	FSmartObjectRequestFilter Filter;
 	Filter.BehaviorDefinitionClass = USmartObjectMassBehaviorDefinition::StaticClass();
@@ -33,17 +32,25 @@ EStateTreeRunStatus FMassStateTreeClaimSmartObjectTaskPlus::EnterState(FStateTre
 	FMassSmartObjectUserFragment& SOUser = Context.GetExternalData(SmartObjectUserHandle);
 
 	// Setup MassSmartObject handler and claim
-	FSmartObjectClaimHandle ClaimHandle = SmartObjectSubsystem.Claim(SOHandle, Filter);
+	TArray<FSmartObjectSlotHandle> SOSlots;
+	SmartObjectSubsystem.FindSlots(SOHandle, Filter, SOSlots);
+	if (!SOSlots.IsEmpty() && SmartObjectSubsystem.CanBeClaimed(SOSlots[0]))
+	{
+		InstanceData.ClaimHandle = SmartObjectSubsystem.MarkSlotAsClaimed(SOSlots[0]);
+		
+	}
+	
 
-	if (!ClaimHandle.IsValid())
+	if (!InstanceData.ClaimHandle.IsValid())
 		return EStateTreeRunStatus::Failed;
-	SOUser.ClaimHandle = ClaimHandle;
-	SOUser.InteractionStatus = EMassSmartObjectInteractionStatus::Unset;
-	const FTransform Transform = SmartObjectSubsystem.GetSlotTransform(SOUser.ClaimHandle).Get(FTransform::Identity);
-	SOUser.TargetLocation = Transform.GetLocation();
-	SOUser.TargetDirection = Transform.GetRotation().Vector();
+	//SOUser.InteractionHandle = InstanceData.ClaimHandle;
+	//SOUser.InteractionStatus = EMassSmartObjectInteractionStatus::Unset;
+	const FTransform Transform = SmartObjectSubsystem.GetSlotTransform(SOUser.InteractionHandle).Get(FTransform::Identity);
+	//@todo fix this
+	//SOUser.TargetLocation = Transform.GetLocation();
+	//SOUser.TargetDirection = Transform.GetRotation().Vector();
 
-	ClaimResult = EMassSmartObjectClaimResult::Succeeded;
+	//ClaimResult = EMassSmartObjectClaimResult::Succeeded;
 
 	return EStateTreeRunStatus::Succeeded;
 }

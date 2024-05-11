@@ -1,0 +1,23 @@
+﻿{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "MassSmartObjectAI",
+	"Description": "A simple example of using smart objects for Mass AI",
+	"Category": "Other",
+	"CreatedBy": "Gareth Aguilar",
+	"CreatedByURL": "https://github.com/Ji-Rath/MassAITesting",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "MassSmartObjectAI",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}

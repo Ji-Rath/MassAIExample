@@ -3,32 +3,39 @@
 
 #include "MassStateTreeRequiredMaterialsEvaluator.h"
 
+#include "MassEntitySubsystem.h"
 #include "MassSmartObjectBehaviorDefinition.h"
+#include "MassStateTreeExecutionContext.h"
 #include "SmartObjectSubsystem.h"
 #include "StateTreeExecutionContext.h"
+#include "StateTreeLinker.h"
 #include "MassAITesting/RTSBuildingSubsystem.h"
 #include "MassAITesting/Mass/RTSItemTrait.h"
 
-void FMassStateTreeRequiredMaterialsEvaluator::Evaluate(FStateTreeExecutionContext& Context,
-                                                        const EStateTreeEvaluationType EvalType, const float DeltaTime) const
+void FMassStateTreeRequiredMaterialsEvaluator::TreeStart(FStateTreeExecutionContext& Context) const
+{
+	// Signal task tick
+	const FMassStateTreeExecutionContext& MassContext = static_cast<FMassStateTreeExecutionContext&>(Context);
+	//auto& MassSignalSubsystem = Context.GetExternalData(MassSignalSubsystemHandle);
+	//MassSignalSubsystem.DelaySignalEntity(UE::Mass::Signals::StateTreeActivate, MassContext.GetEntity(), 1.f);
+}
+
+void FMassStateTreeRequiredMaterialsEvaluator::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(TEXT("RequiredMaterialsEvaluator"));
-	// Since this eval does stuff thats not just...evaluating we need to make sure that it only gets called in the PreSelect
-	// to avoid unintended results.
-	// @todo move task-related logic to their own state tree tasks
-	if (EvalType == EStateTreeEvaluationType::Tick)
-		return;
+
+	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 	
 	FRTSAgentFragment& RTSAgent = Context.GetExternalData(RTSAgentHandle);
 	UMassEntitySubsystem& EntitySubsystem = Context.GetExternalData(EntitySubsystemHandle);
 	URTSBuildingSubsystem& BuildingSubsystem = Context.GetExternalData(BuildingSubsystemHandle);
 	const FVector& Location = Context.GetExternalData(TransformHandle).GetTransform().GetLocation();
 	
-	FSmartObjectRequestFilter& Filter = Context.GetInstanceData(FilterHandle);
-	bool& bFoundSmartObject = Context.GetInstanceData(FoundSmartObjectHandle);
-	bool& bFoundItemHandle = Context.GetInstanceData(FoundItemHandle);
-	FSmartObjectHandle& SOHandle = Context.GetInstanceData(SmartObjectHandle);
-	FMassEntityHandle& EntityHandle = Context.GetInstanceData(ItemHandle);
+	FSmartObjectRequestFilter& Filter = InstanceData.Filter;
+	bool& bFoundSmartObject = InstanceData.bFoundSmartObject;
+	bool& bFoundItemHandle = InstanceData.bFoundItemHandle;
+	FSmartObjectHandle& SOHandle = InstanceData.SmartObjectHandle;
+	FMassEntityHandle& EntityHandle = InstanceData.ItemHandle;
 
 	bFoundSmartObject = false;
 	bFoundItemHandle = false;
@@ -45,13 +52,13 @@ void FMassStateTreeRequiredMaterialsEvaluator::Evaluate(FStateTreeExecutionConte
 	// - AgentState: Chopping Resources/Gathering Item/Building Floor
 
 	// We are currently gathering resources
-	if (!EntitySubsystem.IsEntityValid(EntityHandle) && RTSAgent.QueuedItems.Num() > 0)
+	if (!EntitySubsystem.GetEntityManager().IsEntityValid(EntityHandle) && RTSAgent.QueuedItems.Num() > 0)
 	{
 		EntityHandle = RTSAgent.QueuedItems.Pop();
-		if (EntitySubsystem.IsEntityValid(EntityHandle))
+		if (EntitySubsystem.GetEntityManager().IsEntityValid(EntityHandle))
 		{
 			bFoundItemHandle = true;
-			FItemFragment* ItemFragment = EntitySubsystem.GetFragmentDataPtr<FItemFragment>(EntityHandle);
+			FItemFragment* ItemFragment = EntitySubsystem.GetEntityManager().GetFragmentDataPtr<FItemFragment>(EntityHandle);
 			if (ItemFragment)
 			{
 				ItemFragment->bClaimed = true;
@@ -85,7 +92,7 @@ void FMassStateTreeRequiredMaterialsEvaluator::Evaluate(FStateTreeExecutionConte
 					// We need to claim both because then its possible that another agent also 'wants' the item on the ground
 					for(const FMassEntityHandle& Item : ItemHandles)
 					{
-						if (FItemFragment* ItemFragment = EntitySubsystem.GetFragmentDataPtr<FItemFragment>(Item))
+						if (FItemFragment* ItemFragment = EntitySubsystem.GetEntityManager().GetFragmentDataPtr<FItemFragment>(Item))
 						{
 							ItemFragment->bClaimed = true;
 						}
@@ -125,12 +132,7 @@ bool FMassStateTreeRequiredMaterialsEvaluator::Link(FStateTreeLinker& Linker)
 	Linker.LinkExternalData(TransformHandle);
 	Linker.LinkExternalData(EntitySubsystemHandle);
 	Linker.LinkExternalData(BuildingSubsystemHandle);
-	
-	Linker.LinkInstanceDataProperty(FoundSmartObjectHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeRequiredMaterialsEvaluatorInstanceData, bFoundSmartObject));
-	Linker.LinkInstanceDataProperty(FilterHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeRequiredMaterialsEvaluatorInstanceData, Filter));
-	Linker.LinkInstanceDataProperty(FoundItemHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeRequiredMaterialsEvaluatorInstanceData, bFoundItemHandle));
-	Linker.LinkInstanceDataProperty(SmartObjectHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeRequiredMaterialsEvaluatorInstanceData, SmartObjectHandle));
-	Linker.LinkInstanceDataProperty(ItemHandle, STATETREE_INSTANCEDATA_PROPERTY(FMassStateTreeRequiredMaterialsEvaluatorInstanceData, ItemHandle));
+	Linker.LinkExternalData(MassSignalSubsystemHandle);
 
 	return true;
 }

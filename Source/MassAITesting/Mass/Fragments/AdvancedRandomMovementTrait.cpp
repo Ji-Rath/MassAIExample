@@ -5,11 +5,12 @@
 
 #include "MassCommonFragments.h"
 #include "MassEntityTemplateRegistry.h"
+#include "MassExecutionContext.h"
 #include "MassNavigationFragments.h"
 #include "Engine/World.h"
 #include "MassMovement/Public/MassMovementFragments.h"
 
-void UAdvancedRandomMovementTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, UWorld& World) const
+void UAdvancedRandomMovementTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const
 {
 	BuildContext.AddTag<FNPC>();
 }
@@ -21,9 +22,9 @@ UAdvancedRandomMovementProcessor::UAdvancedRandomMovementProcessor()
 	ExecutionOrder.ExecuteBefore.Add(UE::Mass::ProcessorGroupNames::Avoidance);
 }
 
-void UAdvancedRandomMovementProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context)
+void UAdvancedRandomMovementProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	EntityQuery.ForEachEntityChunk(EntitySubsystem, Context, ([this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(EntityManager, Context, ([this](FMassExecutionContext& Context)
 	{
 		const TConstArrayView<FTransformFragment> TransformsList = Context.GetFragmentView<FTransformFragment>();
 		const TArrayView<FMassMoveTargetFragment> NavTargetsList = Context.GetMutableFragmentView<FMassMoveTargetFragment>();

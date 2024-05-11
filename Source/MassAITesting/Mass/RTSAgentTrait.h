@@ -9,10 +9,9 @@
 #include "MassRepresentationSubsystem.h"
 #include "MassSignalSubsystem.h"
 #include "SmartObjectSubsystem.h"
-#include "../../../Plugins/AnimToTexture/Source/AnimToTexture/Public/AnimToTextureDataAsset.h"
 #include "RTSAgentTrait.generated.h"
 
-class UMassEntitySubsystem;
+class UAnimToTextureDataAsset;
 class URTSBuildingSubsystem;
 class USmartObjectSubsystem;
 
@@ -55,7 +54,7 @@ class MASSAITESTING_API URTSGatherResourceProcessor : public UMassProcessor
 {
 	GENERATED_BODY()
 public:
-	virtual void Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context) override;
+	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
 	virtual void ConfigureQueries() override;
 	virtual void Initialize(UObject& Owner) override;
 
@@ -137,7 +136,7 @@ class MASSAITESTING_API URTSAgentTrait : public UMassEntityTraitBase
 {
 	GENERATED_BODY()
 
-	virtual void BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, UWorld& World) const override;
+	virtual void BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const override;
 
 	UPROPERTY(EditAnywhere)
 	FRTSAgentParameters AgentParameters;
@@ -153,7 +152,7 @@ class MASSAITESTING_API URTSAgentInitializer : public UMassObserverProcessor
 
 	URTSAgentInitializer();
 	
-	virtual void Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context) override;
+	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
 	virtual void ConfigureQueries() override;
 	virtual void Initialize(UObject& Owner) override;
 
@@ -175,7 +174,7 @@ class URTSAnimationProcessor : public UMassProcessor
 
 	virtual void Initialize(UObject& Owner) override;
 	virtual void ConfigureQueries() override;
-	virtual void Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context) override;
+	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
 	void UpdateISMVertexAnimation(FMassInstancedStaticMeshInfo& ISMInfo, FRTSAnimationFragment& AnimationData,
 	                              float LODSignificance, float PrevLODSignificance, int32 NumFloatsToPad);
 

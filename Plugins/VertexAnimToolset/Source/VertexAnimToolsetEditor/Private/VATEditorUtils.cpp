@@ -40,7 +40,6 @@
 #include "Toolkits/ToolkitManager.h"
 
 #include "Dialogs/DlgPickAssetPath.h"
-#include "AssetRegistryModule.h"
 
 #include "VertexAnimProfile.h"
 
@@ -103,6 +102,7 @@
 #include "Animation/AnimSingleNodeInstance.h"
 
 #include "MeshDescription.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 
 #define LOCTEXT_NAMESPACE "VATEditorUtils"
 
@@ -435,7 +435,7 @@ void GatherAndBakeAllAnimVertData(
 {
 	bool bCachedCPUSkinning = false;
 	constexpr bool bRecreateRenderStateImmediately = true;
-	// 1º switch to CPU skinning
+	// 1ï¿½ switch to CPU skinning
 	{
 		const int32 InLODIndex = 0;
 		{
@@ -462,7 +462,7 @@ void GatherAndBakeAllAnimVertData(
 		}
 	}
 
-	// 2º Make Sure it in ref pose
+	// 2ï¿½ Make Sure it in ref pose
 	PreviewComponent->EnablePreview(true, NULL);
 	PreviewComponent->RefreshBoneTransforms(nullptr);
 	PreviewComponent->ClearMotionVector();
@@ -502,7 +502,7 @@ void GatherAndBakeAllAnimVertData(
 	const auto& ActiveBoneIndices = LODData.ActiveBoneIndices;
 	TArray <FMatrix44f> RefToLocal;
 
-	// 3º Store Values
+	// 3ï¿½ Store Values
 	// Vert Anim
 	if (Profile->Anims_Vert.Num())
 	{
@@ -629,7 +629,7 @@ void GatherAndBakeAllAnimVertData(
 		}
 	}
 
-	// 4º Put Mesh back into ref pose
+	// 4ï¿½ Put Mesh back into ref pose
 	{
 		PreviewComponent->EnablePreview(true, NULL);
 		PreviewComponent->RefreshBoneTransforms(nullptr);
@@ -800,7 +800,7 @@ static UTexture2D* SetTexture2(
 		}
 		else
 		{
-			UPackage* Package = CreatePackage(NULL, *(PackagePath + Name));
+			UPackage* Package = CreatePackage(*(PackagePath + Name));
 			check(Package);
 			Package->FullyLoad();
 

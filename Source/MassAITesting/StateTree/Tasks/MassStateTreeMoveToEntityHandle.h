@@ -9,6 +9,7 @@
 #include "SmartObjectSubsystem.h"
 #include "MassStateTreeMoveToEntityHandle.generated.h"
 
+class UMassEntitySubsystem;
 class URTSBuildingSubsystem;
 struct FMassMoveTargetFragment;
 struct FTransformFragment;
@@ -33,13 +34,15 @@ struct MASSAITESTING_API FMassStateTreeMoveToEntityHandle : public FMassStateTre
 {
 	GENERATED_BODY()
 
+	using FInstanceDataType = FMassStateTreeMoveToEntityHandleInstanceData;
+
 	virtual bool Link(FStateTreeLinker& Linker) override;
 	virtual const UStruct* GetInstanceDataType() const override { return FMassStateTreeMoveToEntityHandleInstanceData::StaticStruct(); }
-	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const EStateTreeStateChangeType ChangeType, const FStateTreeTransitionResult& Transition) const override;
+	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const override;
 
-	TStateTreeInstanceDataPropertyHandle<FMassEntityHandle> EntityHandle;
-	TStateTreeInstanceDataPropertyHandle<EMassSmartObjectClaimResult> ClaimResultHandle;
+	//TStateTreeInstanceDataPropertyHandle<FMassEntityHandle> EntityHandle;
+	//TStateTreeInstanceDataPropertyHandle<EMassSmartObjectClaimResult> ClaimResultHandle;
 	
 	TStateTreeExternalDataHandle<USmartObjectSubsystem> SmartObjectSubsystemHandle;
 	TStateTreeExternalDataHandle<FMassMoveTargetFragment> MoveTargetHandle;

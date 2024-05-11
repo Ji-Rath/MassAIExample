@@ -85,7 +85,6 @@
 
 #include "Toolkits/ToolkitManager.h"
 #include "Dialogs/DlgPickAssetPath.h"
-#include "AssetRegistryModule.h"
 
 #include "VertexAnimProfile.h"
 
@@ -144,6 +143,7 @@
 #include "AnimationRuntime.h"
 
 #include "Animation/AnimSingleNodeInstance.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 
 
 #define LOCTEXT_NAMESPACE "PickAssetDialog"
@@ -254,7 +254,7 @@ static void AddOrDuplicateMaterial(UMaterialInterface* InMaterialInterface, cons
 		FString MaterialName;
 		FAssetToolsModule& AssetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools");
 		AssetToolsModule.Get().CreateUniqueAssetName(MaterialPath, TEXT(""), MaterialPath, MaterialName);
-		UPackage* MaterialPackage = CreatePackage(NULL, *MaterialPath);
+		UPackage* MaterialPackage = CreatePackage(*MaterialPath);
 
 		// Duplicate the object into the new package
 		UMaterialInterface* NewMaterialInterface = DuplicateObject<UMaterialInterface>(InMaterialInterface, MaterialPackage, *MaterialName);
@@ -540,7 +540,7 @@ UStaticMesh* FVertexAnimUtils::ConvertMeshesToStaticMesh(const TArray<UMeshCompo
 		if (bValidData)
 		{
 			// Then find/create it.
-			UPackage* Package = CreatePackage(NULL, *PackageName);
+			UPackage* Package = CreatePackage(*PackageName);
 			check(Package);
 
 			// Create StaticMesh object

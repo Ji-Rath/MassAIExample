@@ -20,12 +20,13 @@ void UMoveTargetProcessor::ConfigureQueries()
 	EntityQuery.AddRequirement<FMassMoveTargetFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddChunkRequirement<FMassSimulationVariableTickChunkFragment>(EMassFragmentAccess::ReadOnly, EMassFragmentPresence::Optional);
 	EntityQuery.SetChunkFilter(&FMassSimulationVariableTickChunkFragment::ShouldTickChunkThisFrame);
+	EntityQuery.RegisterWithProcessor(*this);
 }
 
-void UMoveTargetProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context)
+void UMoveTargetProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
 	TArray<FMassEntityHandle> EntitiesToSignal;
-	EntityQuery.ParallelForEachEntityChunk(EntitySubsystem, Context, ([this, &EntitiesToSignal](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(EntityManager, Context, ([this, &EntitiesToSignal](FMassExecutionContext& Context)
 	{
 		const TArrayView<FTransformFragment> TransformsList = Context.GetMutableFragmentView<FTransformFragment>();
 		const TArrayView<FMassMoveTargetFragment> MoveTargets = Context.GetMutableFragmentView<FMassMoveTargetFragment>();
@@ -43,6 +44,7 @@ void UMoveTargetProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMassE
 				if (MoveTarget.DistanceToGoal <= MoveTarget.SlackRadius)
 				{
 					EntitiesToSignal.Add(Context.GetEntity(EntityIndex));
+					MoveTarget.CreateNewAction(EMassMovementAction::Stand, *Context.GetWorld());
 				}
 			}
 		}

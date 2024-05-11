@@ -1,0 +1,23 @@
+﻿{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "MassWanderAI",
+	"Description": "Simple Mass AI used to demonstrate baseline usage using Processors and State Trees",
+	"Category": "Other",
+	"CreatedBy": "Gareth Aguilar",
+	"CreatedByURL": "https://github.com/Ji-Rath/MassAITesting",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": true,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "MassWanderAI",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}

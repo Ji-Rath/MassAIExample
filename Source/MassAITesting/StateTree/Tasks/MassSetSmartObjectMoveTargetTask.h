@@ -17,6 +17,9 @@ USTRUCT()
 struct MASSAITESTING_API FMassSetSmartObjectMoveTargetInstanceData
 {
 	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category=Input)
+	FSmartObjectClaimHandle ClaimHandle;
 };
 
 /**
@@ -26,11 +29,13 @@ USTRUCT()
 struct MASSAITESTING_API FMassSetSmartObjectMoveTargetTask : public FMassStateTreeTaskBase
 {
 	GENERATED_BODY()
+
+	using FInstanceDataType = FMassSetSmartObjectMoveTargetInstanceData;
 	
 	virtual bool Link(FStateTreeLinker& Linker) override;
 	virtual const UStruct* GetInstanceDataType() const override { return FMassSetSmartObjectMoveTargetInstanceData::StaticStruct(); }
 
-	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const EStateTreeStateChangeType ChangeType, const FStateTreeTransitionResult& Transition) const override;
+	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 	//virtual void ExitState(FStateTreeExecutionContext& Context, const EStateTreeStateChangeType ChangeType, const FStateTreeTransitionResult& Transition) const override;
 	//virtual void StateCompleted(FStateTreeExecutionContext& Context, const EStateTreeRunStatus CompletionStatus, const FStateTreeHandle CompletedState) const {}
 	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const override;
@@ -41,4 +46,5 @@ protected:
 	TStateTreeExternalDataHandle<FMassSmartObjectUserFragment> SOUserHandle;
 	TStateTreeExternalDataHandle<UMassSignalSubsystem> MassSignalSubsystemHandle;
 	TStateTreeExternalDataHandle<FMassMovementParameters> MoveParametersHandle;
+	TStateTreeExternalDataHandle<USmartObjectSubsystem> SmartObjectSubsystemHandle;
 };

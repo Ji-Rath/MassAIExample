@@ -6,6 +6,7 @@
 #include "MassCommandBuffer.h"
 #include "MassCommonFragments.h"
 #include "MassEntityConfigAsset.h"
+#include "MassEntitySubsystem.h"
 #include "MassSmartObjectFragments.h"
 #include "MassSpawnerSubsystem.h"
 #include "SmartObjectComponent.h"
@@ -18,18 +19,16 @@ void UGatherResourceBehaviorDefinition::Activate(FMassCommandBuffer& CommandBuff
 	Super::Activate(CommandBuffer, EntityContext);
 
 	// Spawn resource fragment with set values
-	/*
 	FRTSGatherResourceFragment RTSResourceFragment;
 	RTSResourceFragment.Resource = ResourceType;
 	RTSResourceFragment.Amount = ResourceAmount;
-	CommandBuffer.PushCommand(FCommandAddFragmentInstance(EntityContext.EntityView.GetEntity(), FConstStructView::Make(RTSResourceFragment)));
-	*/
+	CommandBuffer.PushCommand<FMassCommandAddFragmentInstances>(EntityContext.EntityView.GetEntity(), RTSResourceFragment);
 
 	FRTSAgentFragment& Agent = EntityContext.EntityView.GetFragmentData<FRTSAgentFragment>();
 	Agent.bPunching = true;
 
 	// Invalidate resource handle when complete
-	Agent.ResourceHandle.Reset();
+	Agent.ResourceHandle.Invalidate();
 	
 	// Traditional way to spawn a default fragment
 	//CommandBuffer.AddFragment<FRTSGatherResourceFragment>(EntityContext.EntityView.GetEntity());
@@ -50,8 +49,8 @@ void UGatherResourceBehaviorDefinition::Deactivate(FMassCommandBuffer& CommandBu
 		// Spawn items on the ground
 		// @todo clean up this mess lol
 		TArray<FMassEntityHandle> Items;
-		const FMassEntityTemplate* EntityTemplate = ItemConfig->GetConfig().GetOrCreateEntityTemplate(*UGameplayStatics::GetPlayerPawn(EntityContext.SmartObjectSubsystem.GetWorld(), 0), *ItemConfig);
-		SpawnerSubsystem->SpawnEntities(*EntityTemplate, 4, Items);
+		const FMassEntityTemplate EntityTemplate = ItemConfig->GetConfig().GetOrCreateEntityTemplate(*EntityContext.SmartObjectSubsystem.GetWorld());
+		SpawnerSubsystem->SpawnEntities(EntityTemplate, 4, Items);
 	
 		for(const FMassEntityHandle& ItemHandle : Items)
 		{
@@ -60,19 +59,19 @@ void UGatherResourceBehaviorDefinition::Deactivate(FMassCommandBuffer& CommandBu
 			FItemFragment ItemFragment;
 			ItemFragment.ItemType = ResourceType;
 			ItemFragment.OldLocation = SpawnLocation;
-			CommandBuffer.PushCommand(FCommandAddFragmentInstance(ItemHandle, FConstStructView::Make(ItemFragment)));
+			CommandBuffer.PushCommand<FMassCommandAddFragmentInstances>(ItemHandle, ItemFragment);
 		}
 	
 		FRTSAgentFragment& Agent = EntityContext.EntityView.GetFragmentData<FRTSAgentFragment>();
 		Agent.bPunching = false;
 	
 		const FMassSmartObjectUserFragment& SOUser = EntityContext.EntityView.GetFragmentData<FMassSmartObjectUserFragment>();
-		if (USmartObjectComponent* SOComp = EntityContext.SmartObjectSubsystem.GetSmartObjectComponent(SOUser.ClaimHandle))
+		if (USmartObjectComponent* SOComp = EntityContext.SmartObjectSubsystem.GetSmartObjectComponent(SOUser.InteractionHandle))
 		{
-			CommandBuffer.PushCommand(FDeferredCommand([SOComp, EntityContext](UMassEntitySubsystem& System)
+			CommandBuffer.PushCommand<FMassDeferredAddCommand>([SOComp, EntityContext](FMassEntityManager& System)
 			{
 				SOComp->GetOwner()->Destroy();
-			}));
+			});
 		}
 	}
 }

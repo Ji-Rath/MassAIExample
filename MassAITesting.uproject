@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "5.0",
+	"EngineAssociation": "5.3",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -32,6 +32,10 @@
 			]
 		},
 		{
+			"Name": "AnimToTexture",
+			"Enabled": true
+		},
+		{
 			"Name": "MassEntity",
 			"Enabled": true
 		},
@@ -45,6 +49,10 @@
 		},
 		{
 			"Name": "MassGameplay",
+			"Enabled": true
+		},
+		{
+			"Name": "MassWanderAI",
 			"Enabled": true
 		}
 	]

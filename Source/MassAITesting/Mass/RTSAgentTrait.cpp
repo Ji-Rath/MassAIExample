@@ -2,6 +2,8 @@
 
 
 #include "RTSAgentTrait.h"
+
+#include "AnimToTextureDataAsset.h"
 #include "MassCommonFragments.h"
 #include "MassEntityTemplateRegistry.h"
 #include "MassMovementFragments.h"
@@ -10,14 +12,15 @@
 #include "SmartObjectSubsystem.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "AnimToTextureInstancePlaybackHelpers.h"
+#include "MassEntitySubsystem.h"
 #include "MassAITesting/RTSBuildingSubsystem.h"
 
 //----------------------------------------------------------------------//
 // URTSGatherResourceProcessor
 //----------------------------------------------------------------------//
-void URTSGatherResourceProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context)
+void URTSGatherResourceProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	EntityQuery.ForEachEntityChunk(EntitySubsystem, Context, ([this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(EntityManager, Context, ([this](FMassExecutionContext& Context)
 	{
 		const TConstArrayView<FRTSGatherResourceFragment> GatherResourceFragments = Context.GetFragmentView<FRTSGatherResourceFragment>();
 		const TArrayView<FRTSAgentFragment> RTSAgentFragment = Context.GetMutableFragmentView<FRTSAgentFragment>();
@@ -49,6 +52,7 @@ void URTSGatherResourceProcessor::ConfigureQueries()
 {
 	EntityQuery.AddRequirement<FRTSGatherResourceFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FRTSAgentFragment>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void URTSGatherResourceProcessor::Initialize(UObject& Owner)
@@ -59,7 +63,7 @@ void URTSGatherResourceProcessor::Initialize(UObject& Owner)
 //----------------------------------------------------------------------//
 // URTSAgentTrait
 //----------------------------------------------------------------------//
-void URTSAgentTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, UWorld& World) const
+void URTSAgentTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const
 {
 	UMassEntitySubsystem* EntitySubsystem = UWorld::GetSubsystem<UMassEntitySubsystem>(&World);
 	check(EntitySubsystem);
@@ -68,7 +72,7 @@ void URTSAgentTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildContext
 	BuildContext.AddFragment<FRTSAnimationFragment>();
 	BuildContext.AddTag<FRTSAgent>();
 	
-	const FConstSharedStruct RTSAgentFragment = EntitySubsystem->GetOrCreateConstSharedFragment(UE::StructUtils::GetStructCrc32(FConstStructView::Make(AgentParameters)), AgentParameters);
+	const FConstSharedStruct RTSAgentFragment = EntitySubsystem->GetMutableEntityManager().GetOrCreateConstSharedFragment(AgentParameters);
 	BuildContext.AddConstSharedFragment(RTSAgentFragment);
 }
 
@@ -81,9 +85,9 @@ URTSAgentInitializer::URTSAgentInitializer()
 	Operation = EMassObservedOperation::Add;
 }
 
-void URTSAgentInitializer::Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context)
+void URTSAgentInitializer::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	EntityQuery.ParallelForEachEntityChunk(EntitySubsystem, Context, ([this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(EntityManager, Context, ([this](FMassExecutionContext& Context)
 	{
 		const TArrayView<FRTSAgentFragment> RTSMoveFragmentList = Context.GetMutableFragmentView<FRTSAgentFragment>();
 		const FRTSAgentParameters& RTSAgentParameters = Context.GetConstSharedFragment<FRTSAgentParameters>();
@@ -115,6 +119,7 @@ void URTSAgentInitializer::ConfigureQueries()
 	EntityQuery.AddTagRequirement<FRTSAgent>(EMassFragmentPresence::All);
 	EntityQuery.AddRequirement<FMassRepresentationFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FRTSAnimationFragment>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void URTSAgentInitializer::Initialize(UObject& Owner)
@@ -156,11 +161,12 @@ void URTSAnimationProcessor::ConfigureQueries()
 	EntityQuery.AddConstSharedRequirement<FRTSAgentParameters>(EMassFragmentPresence::All);
 	EntityQuery.AddChunkRequirement<FMassVisualizationChunkFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.SetChunkFilter(&FMassVisualizationChunkFragment::AreAnyEntitiesVisibleInChunk);
+	EntityQuery.RegisterWithProcessor(*this);
 }
 
-void URTSAnimationProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMassExecutionContext& Context)
+void URTSAnimationProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	EntityQuery.ParallelForEachEntityChunk(EntitySubsystem, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
 	{
 		TConstArrayView<FMassMoveTargetFragment> MoveFragments = Context.GetFragmentView<FMassMoveTargetFragment>();
 		TConstArrayView<FMassVelocityFragment> VelocityFragments = Context.GetFragmentView<FMassVelocityFragment>();
@@ -243,9 +249,11 @@ void URTSAnimationProcessor::Execute(UMassEntitySubsystem& EntitySubsystem, FMas
 
 void URTSAnimationProcessor::UpdateISMVertexAnimation(FMassInstancedStaticMeshInfo& ISMInfo, FRTSAnimationFragment& AnimationData, const float LODSignificance, const float PrevLODSignificance, const int32 NumFloatsToPad /*= 0*/)
 {
+	/*
 	FAnimToTextureInstancePlaybackData InstanceData;
-	UAnimToTextureInstancePlaybackLibrary::AnimStateFromDataAsset(AnimationData.AnimToTextureData.Get(), AnimationData.AnimationStateIndex, InstanceData.CurrentState);
+	UAnimToTextureInstancePlaybackLibrary::GetFrameDataFromDataAsset(AnimationData.AnimToTextureData.Get(), AnimationData.AnimationStateIndex, InstanceData.CurrentState);
 	InstanceData.CurrentState.GlobalStartTime = AnimationData.GlobalStartTime;
 	InstanceData.CurrentState.PlayRate = AnimationData.PlayRate;
 	ISMInfo.AddBatchedCustomData<FAnimToTextureInstancePlaybackData>(InstanceData, LODSignificance, PrevLODSignificance, NumFloatsToPad);
+	*/
 }
