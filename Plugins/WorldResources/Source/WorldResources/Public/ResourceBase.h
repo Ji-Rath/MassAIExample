@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SmartObjectComponent.h"
+#include "GenericSmartObject.h"
 #include "GameFramework/Actor.h"
 #include "ResourceBase.generated.h"
 
 UCLASS()
-class MASSAITESTING_API AResourceBase : public AActor
+class WORLDRESOURCES_API AResourceBase : public AGenericSmartObject
 {
 	GENERATED_BODY()
 
@@ -23,12 +23,9 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable)
 	void AddToResourceQueue();
-	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	UStaticMeshComponent* StaticMeshComp;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ExposeOnSpawn))
+	FDataTableRowHandle ResourceData;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int Floors = 1;

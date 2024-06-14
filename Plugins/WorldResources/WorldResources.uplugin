@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "WorldResources",
+	"Description": "Spawn random resources in the world",
+	"Category": "Other",
+	"CreatedBy": "Gareth Aguilar",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "WorldResources",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
