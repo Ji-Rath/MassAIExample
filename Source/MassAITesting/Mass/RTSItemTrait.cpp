@@ -46,7 +46,10 @@ void UItemProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionCo
 			Item.OldLocation = Location;
 
 			//@todo move this to its own processor
-			MeshInfo[Representation.StaticMeshDescIndex].AddBatchedCustomData<float>(Item.ItemType == Rock ? 0.f : 1.f, RepresentationLOD.LODSignificance, Representation.PrevLODSignificance);
+			if (MeshInfo.IsValidIndex(Representation.StaticMeshDescHandle.ToIndex()))
+			{
+				MeshInfo[Representation.StaticMeshDescHandle.ToIndex()].AddBatchedCustomData<float>(Item.ItemType == Rock ? 0.f : 1.f, RepresentationLOD.LODSignificance, Representation.PrevLODSignificance);
+			}
 		}
 	});
 }

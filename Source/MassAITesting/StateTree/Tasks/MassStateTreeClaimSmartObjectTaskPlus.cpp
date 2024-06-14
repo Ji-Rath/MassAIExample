@@ -25,7 +25,7 @@ EStateTreeRunStatus FMassStateTreeClaimSmartObjectTaskPlus::EnterState(FStateTre
 	//EMassSmartObjectClaimResult& ClaimResult = InstanceData.ClaimResult;
 	
 	FSmartObjectRequestFilter Filter;
-	Filter.BehaviorDefinitionClass = USmartObjectMassBehaviorDefinition::StaticClass();
+	Filter.BehaviorDefinitionClasses.Add(USmartObjectMassBehaviorDefinition::StaticClass());
 	
 	// Retrieve fragments and subsystems
 	USmartObjectSubsystem& SmartObjectSubsystem = Context.GetExternalData(SmartObjectSubsystemHandle);

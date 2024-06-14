@@ -40,7 +40,7 @@ void FMassStateTreeRequiredMaterialsEvaluator::Tick(FStateTreeExecutionContext& 
 	bFoundSmartObject = false;
 	bFoundItemHandle = false;
 
-	Filter.BehaviorDefinitionClass = USmartObjectMassBehaviorDefinition::StaticClass();
+	Filter.BehaviorDefinitionClasses.Add(USmartObjectMassBehaviorDefinition::StaticClass());
 
 	// Basic setup
 	// This evaluator should simply gather data for the state tree to evaluate

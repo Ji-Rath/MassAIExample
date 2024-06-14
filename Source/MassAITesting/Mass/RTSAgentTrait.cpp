@@ -240,8 +240,8 @@ void URTSAnimationProcessor::Execute(FMassEntityManager& EntityManager, FMassExe
 
 				//@todo update skinindex and punching custom data (might be useful to use montage method in City Sample)
 				
-				UpdateISMVertexAnimation(MeshInfo[Representation.StaticMeshDescIndex], AnimationData, RepresentationLOD.LODSignificance, Representation.PrevLODSignificance, 0);
-				MeshInfo[Representation.StaticMeshDescIndex].AddBatchedCustomData<float>(AgentFragment.SkinIndex, RepresentationLOD.LODSignificance, Representation.PrevLODSignificance, 4);
+				UpdateISMVertexAnimation(MeshInfo[Representation.StaticMeshDescHandle.ToIndex()], AnimationData, RepresentationLOD.LODSignificance, Representation.PrevLODSignificance, 0);
+				MeshInfo[Representation.StaticMeshDescHandle.ToIndex()].AddBatchedCustomData<float>(AgentFragment.SkinIndex, RepresentationLOD.LODSignificance, Representation.PrevLODSignificance, 4);
 			}
 		}
 	});
