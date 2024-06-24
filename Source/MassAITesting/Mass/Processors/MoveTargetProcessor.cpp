@@ -58,5 +58,6 @@ void UMoveTargetProcessor::Execute(FMassEntityManager& EntityManager, FMassExecu
 
 void UMoveTargetProcessor::Initialize(UObject& Owner)
 {
+	Super::Initialize(Owner);
 	SignalSubsystem = UWorld::GetSubsystem<UMassSignalSubsystem>(GetWorld());
 }

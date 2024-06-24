@@ -28,6 +28,8 @@ struct MASSAITESTING_API FNavMeshPathFragment : public FMassFragment
 		TargetLocation = Target;
 		PathIndex = 0;
 	}
+
+	FNavMeshPathFragment() = default;
 };
 
 /**

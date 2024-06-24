@@ -19,6 +19,8 @@ struct MASSWANDERAI_API FMW_FindRandomLocationTaskInstanceData
 
 	UPROPERTY(EditAnywhere, Category=Output)
 	FVector OutLocation;
+
+	FMW_FindRandomLocationTaskInstanceData() = default;
 };
 
 /**

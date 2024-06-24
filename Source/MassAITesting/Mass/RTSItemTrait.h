@@ -37,6 +37,8 @@ struct MASSAITESTING_API FItemFragment : public FMassFragment
 	bool bClaimed = false;
 
 	HItemHashGrid2D::FCellLocation CellLoc;
+
+	FItemFragment() = default;
 };
 
 USTRUCT()

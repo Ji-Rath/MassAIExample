@@ -24,4 +24,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Resource)
 	USmartObjectDefinition* SODefinition;
+
+	FResourceData() = default;
 };

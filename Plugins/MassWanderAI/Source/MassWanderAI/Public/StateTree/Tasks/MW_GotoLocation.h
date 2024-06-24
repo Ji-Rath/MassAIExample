@@ -20,6 +20,8 @@ struct MASSWANDERAI_API FMW_GotoLocationInstanceData
 
 	UPROPERTY(EditAnywhere, Category=Output)
 	FVector AgentLocation;
+
+	FMW_GotoLocationInstanceData() = default;
 };
 
 /**
