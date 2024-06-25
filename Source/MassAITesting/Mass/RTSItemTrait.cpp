@@ -89,6 +89,7 @@ void UItemInitializerProcessor::ConfigureQueries()
 
 void UItemInitializerProcessor::Initialize(UObject& Owner)
 {
+	Super::Initialize(Owner);
 	BuildingSubsystem = UWorld::GetSubsystem<URTSBuildingSubsystem>(Owner.GetWorld());
 	RepresentationSubsystem = UWorld::GetSubsystem<UMassRepresentationSubsystem>(Owner.GetWorld());
 }

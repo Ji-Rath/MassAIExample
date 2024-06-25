@@ -26,6 +26,10 @@ public class MassSmartObjectAI : ModuleRules
 			new string[]
 			{
 				"Core",
+				"StateTreeModule", 
+				"SmartObjectsModule", 
+				"MassNavigation",
+				"MassCommon"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

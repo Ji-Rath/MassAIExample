@@ -28,6 +28,7 @@ EStateTreeRunStatus FMW_GotoLocation::EnterState(FStateTreeExecutionContext& Con
 	// Create movement action
 	auto& MoveTarget = Context.GetExternalData(MoveTargetHandle);
 	MoveTarget.Center = Destination;
+	MoveTarget.SlackRadius = 25.f;
 	MoveTarget.DistanceToGoal = FVector::Dist(Destination, TransformFragment.GetTransform().GetLocation());
 	MoveTarget.CreateNewAction(EMassMovementAction::Move, *Context.GetWorld());
 
@@ -48,6 +49,12 @@ EStateTreeRunStatus FMW_GotoLocation::Tick(FStateTreeExecutionContext& Context, 
 	auto& MoveTarget = Context.GetExternalData(MoveTargetHandle);
 	InstanceData.AgentLocation = TransformFragment.GetTransform().GetLocation();
 	MoveTarget.DistanceToGoal = FVector::Dist(MoveTarget.Center, InstanceData.AgentLocation);
+
+	if (MoveTarget.DistanceToGoal <= MoveTarget.SlackRadius)
+	{
+		MoveTarget.CreateNewAction(MoveTarget.IntentAtGoal, *Context.GetWorld());
+		return EStateTreeRunStatus::Succeeded;
+	}
 
 	// Signal next task tick
 	const FMassStateTreeExecutionContext& MassContext = static_cast<FMassStateTreeExecutionContext&>(Context);
