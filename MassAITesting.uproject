@@ -38,6 +38,10 @@
 		{
 			"Name": "MassWanderAI",
 			"Enabled": true
+		},
+		{
+			"Name": "BuildingManager",
+			"Enabled": true
 		}
 	]
 }

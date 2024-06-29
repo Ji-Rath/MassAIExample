@@ -45,7 +45,7 @@ EStateTreeRunStatus FMassMoveToSOTask::EnterState(FStateTreeExecutionContext& Co
 	if (!Destination.IsSet()) { return EStateTreeRunStatus::Failed; }
 	
 	MoveTarget.Center = Destination.GetValue();
-	MoveTarget.SlackRadius = 25.f;
+	MoveTarget.SlackRadius = 200.f;
 	MoveTarget.DistanceToGoal = FVector::Dist(MoveTarget.Center, TransformFragment.GetTransform().GetLocation());
 	MoveTarget.CreateNewAction(EMassMovementAction::Move, *Context.GetWorld());
 	MoveTarget.IntentAtGoal = EMassMovementAction::Stand;

@@ -5,6 +5,7 @@
 
 #include "MassSignalSubsystem.h"
 #include "MassStateTreeExecutionContext.h"
+#include "MassStateTreeTypes.h"
 #include "StateTreeLinker.h"
 
 bool FMassWaitTask::Link(FStateTreeLinker& Linker)

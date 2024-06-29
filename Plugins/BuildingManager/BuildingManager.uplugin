@@ -1,0 +1,24 @@
+﻿{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "BuildingManager",
+	"Description": "Plugin for constructing and placing buildings",
+	"Category": "Other",
+	"CreatedBy": "Gareth Aguilar",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"EnabledByDefault": true,
+	"Modules": [
+		{
+			"Name": "BuildingManager",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}

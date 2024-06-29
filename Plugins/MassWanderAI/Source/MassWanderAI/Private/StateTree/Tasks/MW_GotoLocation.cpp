@@ -28,7 +28,7 @@ EStateTreeRunStatus FMW_GotoLocation::EnterState(FStateTreeExecutionContext& Con
 	// Create movement action
 	auto& MoveTarget = Context.GetExternalData(MoveTargetHandle);
 	MoveTarget.Center = Destination;
-	MoveTarget.SlackRadius = 25.f;
+	MoveTarget.SlackRadius = 200.f;
 	MoveTarget.DistanceToGoal = FVector::Dist(Destination, TransformFragment.GetTransform().GetLocation());
 	MoveTarget.CreateNewAction(EMassMovementAction::Move, *Context.GetWorld());
 

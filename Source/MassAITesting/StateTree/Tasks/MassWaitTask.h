@@ -3,7 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MassStateTreeClaimSmartObjectTaskPlus.h"
+#include "MassSignalSubsystem.h"
+#include "MassStateTreeTypes.h"
+#include "StateTreeExecutionTypes.h"
 #include "MassWaitTask.generated.h"
 
 /**
