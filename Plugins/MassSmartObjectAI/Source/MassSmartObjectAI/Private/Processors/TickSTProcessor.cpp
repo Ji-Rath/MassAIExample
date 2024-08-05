@@ -11,6 +11,7 @@ void UTickSTProcessor::ConfigureQueries()
 {
 	EntityQuery.AddSubsystemRequirement<UMassSignalSubsystem>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.RegisterWithProcessor(*this);
+	EntityQuery.AddRequirement<FMassStateTreeInstanceFragment>(EMassFragmentAccess::None);
 }
 
 void UTickSTProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)

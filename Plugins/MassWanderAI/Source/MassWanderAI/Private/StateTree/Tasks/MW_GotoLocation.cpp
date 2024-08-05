@@ -28,7 +28,8 @@ EStateTreeRunStatus FMW_GotoLocation::EnterState(FStateTreeExecutionContext& Con
 	// Create movement action
 	auto& MoveTarget = Context.GetExternalData(MoveTargetHandle);
 	MoveTarget.Center = Destination;
-	MoveTarget.SlackRadius = 200.f;
+	MoveTarget.SlackRadius = 50.f;
+	MoveTarget.Forward = (Destination - TransformFragment.GetTransform().GetLocation()).GetSafeNormal();
 	MoveTarget.DistanceToGoal = FVector::Dist(Destination, TransformFragment.GetTransform().GetLocation());
 	MoveTarget.CreateNewAction(EMassMovementAction::Move, *Context.GetWorld());
 
@@ -49,6 +50,7 @@ EStateTreeRunStatus FMW_GotoLocation::Tick(FStateTreeExecutionContext& Context, 
 	auto& MoveTarget = Context.GetExternalData(MoveTargetHandle);
 	InstanceData.AgentLocation = TransformFragment.GetTransform().GetLocation();
 	MoveTarget.DistanceToGoal = FVector::Dist(MoveTarget.Center, InstanceData.AgentLocation);
+	MoveTarget.Forward = (MoveTarget.Center - TransformFragment.GetTransform().GetLocation()).GetSafeNormal();
 
 	if (MoveTarget.DistanceToGoal <= MoveTarget.SlackRadius)
 	{
