@@ -9,7 +9,7 @@ public class WorldResources : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
-                "Core", "GameplayTags", "SmartObjectsModule",
+                "Core", "GameplayTags", "SmartObjectsModule", "MassEntity", "MassAIBehavior", "StateTreeModule", "MassSmartObjects"
             }
         );
 
