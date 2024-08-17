@@ -5,13 +5,21 @@
 
 #include "MassExecutionContext.h"
 #include "MassSignalSubsystem.h"
+#include "MassSimulationLOD.h"
 #include "MassStateTreeFragments.h"
+
+UTickSTProcessor::UTickSTProcessor()
+{
+	bAutoRegisterWithProcessingPhases = false;
+}
 
 void UTickSTProcessor::ConfigureQueries()
 {
 	EntityQuery.AddSubsystemRequirement<UMassSignalSubsystem>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.RegisterWithProcessor(*this);
 	EntityQuery.AddRequirement<FMassStateTreeInstanceFragment>(EMassFragmentAccess::None);
+	EntityQuery.AddChunkRequirement<FMassSimulationVariableTickChunkFragment>(EMassFragmentAccess::ReadOnly, EMassFragmentPresence::Optional);
+	EntityQuery.SetChunkFilter(FMassSimulationVariableTickChunkFragment::ShouldTickChunkThisFrame);
 }
 
 void UTickSTProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)

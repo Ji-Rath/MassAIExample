@@ -22,6 +22,7 @@ EStateTreeRunStatus FMassMoveToSOTask::Tick(FStateTreeExecutionContext& Context,
 	auto& MoveTarget = Context.GetExternalData(MoveTargetHandle);
 	auto& TransformFragment = Context.GetExternalData(TransformHandle);
 
+	TRACE_CPUPROFILER_EVENT_SCOPE(ST_FindRandomLocation)
 	MoveTarget.DistanceToGoal = FVector::Dist(MoveTarget.Center, TransformFragment.GetTransform().GetLocation());
 	MoveTarget.Forward = (MoveTarget.Center - TransformFragment.GetTransform().GetLocation()).GetSafeNormal();
 	

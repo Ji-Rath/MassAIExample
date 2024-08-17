@@ -4,18 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "MassProcessor.h"
-#include "TickSTProcessor.generated.h"
+#include "StateTreeMovementUpdateProcessor.generated.h"
 
 /**
- * Processor whos function is to tick the state tree at certain intervals.
- * This may fluctuate due to distance, LOD, or other factors.
+ * 
  */
 UCLASS()
-class MASSSMARTOBJECTAI_API UTickSTProcessor : public UMassProcessor
+class MASSSMARTOBJECTAI_API UStateTreeMovementUpdateProcessor : public UMassProcessor
 {
 	GENERATED_BODY()
 	
-	UTickSTProcessor();
+	UStateTreeMovementUpdateProcessor();
 protected:
 	virtual void ConfigureQueries() override;
 	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
