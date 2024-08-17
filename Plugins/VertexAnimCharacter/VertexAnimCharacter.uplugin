@@ -14,6 +14,13 @@
 	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
 	"Installed": false,
+	"Modules": [
+		{
+			"Name": "VertexAnimCharacter",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
 	"Plugins": [
 		{
 			"Name": "AnimToTexture",
