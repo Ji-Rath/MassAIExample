@@ -17,6 +17,9 @@ bool FMW_FindRandomLocationTask::Link(FStateTreeLinker& Linker)
 EStateTreeRunStatus FMW_FindRandomLocationTask::EnterState(FStateTreeExecutionContext& Context,
 	const FStateTreeTransitionResult& Transition) const
 {
+	if (Transition.ChangeType != EStateTreeStateChangeType::Changed) { return EStateTreeRunStatus::Running; }
+	TRACE_CPUPROFILER_EVENT_SCOPE(ST_FindRandomLocation)
+	
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 	const float Range = InstanceData.Range;
 	FTransformFragment& Transform = Context.GetExternalData(TransformHandle);
@@ -24,5 +27,5 @@ EStateTreeRunStatus FMW_FindRandomLocationTask::EnterState(FStateTreeExecutionCo
 
 	InstanceData.OutLocation = Transform.GetTransform().GetLocation()+NewOffset;
 	
-	return EStateTreeRunStatus::Succeeded;
+	return EStateTreeRunStatus::Running;
 }

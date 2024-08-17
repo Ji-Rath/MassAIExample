@@ -32,11 +32,6 @@ EStateTreeRunStatus FMW_GotoLocation::EnterState(FStateTreeExecutionContext& Con
 	MoveTarget.Forward = (Destination - TransformFragment.GetTransform().GetLocation()).GetSafeNormal();
 	MoveTarget.DistanceToGoal = FVector::Dist(Destination, TransformFragment.GetTransform().GetLocation());
 	MoveTarget.CreateNewAction(EMassMovementAction::Move, *Context.GetWorld());
-
-	// Signal task tick
-	const FMassStateTreeExecutionContext& MassContext = static_cast<FMassStateTreeExecutionContext&>(Context);
-	auto& MassSignalSubsystem = Context.GetExternalData(MassSignalSubsystemHandle);
-	MassSignalSubsystem.DelaySignalEntity(UE::Mass::Signals::StateTreeActivate, MassContext.GetEntity(), 1.f);
 	
 	return EStateTreeRunStatus::Running;
 }
@@ -57,11 +52,6 @@ EStateTreeRunStatus FMW_GotoLocation::Tick(FStateTreeExecutionContext& Context, 
 		MoveTarget.CreateNewAction(MoveTarget.IntentAtGoal, *Context.GetWorld());
 		return EStateTreeRunStatus::Succeeded;
 	}
-
-	// Signal next task tick
-	const FMassStateTreeExecutionContext& MassContext = static_cast<FMassStateTreeExecutionContext&>(Context);
-	auto& MassSignalSubsystem = Context.GetExternalData(MassSignalSubsystemHandle);
-	MassSignalSubsystem.DelaySignalEntity(UE::Mass::Signals::StateTreeActivate, MassContext.GetEntity(), 1.f);
 	
 	return EStateTreeRunStatus::Running;
 }
