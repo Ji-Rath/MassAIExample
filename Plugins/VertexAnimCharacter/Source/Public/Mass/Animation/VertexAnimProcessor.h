@@ -8,6 +8,8 @@
 #include "MassRepresentationTypes.h"
 #include "VertexAnimProcessor.generated.h"
 
+struct FMassActorFragment;
+struct FMassVelocityFragment;
 // Holds simple animation data (borrowed from CitySample)
 USTRUCT()
 struct VERTEXANIMCHARACTER_API FVertexAnimInfoFragment : public FMassFragment
@@ -43,5 +45,10 @@ public:
 	void UpdateISMVertexAnimation(FMassInstancedStaticMeshInfo& ISMInfo, FVertexAnimInfoFragment& AnimationData,
 	                              float LODSignificance, float PrevLODSignificance, int32 NumFloatsToPad);
 
+	UFUNCTION()
+	void UpdateAnimInstance(const FMassVelocityFragment& VelocityFragment, const FMassActorFragment& ActorFragment);
+
 	FMassEntityQuery EntityQuery;
+
+	FMassEntityQuery UpdateAnimInstanceQuery;
 };

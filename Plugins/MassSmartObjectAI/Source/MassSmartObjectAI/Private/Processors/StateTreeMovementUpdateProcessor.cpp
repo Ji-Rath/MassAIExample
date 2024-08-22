@@ -42,7 +42,7 @@ void UStateTreeMovementUpdateProcessor::Execute(FMassEntityManager& EntityManage
 				auto Distance = FVector::Dist2D(TransformFragment.GetTransform().GetLocation(), MassMoveTargetFragment.Center);
 				if (Distance < 100.f)
 				{
-					//SignalSubsystem.SignalEntityDeferred(Context, UE::Mass::Signals::StateTreeActivate, Context.GetEntity(EntityIdx));	
+					SignalSubsystem.SignalEntityDeferred(Context, UE::Mass::Signals::StateTreeActivate, Context.GetEntity(EntityIdx));	
 				}
 			}
 		}

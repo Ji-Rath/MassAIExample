@@ -4,10 +4,13 @@
 #include "Mass/Animation/VertexAnimProcessor.h"
 
 #include "AnimToTextureInstancePlaybackHelpers.h"
+#include "MassActorSubsystem.h"
+#include "MassMovementFragments.h"
 #include "MassRepresentationFragments.h"
 #include "MassRepresentationProcessor.h"
 #include "MassRepresentationSubsystem.h"
 #include "MassSimulationLOD.h"
+#include "VertexAnimInstance.h"
 
 UVertexAnimProcessor::UVertexAnimProcessor()
 {
@@ -23,20 +26,21 @@ void UVertexAnimProcessor::ConfigureQueries()
 	EntityQuery.AddSharedRequirement<FMassRepresentationSubsystemSharedFragment>(EMassFragmentAccess::ReadWrite);
 	
 	EntityQuery.AddChunkRequirement<FMassVisualizationChunkFragment>(EMassFragmentAccess::ReadOnly);
-	
-	auto ShouldRun = [](const FMassExecutionContext& Context)
-	{
-		return FMassVisualizationChunkFragment::AreAnyEntitiesVisibleInChunk(Context);
-	};
-	EntityQuery.SetChunkFilter(ShouldRun);
-	
+	EntityQuery.SetChunkFilter(FMassVisualizationChunkFragment::AreAnyEntitiesVisibleInChunk);
 	EntityQuery.RegisterWithProcessor(*this);
+
+	UpdateAnimInstanceQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadOnly);
+	UpdateAnimInstanceQuery.AddRequirement<FMassActorFragment>(EMassFragmentAccess::ReadOnly);
+	UpdateAnimInstanceQuery.AddChunkRequirement<FMassVisualizationChunkFragment>(EMassFragmentAccess::ReadOnly);
+	UpdateAnimInstanceQuery.SetChunkFilter(FMassVisualizationChunkFragment::AreAnyEntitiesVisibleInChunk);
+	UpdateAnimInstanceQuery.RegisterWithProcessor(*this);
 }
 
 void UVertexAnimProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
 	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(UpdateVertexAnim)
 		UMassRepresentationSubsystem* RepresentationSubsystem = Context.GetMutableSharedFragment<FMassRepresentationSubsystemSharedFragment>().RepresentationSubsystem;
 		check(RepresentationSubsystem);
 		
@@ -69,6 +73,22 @@ void UVertexAnimProcessor::Execute(FMassEntityManager& EntityManager, FMassExecu
 			}
 		}
 	});
+
+	UpdateAnimInstanceQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(UpdateAnimInstance)
+		const auto& VelocityFragments = Context.GetFragmentView<FMassVelocityFragment>();
+		const auto& ActorFragments = Context.GetFragmentView<FMassActorFragment>();
+		
+		const int32 NumEntities = Context.GetNumEntities();
+		for (int EntityIdx = 0; EntityIdx < NumEntities; EntityIdx++)
+		{
+			const auto& VelocityFragment = VelocityFragments[EntityIdx];
+			const auto& ActorFragment = ActorFragments[EntityIdx];
+
+			UpdateAnimInstance(VelocityFragment, ActorFragment);
+		}
+	});
 }
 
 void UVertexAnimProcessor::UpdateISMVertexAnimation(FMassInstancedStaticMeshInfo& ISMInfo, FVertexAnimInfoFragment& AnimationData, const float LODSignificance, const float PrevLODSignificance, const int32 NumFloatsToPad /*= 0*/)
@@ -78,5 +98,20 @@ void UVertexAnimProcessor::UpdateISMVertexAnimation(FMassInstancedStaticMeshInfo
 	{
 		if (PrevLODSignificance >= 4.f) { return; }
 		ISMInfo.AddBatchedCustomData<FAnimToTextureAutoPlayData>(PlayData, LODSignificance, PrevLODSignificance, NumFloatsToPad);
+	}
+}
+
+void UVertexAnimProcessor::UpdateAnimInstance(const FMassVelocityFragment& VelocityFragment,
+	const FMassActorFragment& ActorFragment)
+{
+	auto Actor = ActorFragment.Get();
+	if (!Actor) { return; }
+	
+	auto SKComp = Actor->GetComponentByClass<USkeletalMeshComponent>();
+	if (!SKComp) { return; }
+	
+	if (auto ActorAnimInstance = Cast<UVertexAnimInstance>(SKComp->GetAnimInstance()))
+	{
+		ActorAnimInstance->SetVelocity(VelocityFragment.Value);
 	}
 }
