@@ -42,6 +42,10 @@
 		{
 			"Name": "BuildingManager",
 			"Enabled": true
+		},
+		{
+			"Name": "GameplayStateTree",
+			"Enabled": true
 		}
 	]
 }
