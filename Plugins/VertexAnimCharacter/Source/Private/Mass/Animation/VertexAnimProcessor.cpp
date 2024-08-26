@@ -34,6 +34,13 @@ void UVertexAnimProcessor::ConfigureQueries()
 	UpdateAnimInstanceQuery.AddChunkRequirement<FMassVisualizationChunkFragment>(EMassFragmentAccess::ReadOnly);
 	UpdateAnimInstanceQuery.SetChunkFilter(FMassVisualizationChunkFragment::AreAnyEntitiesVisibleInChunk);
 	UpdateAnimInstanceQuery.RegisterWithProcessor(*this);
+
+	UpdateMontageQuery.AddRequirement<FMassMontageFragment>(EMassFragmentAccess::ReadOnly);
+	UpdateMontageQuery.AddRequirement<FMassActorFragment>(EMassFragmentAccess::ReadOnly);
+	UpdateMontageQuery.RegisterWithProcessor(*this);
+	
+	UpdateMontagePositionQuery.AddRequirement<FMassMontageFragment>(EMassFragmentAccess::ReadWrite);
+	UpdateMontagePositionQuery.RegisterWithProcessor(*this);
 }
 
 void UVertexAnimProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
@@ -87,6 +94,74 @@ void UVertexAnimProcessor::Execute(FMassEntityManager& EntityManager, FMassExecu
 			const auto& ActorFragment = ActorFragments[EntityIdx];
 
 			UpdateAnimInstance(VelocityFragment, ActorFragment);
+		}
+	});
+
+	UpdateMontageQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(UpdateAnimMontage)
+		const auto& MontageFragments = Context.GetFragmentView<FMassMontageFragment>();
+		const auto& MassActorFragments = Context.GetFragmentView<FMassActorFragment>();
+		
+		const int32 NumEntities = Context.GetNumEntities();
+		for (int EntityIdx = 0; EntityIdx < NumEntities; EntityIdx++)
+		{
+			const auto& MontageFragment = MontageFragments[EntityIdx];
+			const auto& MassActorFragment = MassActorFragments[EntityIdx];
+			
+			UAnimMontage* Montage = MontageFragment.Montage.IsNull() ? nullptr : MontageFragment.Montage.LoadSynchronous();
+			if (Montage == nullptr) { continue; }
+
+			const AActor* Actor = MassActorFragment.Get();
+			if (!Actor) { continue; }
+
+			auto SKM = Actor->FindComponentByClass<USkeletalMeshComponent>();
+			if (!SKM) { continue; }
+
+			// Code borrowed/simplified from MassCrowdAnimationProcessor
+			if (UAnimInstance* AnimInstance = SKM->GetAnimInstance())
+			{
+				// Don't play the montage again, even if it's blending out. UAnimInstance::GetCurrentActiveMontage and AnimInstance::Montage_IsPlaying return false if the montage is blending out.
+				bool bMontageAlreadyPlaying = false;
+				for (int32 InstanceIndex = 0; InstanceIndex < AnimInstance->MontageInstances.Num(); InstanceIndex++)
+				{
+					FAnimMontageInstance* MontageInstance = AnimInstance->MontageInstances[InstanceIndex];
+					if (MontageInstance && MontageInstance->Montage == Montage && MontageInstance->IsPlaying())
+					{
+						bMontageAlreadyPlaying = true;
+						break;
+					}
+				}
+
+				if (!bMontageAlreadyPlaying)
+				{
+					FAlphaBlendArgs BlendIn;
+					BlendIn = Montage->GetBlendInArgs();
+
+					AnimInstance->Montage_PlayWithBlendIn(Montage, BlendIn, 1.0f, EMontagePlayReturnType::MontageLength, MontageFragment.Position);
+				}
+			}
+
+			
+		}
+	});
+
+	UpdateMontagePositionQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(UpdateMontagePosition)
+		const auto& MontageFragments = Context.GetMutableFragmentView<FMassMontageFragment>();
+		
+		const int32 NumEntities = Context.GetNumEntities();
+		for (int EntityIdx = 0; EntityIdx < NumEntities; EntityIdx++)
+		{
+			auto& MontageFragment = MontageFragments[EntityIdx];
+			MontageFragment.Position += Context.GetDeltaTimeSeconds();
+
+			// If we have completed the montage, remove the fragment
+			if (MontageFragment.Position > MontageFragment.Montage.LoadSynchronous()->GetPlayLength())
+			{
+				Context.Defer().RemoveFragment<FMassMontageFragment>(Context.GetEntity(EntityIdx));
+			}
 		}
 	});
 }

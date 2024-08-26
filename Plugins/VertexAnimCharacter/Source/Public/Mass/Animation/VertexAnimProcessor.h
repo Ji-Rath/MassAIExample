@@ -10,6 +10,7 @@
 
 struct FMassActorFragment;
 struct FMassVelocityFragment;
+
 // Holds simple animation data (borrowed from CitySample)
 USTRUCT()
 struct VERTEXANIMCHARACTER_API FVertexAnimInfoFragment : public FMassFragment
@@ -25,6 +26,22 @@ struct VERTEXANIMCHARACTER_API FVertexAnimInfoFragment : public FMassFragment
 	bool bSwappedThisFrame = false;
 	bool bCustomAnimation = false;
 	int AnimPosition = 0;
+};
+
+// Animation data for playing montages
+USTRUCT()
+struct FMassMontageFragment : public FMassFragment
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	TSoftObjectPtr<UAnimMontage> Montage;
+	
+	float Position = 0.f;
+
+	FMassMontageFragment() = default;
+
+	FMassMontageFragment(const TSoftObjectPtr<UAnimMontage>& InMontage): Montage(InMontage) {};
 };
 
 /**
@@ -49,6 +66,7 @@ public:
 	void UpdateAnimInstance(const FMassVelocityFragment& VelocityFragment, const FMassActorFragment& ActorFragment);
 
 	FMassEntityQuery EntityQuery;
-
 	FMassEntityQuery UpdateAnimInstanceQuery;
+	FMassEntityQuery UpdateMontageQuery;
+	FMassEntityQuery UpdateMontagePositionQuery;
 };
