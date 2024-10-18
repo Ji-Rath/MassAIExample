@@ -25,7 +25,7 @@ public class MassNavMesh : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core", "MassAIBehavior", "StateTreeModule", "MassCommon", "MassSignals", "MassNavigation", "NavigationSystem", "MassEntity"
+				"Core", "MassAIBehavior", "StateTreeModule", "MassCommon", "MassSignals", "MassNavigation", "NavigationSystem", "MassEntity", "StructUtils"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
