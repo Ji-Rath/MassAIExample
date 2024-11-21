@@ -23,7 +23,9 @@ EStateTreeRunStatus FCalculatePathTask::EnterState(FStateTreeExecutionContext& C
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 	auto& TransformFragment = Context.GetExternalData(TransformHandle);
 
-	if (InstanceData.QueryID == -1) { return EStateTreeRunStatus::Running; }
+	if (InstanceData.QueryID != -1) { return EStateTreeRunStatus::Running; }
+
+	TRACE_CPUPROFILER_EVENT_SCOPE(ST_CalculatePathTask)
 	
 	auto NavSystem = FNavigationSystem::GetCurrent<UNavigationSystemV1>(Context.GetWorld());
 	FNavAgentProperties NavProperties{ 25, 60};
