@@ -29,8 +29,7 @@ public class MassSmartObjectAI : ModuleRules
 				"StateTreeModule", 
 				"SmartObjectsModule", 
 				"MassNavigation",
-				"MassCommon",
-				"StructUtils"
+				"MassCommon"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

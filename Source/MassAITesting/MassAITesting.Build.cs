@@ -9,7 +9,7 @@ public class MassAITesting : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay",
-			"MassEntity", "MassCommon", "MassNavigation", "StructUtils", "MassMovement", "NavigationSystem",
+			"MassEntity", "MassCommon", "MassNavigation", "MassMovement", "NavigationSystem",
 			"AIModule", "MassAIBehavior", "StateTreeModule", "GameplayTags", "SmartObjectsModule", "MassSmartObjects", "MassSignals",
 			"MassRepresentation", "MassLOD", "AnimToTexture"
 		});

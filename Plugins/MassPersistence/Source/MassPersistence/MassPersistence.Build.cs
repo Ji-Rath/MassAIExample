@@ -25,7 +25,7 @@ public class MassPersistence : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core", "MassEntity", "MassSignals", "MassSpawner", "StructUtils", "MassSignals"
+				"Core", "MassEntity", "MassSignals", "MassSpawner", "MassSignals"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

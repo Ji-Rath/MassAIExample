@@ -37,10 +37,6 @@
 		{
 			"Name": "MassGameplay",
 			"Enabled": true
-		},
-		{
-			"Name": "MassEntity",
-			"Enabled": true
 		}
 	]
 }

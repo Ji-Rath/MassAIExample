@@ -10,7 +10,7 @@
 
 // Shared fragment which lets the system know which template to use when loading the entity
 USTRUCT()
-struct FPersistentDataFragment : public FMassSharedFragment
+struct FPersistentDataFragment : public FMassConstSharedFragment
 {
 	GENERATED_BODY()
 
