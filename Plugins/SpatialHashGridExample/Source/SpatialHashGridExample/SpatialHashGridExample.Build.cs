@@ -25,7 +25,7 @@ public class SpatialHashGridExample : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core", "MassEntity", "AIModule", "MassSignals",
+				"Core", "MassEntity", "AIModule", "MassSignals"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

@@ -25,7 +25,7 @@ public class MassWanderAI : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core", "MassAIBehavior",
+				"Core", "MassAIBehavior", "MassEntity"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -42,7 +42,7 @@ public class MassWanderAI : ModuleRules
 				"StateTreeModule",
 				"MassCommon",
 				"MassNavigation",
-				"MassSignals"
+				"MassSignals",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

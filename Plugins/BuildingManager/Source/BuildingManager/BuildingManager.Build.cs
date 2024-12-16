@@ -28,7 +28,8 @@ public class BuildingManager : ModuleRules
 				"Core", 
 				"SmartObjectsModule", 
 				"MassSmartObjects",
-				"GameplayTags"
+				"GameplayTags",
+				"MassEntity"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

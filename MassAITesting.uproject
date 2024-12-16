@@ -20,10 +20,6 @@
 			"Enabled": true
 		},
 		{
-			"Name": "MassEntity",
-			"Enabled": true
-		},
-		{
 			"Name": "MassCrowd",
 			"Enabled": true
 		},
@@ -45,6 +41,14 @@
 		},
 		{
 			"Name": "GameplayStateTree",
+			"Enabled": true
+		},
+		{
+			"Name": "StateTree",
+			"Enabled": true
+		},
+		{
+			"Name": "SmartObjects",
 			"Enabled": true
 		}
 	]
