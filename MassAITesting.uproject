@@ -50,6 +50,10 @@
 		{
 			"Name": "SmartObjects",
 			"Enabled": true
+		},
+		{
+			"Name": "PCG",
+			"Enabled": true
 		}
 	]
 }
