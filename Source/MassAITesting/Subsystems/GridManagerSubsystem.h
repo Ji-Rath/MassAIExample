@@ -20,9 +20,8 @@ class MASSAITESTING_API UGridManagerSubsystem : public UMassSubsystemBase
 
 public:
 	UFUNCTION(BlueprintCallable)
-	FVector GetClosestNode(const FVector& Position) const;
-
-private:
+	void GetNearbyNodes(const FVector& Position, TArray<int32>& OutNodes) const;
+	
 	UPROPERTY()
 	UInstancedStaticMeshComponent* GridMesh;
 };

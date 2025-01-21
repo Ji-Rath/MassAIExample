@@ -18,25 +18,11 @@ void UGridManagerSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	check(GridMesh);
 }
 
-FVector UGridManagerSubsystem::GetClosestNode(const FVector& Position) const
+void UGridManagerSubsystem::GetNearbyNodes(const FVector& Position, TArray<int32>& OutNodes) const
 {
-	if (!GridMesh) return FVector::ZeroVector;
+	if (!GridMesh) return;
+	OutNodes.Empty();
 
-	TArray<int32> GridNodes = GridMesh->GetInstancesOverlappingSphere(Position, 1000.f, true);
-
-	float ClosestDistance = 10000.f;
-	FVector ClosestPosition;
-	for (int32 GridNode : GridNodes)
-	{
-		FTransform NodeTransform;
-		GridMesh->GetInstanceTransform(GridNode, NodeTransform, true);
-		float Dist = FVector::Dist(NodeTransform.GetLocation(), Position);
-		if (Dist < ClosestDistance)
-		{
-			ClosestPosition = NodeTransform.GetLocation();
-			ClosestDistance = Dist;
-		}
-	}
-
-	return ClosestPosition;
+	auto Area = FBox(Position-300.f+(FVector::DownVector*2000.f),Position+300.f+(FVector::UpVector*2000.f));
+	OutNodes = GridMesh->GetInstancesOverlappingBox(Area, true);
 }
