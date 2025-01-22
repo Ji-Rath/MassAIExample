@@ -3,5 +3,5 @@
 
 #include "ResourceTags.h"
 
-UE_DEFINE_GAMEPLAY_TAG(TAG_ResourceTree, "Resource.Tree");
-UE_DEFINE_GAMEPLAY_TAG(TAG_ResourceRock, "Resource.Rock");
+UE_DEFINE_GAMEPLAY_TAG(TAG_ResourceTree, "Object.Tree");
+UE_DEFINE_GAMEPLAY_TAG(TAG_ResourceRock, "Object.Rock");

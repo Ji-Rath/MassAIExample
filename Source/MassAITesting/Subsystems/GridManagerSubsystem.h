@@ -20,10 +20,18 @@ class MASSAITESTING_API UGridManagerSubsystem : public UMassSubsystemBase
 
 public:
 	UFUNCTION(BlueprintCallable)
-	void GetNearbyNodes(const FVector& Position, TArray<int32>& OutNodes) const;
+	void GetNearbyNodes(const FVector& Position, TArray<int32>& OutNodes, float Range = 300.f) const;
 	
 	UPROPERTY()
 	UInstancedStaticMeshComponent* GridMesh;
+
+	TSet<int32> ClaimedNodes;
+
+	UFUNCTION(BlueprintCallable)
+	void AddClaimedNode(int32 Node);
+	
+	UFUNCTION(BlueprintCallable)
+	void RemoveClaimedNode(int32 Node);
 };
 
 template<>

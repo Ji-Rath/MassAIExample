@@ -12,17 +12,27 @@ void UGridManagerSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 
 	TArray<AActor*> GridActors;
 	UGameplayStatics::GetAllActorsWithTag(&InWorld, FName("GridActor"), GridActors);
-	check(!GridActors.IsEmpty());
+	if (GridActors.IsEmpty()) { return; }
 
 	GridMesh = GridActors[0]->GetComponentByClass<UInstancedStaticMeshComponent>();
 	check(GridMesh);
 }
 
-void UGridManagerSubsystem::GetNearbyNodes(const FVector& Position, TArray<int32>& OutNodes) const
+void UGridManagerSubsystem::GetNearbyNodes(const FVector& Position, TArray<int32>& OutNodes, float Range) const
 {
 	if (!GridMesh) return;
 	OutNodes.Empty();
 
-	auto Area = FBox(Position-300.f+(FVector::DownVector*2000.f),Position+300.f+(FVector::UpVector*2000.f));
+	auto Area = FBox(Position-Range+(FVector::DownVector*2000.f),Position+Range+(FVector::UpVector*2000.f));
 	OutNodes = GridMesh->GetInstancesOverlappingBox(Area, true);
+}
+
+void UGridManagerSubsystem::AddClaimedNode(int32 Node)
+{
+	ClaimedNodes.Add(Node);
+}
+
+void UGridManagerSubsystem::RemoveClaimedNode(int32 Node)
+{
+	ClaimedNodes.Remove(Node);
 }

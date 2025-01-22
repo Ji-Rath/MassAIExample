@@ -9,10 +9,11 @@
 
 // Defines simple properties for an open simulation entity
 USTRUCT()
-struct FResourceUserFragment : public FMassFragment
+struct WORLDRESOURCES_API FResourceUserFragment : public FMassFragment
 {
 	GENERATED_BODY()
 	
 	// Tags that the entity currently holds
+	UPROPERTY(VisibleAnywhere)
 	FGameplayTagContainer Tags;
 };
