@@ -1,23 +1,79 @@
-# MassAITesting
- A project primarily used to test UE5 Mass AI system
- 
-## Simple gather entities (Currently called RTSAgentTrait in CPP)
-### AI process
-- Entities go to smart objects (tree/rock) and 'collect' the resource
-- Entities then go back to their 'house' which is their initial location
-- Repeat until there are no more resources to gather
-### Behind the scenes
-- Entities use the SmartObjectSubsystem to communicate with smart objects
-- This ensures that entities wont fight over a single resource
-- Smart objects use simple gameplaytags to determine what is a rock and what is a tree
+<br />
+<div align="center">
+  <a href="https://github.com/Ji-Rath/MassAIExample">
+    <img src="Images/MainImage.png" alt="Logo" width="293" height="204">
+  </a>
+
+<h3 align="center">Mass AI Example</h3>
+
+  <p align="center">
+    A project primarily used to experiment with Mass, an ECS Framework
+    <br />
+    <a href="https://github.com/Ji-Rath/MassAIExample"><strong>Explore the docs »</strong></a>
+    <br />
+    <br />
+    <a href="https://github.com/Ji-Rath/MassAIExample#open-simulation-example">View Demo</a>
+    &middot;
+    <a href="https://github.com/Ji-Rath/MassAIExample/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
+    &middot;
+    <a href="https://github.com/Ji-Rath/MassAIExample/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
+  </p>
+</div>
+
+[![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![project_license][license-shield]][license-url]
+
+# Open Simulation Example
+- Gather resources to build a house
+- Utilizes smart objects for querying resources in the world
+- Uses state tree for AI logic management
+- Bridges logic between Mass and game world through subsystems
+<details>
+  <summary>Old Videos</summary>
 
 https://user-images.githubusercontent.com/1747157/174648031-43e36fd4-816c-42d7-b087-d4fbd3643475.mp4
- 
-https://user-images.githubusercontent.com/1747157/172963214-0ef75cdd-75bd-494e-8a21-666cb7a5ba35.mp4
- 
-https://user-images.githubusercontent.com/1747157/170729609-3c2716ae-a6a0-40c5-86bf-a437a15e6705.mp4
 
-## Discoveries
+https://user-images.githubusercontent.com/1747157/172963214-0ef75cdd-75bd-494e-8a21-666cb7a5ba35.mp4
+
+https://user-images.githubusercontent.com/1747157/170729609-3c2716ae-a6a0-40c5-86bf-a437a15e6705.mp4
+</details>
+
+# Mass Nav Mesh Example
+- Entities utilize nav mesh to find optimal path to location
+- Use async functionality to reduce overhead
+- Uses State Tree
+
+# Mass Persistence Example
+- Simple example outlining one approach to a save/load system
+- Signal processor to write data
+- Subsystem for centralized processing
+- Uses current Unreal Save System
+
+# Mass Smart Object Example
+- Uses smart objects and state tree for mass entity interaction
+- Claims then uses object, plays an example effect
+
+# Mass Wander AI
+- Barebones example which uses a custom state tree task to find a random location, then command the entity to move there
+
+# Spatial Hash Grid Example
+- Example for utilizing a spatial hash grid for fast queries in the world. The same underlying system is used for mass avoidance.
+- Allows the user to query an area and returns entities that are within the range.
+- Custom processor for updating entities location within the hash grid
+
+# State Tree Example
+- Simple example which outlines basic state tree logic (using mass).
+- Utilizes tasks and nodes within the tree for organizing logic
+
+# Vertex Anim Character Example
+- Showcases the Vertex Animation Plugin converting skeletal mesh animations to vertex animation.
+- Barebones and mainly used in the Open Simulation example
+
+# Research
+These are my rough notes outlining discoveries made within mass and the city sample. Please don't expect anything well formatted, some things may even be outdated.
 ### Mass Visualization
 - Visualization Trait
 - Mass Viewer Info Fragment
@@ -142,3 +198,14 @@ I definitely might change my mind when I attempt to sync actor/ISM animation
 - The UseSmartObject task also messes with the MoveTargetFragment. It seems to
 be doing some stuff in ActivateActionAnimate() at MassZoneGraphNavigationUtils too.
   (DONE)
+
+[contributors-shield]: https://img.shields.io/github/contributors/Ji-Rath/MassAIExample.svg?style=for-the-badge
+[contributors-url]: https://github.com/Ji-Rath/MassAIExample/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/Ji-Rath/MassAIExample.svg?style=for-the-badge
+[forks-url]: https://github.com/Ji-Rath/MassAIExample/network/members
+[stars-shield]: https://img.shields.io/github/stars/Ji-Rath/MassAIExample.svg?style=for-the-badge
+[stars-url]: https://github.com/Ji-Rath/MassAIExample/stargazers
+[issues-shield]: https://img.shields.io/github/issues/Ji-Rath/MassAIExample.svg?style=for-the-badge
+[issues-url]: https://github.com/Ji-Rath/MassAIExample/issues
+[license-shield]: https://img.shields.io/github/license/Ji-Rath/MassAIExample.svg?style=for-the-badge
+[license-url]: https://github.com/Ji-Rath/MassAIExample/blob/master/LICENSE.txt
