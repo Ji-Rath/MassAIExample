@@ -31,6 +31,9 @@
 - Utilizes smart objects for querying resources in the world
 - Uses state tree for AI logic management
 - Bridges logic between Mass and game world through subsystems
+
+https://github.com/user-attachments/assets/09a0a425-18ab-4f80-ab91-cb97542eb570
+
 <details>
   <summary>Old Videos</summary>
 
