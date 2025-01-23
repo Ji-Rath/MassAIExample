@@ -58,7 +58,7 @@ void UMatchGridHeightProcessor::Execute(FMassEntityManager& EntityManager, FMass
 				GridFragment.LastQueriedPosition = Location;
 			}
 
-			FVector ClosestLocation;
+			FVector ClosestLocation = FVector::ZeroVector;
 			float ClosestDistance = FLT_MAX;
 			{
 				SCOPED_NAMED_EVENT(STAT_CalculateNodeDistance, FColor::Red);
@@ -81,7 +81,7 @@ void UMatchGridHeightProcessor::Execute(FMassEntityManager& EntityManager, FMass
 			ClosestLocation.X = Location.X;
 			ClosestLocation.Y = Location.Y;
 			ClosestLocation.Z += 90.f;
-			TransformFragment.GetMutableTransform().SetLocation(ClosestLocation);
+			//TransformFragment.GetMutableTransform().SetLocation(ClosestLocation);
 			MoveFragment.Center.Z = ClosestLocation.Z;
 		}
 	});

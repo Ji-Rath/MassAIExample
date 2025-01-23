@@ -23,8 +23,12 @@ void UGridManagerSubsystem::GetNearbyNodes(const FVector& Position, TArray<int32
 	if (!GridMesh) return;
 	OutNodes.Empty();
 
-	auto Area = FBox(Position-Range+(FVector::DownVector*2000.f),Position+Range+(FVector::UpVector*2000.f));
-	OutNodes = GridMesh->GetInstancesOverlappingBox(Area, true);
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(GetNearbyNodes)
+		auto Area = FBox(Position-Range+(FVector::DownVector*2000.f),Position+Range+(FVector::UpVector*2000.f));
+		OutNodes = GridMesh->GetInstancesOverlappingBox(Area, true);
+	}
+	
 }
 
 void UGridManagerSubsystem::AddClaimedNode(int32 Node)

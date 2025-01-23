@@ -24,10 +24,22 @@ EStateTreeRunStatus FMassFindEmptySpotTask::EnterState(FStateTreeExecutionContex
 	const FMassStateTreeExecutionContext& MassContext = static_cast<FMassStateTreeExecutionContext&>(Context);
 	auto& TransformFragment = Context.GetExternalData(EntityTransformHandle);
 	auto& GridManagerSubsystem = Context.GetExternalData(GridManagerHandle);
+	
+	TRACE_CPUPROFILER_EVENT_SCOPE(FindEmptySpot)
 
 	TArray<int32> NearbyNodes;
-	GridManagerSubsystem.GetNearbyNodes(TransformFragment.GetTransform().GetLocation(), NearbyNodes, 2000.f);
+	int Range = 500.f;
+	while (NearbyNodes.IsEmpty() && Range < 50000.f)
+	{
+		GridManagerSubsystem.GetNearbyNodes(TransformFragment.GetTransform().GetLocation(), NearbyNodes, Range);
 
+		NearbyNodes = NearbyNodes.FilterByPredicate([&GridManagerSubsystem](const int32& Result)
+		{
+			return !GridManagerSubsystem.ClaimedNodes.Contains(Result);
+		});
+		Range += 1000.f;
+	}
+	
 	NearbyNodes.Sort([&TransformFragment, &GridManagerSubsystem](const int32& Result, const int32& Result2)
 	{
 		FTransform SlotTransform, SlotTransform2;
