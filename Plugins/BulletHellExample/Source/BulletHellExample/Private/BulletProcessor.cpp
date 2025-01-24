@@ -1,0 +1,82 @@
+﻿// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "BulletProcessor.h"
+
+#include "BulletFragments.h"
+#include "BulletHellSubsystem.h"
+#include "MassCommonFragments.h"
+#include "MassExecutionContext.h"
+#include "MassMovementFragments.h"
+#include "MassSignalSubsystem.h"
+
+void UBulletInitializerProcessor::ConfigureQueries()
+{
+	EntityQuery.AddTagRequirement<FBulletTag>(EMassFragmentPresence::All);
+	EntityQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.AddRequirement<FBulletFragment>(EMassFragmentAccess::ReadOnly);
+	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.AddSubsystemRequirement<UMassSignalSubsystem>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.RegisterWithProcessor(*this);
+	
+}
+
+void UBulletInitializerProcessor::Initialize(UObject& Owner)
+{
+	Super::Initialize(Owner);
+
+	UMassSignalSubsystem* SignalSubsystem = UWorld::GetSubsystem<UMassSignalSubsystem>(Owner.GetWorld());
+	SubscribeToSignal(*SignalSubsystem, BulletHell::Signals::BulletSpawned);
+}
+
+void UBulletInitializerProcessor::SignalEntities(FMassEntityManager& EntityManager, FMassExecutionContext& Context,
+                                                 FMassSignalNameLookup& EntitySignals)
+{
+	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	{
+		auto SignalSubsystem = Context.GetMutableSubsystem<UMassSignalSubsystem>();
+		auto BulletFragments = Context.GetFragmentView<FBulletFragment>();
+		auto VelocityFragments = Context.GetMutableFragmentView<FMassVelocityFragment>();
+		auto TransformFragments = Context.GetMutableFragmentView<FTransformFragment>();
+		
+		const int32 NumEntities = Context.GetNumEntities();
+		for (int EntityIdx = 0; EntityIdx < NumEntities; EntityIdx++)
+		{
+			auto& BulletFragment = BulletFragments[EntityIdx];
+			auto& VelocityFragment = VelocityFragments[EntityIdx];
+			auto& TransformFragment = TransformFragments[EntityIdx];
+
+			VelocityFragment.Value = BulletFragment.Direction.GetSafeNormal() * BulletFragment.Speed;
+			TransformFragment.GetMutableTransform().SetLocation(BulletFragment.SpawnLocation);
+
+			SignalSubsystem->DelaySignalEntityDeferred(Context, BulletHell::Signals::BulletDestroy, Context.GetEntity(EntityIdx), BulletFragment.Lifetime);
+		}
+	});
+}
+
+void UBulletDestroyerProcessor::ConfigureQueries()
+{
+	EntityQuery.AddTagRequirement<FBulletTag>(EMassFragmentPresence::All);
+	EntityQuery.RegisterWithProcessor(*this);
+}
+
+void UBulletDestroyerProcessor::Initialize(UObject& Owner)
+{
+	Super::Initialize(Owner);
+
+	UMassSignalSubsystem* SignalSubsystem = UWorld::GetSubsystem<UMassSignalSubsystem>(Owner.GetWorld());
+	SubscribeToSignal(*SignalSubsystem, BulletHell::Signals::BulletDestroy);
+}
+
+void UBulletDestroyerProcessor::SignalEntities(FMassEntityManager& EntityManager, FMassExecutionContext& Context,
+	FMassSignalNameLookup& EntitySignals)
+{
+	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	{
+		const int32 NumEntities = Context.GetNumEntities();
+		for (int EntityIdx = 0; EntityIdx < NumEntities; EntityIdx++)
+		{
+			Context.Defer().DestroyEntity(Context.GetEntity(EntityIdx));
+		}
+	});
+}

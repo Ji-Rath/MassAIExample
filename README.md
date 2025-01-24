@@ -75,6 +75,11 @@ https://user-images.githubusercontent.com/1747157/170729609-3c2716ae-a6a0-40c5-8
 - Showcases the Vertex Animation Plugin converting skeletal mesh animations to vertex animation.
 - Barebones and mainly used in the Open Simulation example
 
+# Bullet Hell Example
+- Experiment with efficient entities and bullet spawning
+- Simple manager which respawns entities
+- Basic top down movement and click to shoot
+
 # Research
 These are my rough notes outlining discoveries made within mass and the city sample. Please don't expect anything well formatted, some things may even be outdated.
 ### Mass Visualization
