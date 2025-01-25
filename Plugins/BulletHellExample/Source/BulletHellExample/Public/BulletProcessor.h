@@ -34,3 +34,15 @@ public:
 
 	FMassEntityQuery EntityQuery;
 };
+
+UCLASS()
+class UBulletCollisionProcessor : public UMassProcessor
+{
+	GENERATED_BODY()
+
+public:
+	virtual void ConfigureQueries() override;
+	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
+
+	FMassEntityQuery EntityQuery;
+};

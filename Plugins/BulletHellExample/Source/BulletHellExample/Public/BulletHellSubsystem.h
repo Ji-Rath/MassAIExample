@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "HierarchicalHashGrid2D.h"
 #include "MassSubsystemBase.h"
 #include "MassProcessor.h"
 #include "BulletHellSubsystem.generated.h"
@@ -12,6 +13,8 @@ namespace BulletHell::Signals
 	const FName BulletSpawned = FName(TEXT("BulletSpawned"));
 	const FName BulletDestroy = FName(TEXT("BulletDestroy"));
 }
+
+typedef THierarchicalHashGrid2D<2, 4, FMassEntityHandle> FBHEntityHashGrid;	// 2 levels of hierarchy, 4 ratio between levels
 
 class UMassEntityConfigAsset;
 /**
@@ -23,6 +26,9 @@ class BULLETHELLEXAMPLE_API UBulletHellSubsystem : public UMassTickableSubsystem
 	GENERATED_BODY()
 
 public:
+	const FBHEntityHashGrid& GetHashGrid() const;
+	FBHEntityHashGrid& GetHashGrid_Mutable();
+	
 	void GetPlayerLocation(FVector& OutLocation) const;
 
 	UFUNCTION(BlueprintCallable)
@@ -41,6 +47,8 @@ private:
 
 	UPROPERTY()
 	APawn* CachedPlayerPawn;
+
+	FBHEntityHashGrid EntityHashGrid;
 };
 
 template<>

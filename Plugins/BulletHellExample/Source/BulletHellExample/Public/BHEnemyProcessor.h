@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "MassObserverProcessor.h"
 #include "MassProcessor.h"
 #include "BHEnemyProcessor.generated.h"
 
@@ -14,6 +15,34 @@ class BULLETHELLEXAMPLE_API UBHEnemyProcessor : public UMassProcessor
 {
 	GENERATED_BODY()
 
+	virtual void ConfigureQueries() override;
+	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
+
+	FMassEntityQuery EntityQuery;
+
+	FMassEntityQuery UpdateHashGridQuery;
+};
+
+UCLASS()
+class UBHEnemyInitializer : public UMassObserverProcessor
+{
+	GENERATED_BODY()
+
+public:
+	UBHEnemyInitializer();
+	virtual void ConfigureQueries() override;
+	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
+
+	FMassEntityQuery EntityQuery;
+};
+
+UCLASS()
+class UBHEnemyDestructor : public UMassObserverProcessor
+{
+	GENERATED_BODY()
+
+public:
+	UBHEnemyDestructor();
 	virtual void ConfigureQueries() override;
 	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
 

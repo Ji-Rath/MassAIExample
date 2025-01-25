@@ -9,6 +9,16 @@
 #include "MassSignalSubsystem.h"
 #include "MassSpawnerSubsystem.h"
 
+const FBHEntityHashGrid& UBulletHellSubsystem::GetHashGrid() const
+{
+	return EntityHashGrid;
+}
+
+FBHEntityHashGrid& UBulletHellSubsystem::GetHashGrid_Mutable()
+{
+	return EntityHashGrid;
+}
+
 void UBulletHellSubsystem::GetPlayerLocation(FVector& OutLocation) const
 {
 	OutLocation = PlayerLocation;

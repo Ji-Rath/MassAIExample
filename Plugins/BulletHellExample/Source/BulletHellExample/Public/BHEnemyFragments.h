@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BulletHellSubsystem.h"
 #include "MassEntityTraitBase.h"
 #include "MassEntityTypes.h"
 #include "BHEnemyFragments.generated.h"
@@ -13,8 +14,13 @@ struct BULLETHELLEXAMPLE_API FBHEnemyFragment : public FMassFragment
 {
 	GENERATED_BODY()
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	float Health;
+
+	UPROPERTY(EditAnywhere)
+	FVector CollisionExtent = FVector(100.f);
+
+	FBHEntityHashGrid::FCellLocation CellLocation;
 };
 
 // Defines an entity as a bullet hell enemy

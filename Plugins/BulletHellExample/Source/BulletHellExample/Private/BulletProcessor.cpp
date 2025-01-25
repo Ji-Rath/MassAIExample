@@ -80,3 +80,36 @@ void UBulletDestroyerProcessor::SignalEntities(FMassEntityManager& EntityManager
 		}
 	});
 }
+
+void UBulletCollisionProcessor::ConfigureQueries()
+{
+	EntityQuery.AddTagRequirement<FBulletTag>(EMassFragmentPresence::All);
+	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
+	EntityQuery.AddSubsystemRequirement<UBulletHellSubsystem>(EMassFragmentAccess::ReadOnly);
+	EntityQuery.RegisterWithProcessor(*this);
+}
+
+void UBulletCollisionProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
+{
+	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	{
+		auto BulletHellSubsystem = Context.GetSubsystem<UBulletHellSubsystem>();
+		auto TransformFragments = Context.GetFragmentView<FTransformFragment>();
+		const int32 NumEntities = Context.GetNumEntities();
+		for (int EntityIdx = 0; EntityIdx < NumEntities; EntityIdx++)
+		{
+			auto& TransformFragment = TransformFragments[EntityIdx];
+			auto Location = TransformFragment.GetTransform().GetLocation();
+			
+			TArray<FMassEntityHandle> Entities;
+			BulletHellSubsystem->GetHashGrid().Query(FBox::BuildAABB(Location, FVector(100.f)), Entities);
+
+			if (Entities.Num() > 0)
+			{
+				Entities.Add(Context.GetEntity(EntityIdx)); // delete bullet as well
+			
+				Context.Defer().DestroyEntities(Entities);
+			}
+		}
+	});
+}
