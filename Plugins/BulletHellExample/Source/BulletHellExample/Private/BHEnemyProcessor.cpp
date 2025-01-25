@@ -8,6 +8,7 @@
 #include "MassCommonFragments.h"
 #include "MassExecutionContext.h"
 #include "MassNavigationFragments.h"
+#include "MassSimulationLOD.h"
 
 void UBHEnemyProcessor::ConfigureQueries()
 {
@@ -15,11 +16,19 @@ void UBHEnemyProcessor::ConfigureQueries()
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddSubsystemRequirement<UBulletHellSubsystem>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddTagRequirement<FBHEnemyTag>(EMassFragmentPresence::All);
+	
+	EntityQuery.AddChunkRequirement<FMassSimulationVariableTickChunkFragment>(EMassFragmentAccess::ReadOnly, EMassFragmentPresence::Optional);
+	EntityQuery.SetChunkFilter(FMassSimulationVariableTickChunkFragment::ShouldTickChunkThisFrame);
+	
 	EntityQuery.RegisterWithProcessor(*this);
 
 	UpdateHashGridQuery.AddRequirement<FBHEnemyFragment>(EMassFragmentAccess::ReadWrite);
 	UpdateHashGridQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	UpdateHashGridQuery.AddSubsystemRequirement<UBulletHellSubsystem>(EMassFragmentAccess::ReadWrite);
+
+	UpdateHashGridQuery.AddChunkRequirement<FMassSimulationVariableTickChunkFragment>(EMassFragmentAccess::ReadOnly, EMassFragmentPresence::Optional);
+	UpdateHashGridQuery.SetChunkFilter(FMassSimulationVariableTickChunkFragment::ShouldTickChunkThisFrame);
+	
 	UpdateHashGridQuery.RegisterWithProcessor(*this);
 }
 
@@ -28,6 +37,7 @@ void UBHEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
 	// Update move target
 	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
 	{
+		SCOPED_NAMED_EVENT(STAT_UpdateMoveTarget, FColor::Red);
 		auto BulletHellSubsystem = Context.GetSubsystem<UBulletHellSubsystem>();
 		auto MoveTargetFragments = Context.GetMutableFragmentView<FMassMoveTargetFragment>();
 		auto TransformFragments = Context.GetFragmentView<FTransformFragment>();
@@ -36,9 +46,10 @@ void UBHEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
 		{
 			auto& MoveTargetFragment = MoveTargetFragments[EntityIdx];
 			auto& TransformFragment = TransformFragments[EntityIdx];
+			
 			BulletHellSubsystem->GetPlayerLocation(MoveTargetFragment.Center);
 
-			FVector EntityLocation = TransformFragment.GetTransform().GetLocation();
+			auto EntityLocation = TransformFragment.GetTransform().GetLocation();
 			MoveTargetFragment.DistanceToGoal = FVector::Dist(EntityLocation, MoveTargetFragment.Center);
 			MoveTargetFragment.Forward = (MoveTargetFragment.Center - EntityLocation).GetSafeNormal();
 
@@ -57,6 +68,7 @@ void UBHEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
 
 	UpdateHashGridQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
 	{
+		SCOPED_NAMED_EVENT(STAT_UpdateHashGrid, FColor::Red);
 		auto BulletHellSubsystem = Context.GetMutableSubsystem<UBulletHellSubsystem>();
 		auto BHEnemyFragments = Context.GetMutableFragmentView<FBHEnemyFragment>();
 		auto TransformFragments = Context.GetFragmentView<FTransformFragment>();
@@ -65,7 +77,7 @@ void UBHEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
 		for (int EntityIdx = 0; EntityIdx < NumEntities; EntityIdx++)
 		{
 			auto TransformFragment = TransformFragments[EntityIdx];
-			auto BHEnemyFragment = BHEnemyFragments[EntityIdx];
+			auto& BHEnemyFragment = BHEnemyFragments[EntityIdx];
 
 			auto Location = TransformFragment.GetTransform().GetLocation();
 

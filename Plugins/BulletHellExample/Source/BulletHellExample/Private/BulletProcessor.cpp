@@ -6,6 +6,7 @@
 #include "BulletFragments.h"
 #include "BulletHellSubsystem.h"
 #include "MassCommonFragments.h"
+#include "MassEntitySubsystem.h"
 #include "MassExecutionContext.h"
 #include "MassMovementFragments.h"
 #include "MassSignalSubsystem.h"
@@ -91,7 +92,7 @@ void UBulletCollisionProcessor::ConfigureQueries()
 
 void UBulletCollisionProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this, &EntityManager](FMassExecutionContext& Context)
 	{
 		auto BulletHellSubsystem = Context.GetSubsystem<UBulletHellSubsystem>();
 		auto TransformFragments = Context.GetFragmentView<FTransformFragment>();
@@ -102,13 +103,18 @@ void UBulletCollisionProcessor::Execute(FMassEntityManager& EntityManager, FMass
 			auto Location = TransformFragment.GetTransform().GetLocation();
 			
 			TArray<FMassEntityHandle> Entities;
-			BulletHellSubsystem->GetHashGrid().Query(FBox::BuildAABB(Location, FVector(100.f)), Entities);
+			BulletHellSubsystem->GetHashGrid().Query(FBox::BuildAABB(Location, FVector(50.f)), Entities);
+
+			Entities = Entities.FilterByPredicate([&Location, &EntityManager](const FMassEntityHandle& Entity)
+			{
+				auto EntityLocation = EntityManager.GetFragmentDataPtr<FTransformFragment>(Entity)->GetTransform().GetLocation();
+				return FVector::Dist(Location, EntityLocation) <= 50.f;
+			});
 
 			if (Entities.Num() > 0)
 			{
-				Entities.Add(Context.GetEntity(EntityIdx)); // delete bullet as well
-			
-				Context.Defer().DestroyEntities(Entities);
+				Entities.Add(Context.GetEntity(EntityIdx));
+				Context.Defer().DestroyEntities(Entities); // Delete bullet as well
 			}
 		}
 	});
