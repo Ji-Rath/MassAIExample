@@ -55,7 +55,6 @@ UHashGridDestroyProcessor::UHashGridDestroyProcessor()
 
 void UHashGridDestroyProcessor::ConfigureQueries()
 {
-	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FHashGridFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddSubsystemRequirement<UHashGridSubsystem>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.RegisterWithProcessor(*this);
@@ -67,14 +66,12 @@ void UHashGridDestroyProcessor::Execute(FMassEntityManager& EntityManager, FMass
 	{
 		auto& HashGridSubsystem = Context.GetMutableSubsystemChecked<UHashGridSubsystem>();
 		
-		const auto TransformFragments = Context.GetFragmentView<FTransformFragment>();
-		const auto HashGridFragments = Context.GetMutableFragmentView<FHashGridFragment>();
+		const auto HashGridFragments = Context.GetFragmentView<FHashGridFragment>();
 		
 		const int32 NumEntities = Context.GetNumEntities();
 		for (int EntityIdx = 0; EntityIdx < NumEntities; EntityIdx++)
 		{
-			auto& HashGridFragment = HashGridFragments[EntityIdx];
-			auto& TransformFragment = TransformFragments[EntityIdx];
+			const auto& HashGridFragment = HashGridFragments[EntityIdx];
 
 			HashGridSubsystem.HashGridData.Remove(Context.GetEntity(EntityIdx), HashGridFragment.CellLocation);
 		}
@@ -122,7 +119,6 @@ void UHashGridQueryProcessor::Initialize(UObject& Owner)
 
 void UHashGridQueryProcessor::ConfigureQueries()
 {
-	EntityQuery.AddRequirement<FHashGridFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.RegisterWithProcessor(*this);
 }
@@ -130,19 +126,17 @@ void UHashGridQueryProcessor::ConfigureQueries()
 void UHashGridQueryProcessor::SignalEntities(FMassEntityManager& EntityManager, FMassExecutionContext& Context,
 	FMassSignalNameLookup& EntitySignals)
 {
-	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this, &EntityManager](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
 	{
-		const auto HashGridFragments = Context.GetMutableFragmentView<FHashGridFragment>();
 		const auto TransformFragments = Context.GetFragmentView<FTransformFragment>();
 		
 		const int32 NumEntities = Context.GetNumEntities();
 		for (int EntityIdx = 0; EntityIdx < NumEntities; EntityIdx++)
 		{
-			auto& HashGridFragment = HashGridFragments[EntityIdx];
 			auto& TransformFragment = TransformFragments[EntityIdx];
 
 			// Destroy the entity when we receive the signal
-			EntityManager.Defer().DestroyEntity(Context.GetEntity(EntityIdx));
+			Context.Defer().DestroyEntity(Context.GetEntity(EntityIdx));
 
 			DrawDebugPoint(GetWorld(), TransformFragment.GetTransform().GetLocation(), 50.f, FColor::Yellow, true);
 		}
