@@ -97,6 +97,7 @@ void UCollisionProcessor::ConfigureQueries()
 	CollisionQuery.AddRequirement<FAgentRadiusFragment>(EMassFragmentAccess::ReadOnly);
 	CollisionQuery.AddSubsystemRequirement<UCollisionSubsystem>(EMassFragmentAccess::ReadOnly);
 	CollisionQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadWrite);
+	CollisionQuery.AddRequirement<FCollisionFragment>(EMassFragmentAccess::None); // used for filtering entities
 	CollisionQuery.AddTagRequirement<FMassOffLODTag>(EMassFragmentPresence::None);
 	CollisionQuery.RegisterWithProcessor(*this);
 }

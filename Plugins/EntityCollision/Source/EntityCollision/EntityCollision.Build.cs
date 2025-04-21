@@ -25,7 +25,7 @@ public class EntityCollision : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core", "MassEntity", "MassEntity", "MassSignals",
+				"Core", "MassEntity", "MassEntity", "MassSignals", "MassSpawner",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

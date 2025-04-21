@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "CollisionSubsystem.h"
+#include "MassEntityTraitBase.h"
 #include "MassEntityTypes.h"
 #include "CollisionFragments.generated.h"
 
@@ -21,4 +22,13 @@ struct ENTITYCOLLISION_API FCollisionFragment : public FMassFragment
 	GENERATED_BODY()
 public:
 	FHashGridExample::FCellLocation CellLocation;
+};
+
+UCLASS()
+class UCollisionTrait : public UMassEntityTraitBase
+{
+	GENERATED_BODY()
+
+public:
+	virtual void BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const override;
 };
