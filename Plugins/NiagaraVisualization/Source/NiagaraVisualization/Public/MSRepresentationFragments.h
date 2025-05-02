@@ -3,6 +3,8 @@
 #include "MassEntityTypes.h"
 #include "MSRepresentationFragments.generated.h"
 
+class ANiagaraEntityVizActor;
+
 /**	Please keep in mind that we key NiagaraSystemFragments off of the pointer
 *	to the niagara system selected in the trait.
 *	Don't use the regular struct CRC32 hash like you would for other shared fragments.
