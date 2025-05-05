@@ -48,6 +48,7 @@ https://user-images.githubusercontent.com/1747157/170729609-3c2716ae-a6a0-40c5-8
 - Visualize entities efficiently through niagara system
 - 3 LODs using bone vertex animation and billboards
 - Simple Mass processors for wander movement
+- ~50k Mass entities
 
 https://github.com/user-attachments/assets/7acb27be-5130-4075-aa06-c2913f742b68
 
