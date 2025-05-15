@@ -8,11 +8,10 @@
 #include "MassSignalSubsystem.h"
 #include "MassPersistentDataSubsystem.h"
 
-void URandomizePositionProcessor::ConfigureQueries()
+void URandomizePositionProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.RegisterWithProcessor(*this);
-	Super::ConfigureQueries();
 }
 
 void URandomizePositionProcessor::SignalEntities(FMassEntityManager& EntityManager, FMassExecutionContext& Context,
@@ -31,9 +30,9 @@ void URandomizePositionProcessor::SignalEntities(FMassEntityManager& EntityManag
 	});
 }
 
-void URandomizePositionProcessor::Initialize(UObject& Owner)
+void URandomizePositionProcessor::InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	UMassSignalSubsystem* SignalSubsystem = UWorld::GetSubsystem<UMassSignalSubsystem>(Owner.GetWorld());
 	SubscribeToSignal(*SignalSubsystem, PersistentData::Signals::RandomizePositions);
-	Super::Initialize(Owner);
+	Super::InitializeInternal(Owner, EntityManager);
 }

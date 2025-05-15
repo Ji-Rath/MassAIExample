@@ -15,8 +15,8 @@ class BULLETHELLEXAMPLE_API UBulletInitializerProcessor : public UMassSignalProc
 {
 	GENERATED_BODY()
 
-	virtual void ConfigureQueries() override;
-	virtual void Initialize(UObject& Owner) override;
+	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override;
+	virtual void InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& EntityManager) override;
 	virtual void SignalEntities(FMassEntityManager& EntityManager, FMassExecutionContext& Context, FMassSignalNameLookup& EntitySignals) override;
 
 	FMassEntityQuery EntityQuery;
@@ -28,8 +28,8 @@ class UBulletDestroyerProcessor : public UMassSignalProcessorBase
 	GENERATED_BODY()
 
 public:
-	virtual void ConfigureQueries() override;
-	virtual void Initialize(UObject& Owner) override;
+	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override;
+	virtual void InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& EntityManager) override;
 	virtual void SignalEntities(FMassEntityManager& EntityManager, FMassExecutionContext& Context, FMassSignalNameLookup& EntitySignals) override;
 
 	FMassEntityQuery EntityQuery;
@@ -41,7 +41,7 @@ class UBulletCollisionProcessor : public UMassProcessor
 	GENERATED_BODY()
 
 public:
-	virtual void ConfigureQueries() override;
+	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override;
 	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
 
 	FMassEntityQuery EntityQuery;

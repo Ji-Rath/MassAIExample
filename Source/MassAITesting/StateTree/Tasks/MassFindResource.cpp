@@ -8,6 +8,7 @@
 #include "MassStateTreeExecutionContext.h"
 #include "StateTreeLinker.h"
 #include "Mass/ResourceEntity.h"
+#include "SmartObjectSubsystem.h"
 
 bool FMassFindResource::Link(FStateTreeLinker& Linker)
 {
@@ -30,7 +31,7 @@ EStateTreeRunStatus FMassFindResource::EnterState(FStateTreeExecutionContext& Co
 	FTransformFragment& TransformFragment = Context.GetExternalData(EntityTransformHandle);
 	const FMassSmartObjectHandler MassSmartObjectHandler(
 		MassContext.GetEntityManager(),
-		MassContext.GetEntitySubsystemExecutionContext(),
+		MassContext.GetMassEntityExecutionContext(),
 		SmartObjectSubsystem,
 		SignalSubsystem);
 
@@ -59,7 +60,7 @@ EStateTreeRunStatus FMassFindResource::Tick(FStateTreeExecutionContext& Context,
 	FTransformFragment& TransformFragment = Context.GetExternalData(EntityTransformHandle);
 	const FMassSmartObjectHandler MassSmartObjectHandler(
 		MassContext.GetEntityManager(),
-		MassContext.GetEntitySubsystemExecutionContext(),
+		MassContext.GetMassEntityExecutionContext(),
 		SmartObjectSubsystem,
 		SignalSubsystem);
 
@@ -87,7 +88,7 @@ void FMassFindResource::ExitState(FStateTreeExecutionContext& Context,
 	FTransformFragment& TransformFragment = Context.GetExternalData(EntityTransformHandle);
 	const FMassSmartObjectHandler MassSmartObjectHandler(
 		MassContext.GetEntityManager(),
-		MassContext.GetEntitySubsystemExecutionContext(),
+		MassContext.GetMassEntityExecutionContext(),
 		SmartObjectSubsystem,
 		SignalSubsystem);
 

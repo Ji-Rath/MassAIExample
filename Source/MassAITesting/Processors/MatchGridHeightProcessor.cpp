@@ -11,7 +11,7 @@
 #include "MassAITesting/Fragments/GridFragments.h"
 #include "MassAITesting/Subsystems/GridManagerSubsystem.h"
 
-void UMatchGridHeightProcessor::ConfigureQueries()
+void UMatchGridHeightProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FGridFragment>(EMassFragmentAccess::ReadWrite);

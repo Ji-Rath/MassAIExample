@@ -13,7 +13,7 @@ UMontageDestructorProcessor::UMontageDestructorProcessor()
 	Operation = EMassObservedOperation::Remove;
 }
 
-void UMontageDestructorProcessor::ConfigureQueries()
+void UMontageDestructorProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddRequirement<FMassActorFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.RegisterWithProcessor(*this);

@@ -9,7 +9,7 @@
 #include "MassSignalSubsystem.h"
 #include "PersistentDataFragment.h"
 
-void UPersistEntityDataProcessor::ConfigureQueries()
+void UPersistEntityDataProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddConstSharedRequirement<FPersistentDataFragment>(EMassFragmentPresence::All);
@@ -45,14 +45,14 @@ void UPersistEntityDataProcessor::SignalEntities(FMassEntityManager& EntityManag
 	
 }
 
-void UPersistEntityDataProcessor::Initialize(UObject& Owner)
+void UPersistEntityDataProcessor::InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	UMassSignalSubsystem* SignalSubsystem = UWorld::GetSubsystem<UMassSignalSubsystem>(Owner.GetWorld());
 	SubscribeToSignal(*SignalSubsystem, PersistentData::Signals::SaveEntity);
-	Super::Initialize(Owner);
+	Super::InitializeInternal(Owner, EntityManager);
 }
 
-void UPersistentDataPostLoadProcessor::ConfigureQueries()
+void UPersistentDataPostLoadProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FPersistentTransformFragment>(EMassFragmentAccess::ReadOnly);
@@ -80,11 +80,11 @@ void UPersistentDataPostLoadProcessor::SignalEntities(FMassEntityManager& Entity
 	});
 }
 
-void UPersistentDataPostLoadProcessor::Initialize(UObject& Owner)
+void UPersistentDataPostLoadProcessor::InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	UMassSignalSubsystem* SignalSubsystem = UWorld::GetSubsystem<UMassSignalSubsystem>(Owner.GetWorld());
 	SubscribeToSignal(*SignalSubsystem, PersistentData::Signals::EntityLoaded);
-	Super::Initialize(Owner);
+	Super::InitializeInternal(Owner, EntityManager);
 }
 
 

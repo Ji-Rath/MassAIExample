@@ -24,7 +24,7 @@ EStateTreeRunStatus FPlayMontageTask::EnterState(FStateTreeExecutionContext& Con
 	if (InstanceData.Montage.IsNull()) { return EStateTreeRunStatus::Failed; }
 
 	FMassMontageFragment MontageData { InstanceData.Montage };
-	MassContext.GetEntitySubsystemExecutionContext().Defer().PushCommand<FMassCommandAddFragmentInstances>(MassContext.GetEntity(), MontageData);
+	MassContext.GetMassEntityExecutionContext().Defer().PushCommand<FMassCommandAddFragmentInstances>(MassContext.GetEntity(), MontageData);
 	InstanceData.MontageLength = InstanceData.Montage.LoadSynchronous()->GetPlayLength();
 
 	UMassSignalSubsystem& SignalSubsystem = Context.GetExternalData(MassSignalSubsystemHandle);

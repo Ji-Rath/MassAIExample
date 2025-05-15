@@ -13,7 +13,7 @@ UStateTreeMovementUpdateProcessor::UStateTreeMovementUpdateProcessor()
 {
 }
 
-void UStateTreeMovementUpdateProcessor::ConfigureQueries()
+void UStateTreeMovementUpdateProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddRequirement<FMassStateTreeInstanceFragment>(EMassFragmentAccess::None);
 	EntityQuery.AddRequirement<FMassMoveTargetFragment>(EMassFragmentAccess::ReadOnly);

@@ -18,7 +18,7 @@ class ENTITYCOLLISION_API UCollisionInitializerProcessor : public UMassObserverP
 {
  GENERATED_BODY()
  UCollisionInitializerProcessor();
- virtual void ConfigureQueries() override;
+ virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override;
  virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
  FMassEntityQuery EntityQuery;
 };
@@ -31,7 +31,7 @@ class ENTITYCOLLISION_API UCollisionDestroyProcessor : public UMassObserverProce
 {
  GENERATED_BODY()
  UCollisionDestroyProcessor();
- virtual void ConfigureQueries() override;
+ virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override;
  virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
  FMassEntityQuery EntityQuery;
 };
@@ -44,7 +44,7 @@ class ENTITYCOLLISION_API UCollisionProcessor : public UMassProcessor
 {
  GENERATED_BODY()
  UCollisionProcessor();
- virtual void ConfigureQueries() override;
+ virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override;
  virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
  FMassEntityQuery EntityQuery;
  FMassEntityQuery CollisionQuery;

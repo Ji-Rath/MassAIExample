@@ -18,7 +18,7 @@ UVertexAnimProcessor::UVertexAnimProcessor()
 	ExecutionOrder.ExecuteAfter.Add(UE::Mass::ProcessorGroupNames::Representation);
 }
 
-void UVertexAnimProcessor::ConfigureQueries()
+void UVertexAnimProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddRequirement<FMassRepresentationFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FMassRepresentationLODFragment>(EMassFragmentAccess::ReadOnly);
@@ -62,7 +62,7 @@ void UVertexAnimProcessor::Execute(FMassEntityManager& EntityManager, FMassExecu
 			const FMassRepresentationLODFragment& RepresentationLODFragment = RepresentationLODFragmentList[EntityIdx];
 			FVertexAnimInfoFragment& VertexAnimInfoFragment = VertexAnimationInfoFragmentList[EntityIdx];
 			
-			if (RepresentationFragment.CurrentRepresentation == EMassRepresentationType::StaticMeshInstance)
+			if (RepresentationLODFragment.LOD == EMassLOD::High || RepresentationLODFragment.PrevLOD == EMassLOD::High  && RepresentationFragment.CurrentRepresentation == EMassRepresentationType::StaticMeshInstance)
 			{
 				if (RepresentationFragment.StaticMeshDescHandle.IsValid())
 				{

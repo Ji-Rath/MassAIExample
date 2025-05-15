@@ -14,7 +14,7 @@ class MASSAITESTING_API UMatchGridHeightProcessor : public UMassProcessor
 {
 	GENERATED_BODY()
 
-	virtual void ConfigureQueries() override;
+	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override;
 	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
 	FMassEntityQuery EntityQuery;
 };

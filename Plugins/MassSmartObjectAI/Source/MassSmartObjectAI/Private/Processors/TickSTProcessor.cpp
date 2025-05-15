@@ -13,7 +13,7 @@ UTickSTProcessor::UTickSTProcessor()
 	bAutoRegisterWithProcessingPhases = false;
 }
 
-void UTickSTProcessor::ConfigureQueries()
+void UTickSTProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddSubsystemRequirement<UMassSignalSubsystem>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.RegisterWithProcessor(*this);

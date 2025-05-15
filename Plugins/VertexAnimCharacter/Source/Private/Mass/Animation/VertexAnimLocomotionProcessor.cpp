@@ -11,7 +11,7 @@ UVertexAnimLocomotionProcessor::UVertexAnimLocomotionProcessor()
 {
 }
 
-void UVertexAnimLocomotionProcessor::ConfigureQueries()
+void UVertexAnimLocomotionProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FVertexAnimInfoFragment>(EMassFragmentAccess::ReadWrite);

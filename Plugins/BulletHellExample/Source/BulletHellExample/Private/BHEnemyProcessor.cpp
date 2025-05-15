@@ -10,7 +10,7 @@
 #include "MassNavigationFragments.h"
 #include "MassSimulationLOD.h"
 
-void UBHEnemyProcessor::ConfigureQueries()
+void UBHEnemyProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddRequirement<FMassMoveTargetFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
@@ -92,7 +92,7 @@ UBHEnemyInitializer::UBHEnemyInitializer()
 	Operation = EMassObservedOperation::Add;
 }
 
-void UBHEnemyInitializer::ConfigureQueries()
+void UBHEnemyInitializer::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FBHEnemyFragment>(EMassFragmentAccess::ReadWrite);
@@ -127,7 +127,7 @@ UBHEnemyDestructor::UBHEnemyDestructor()
 	Operation = EMassObservedOperation::Remove;
 }
 
-void UBHEnemyDestructor::ConfigureQueries()
+void UBHEnemyDestructor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddRequirement<FBHEnemyFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddSubsystemRequirement<UBulletHellSubsystem>(EMassFragmentAccess::ReadWrite);

@@ -21,7 +21,7 @@ UNiagaraRepresentationProcessor::UNiagaraRepresentationProcessor()
 	ProcessingPhase = EMassProcessingPhase::FrameEnd;
 }
 
-void UNiagaraRepresentationProcessor::ConfigureQueries()
+void UNiagaraRepresentationProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	NiagaraPositionChunkQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	NiagaraPositionChunkQuery.AddSharedRequirement<FSharedNiagaraSystemFragment>(EMassFragmentAccess::ReadWrite);

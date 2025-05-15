@@ -15,7 +15,7 @@ class BULLETHELLEXAMPLE_API UBHEnemyProcessor : public UMassProcessor
 {
 	GENERATED_BODY()
 
-	virtual void ConfigureQueries() override;
+	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override;
 	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
 
 	FMassEntityQuery EntityQuery;
@@ -30,7 +30,7 @@ class UBHEnemyInitializer : public UMassObserverProcessor
 
 public:
 	UBHEnemyInitializer();
-	virtual void ConfigureQueries() override;
+	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override;
 	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
 
 	FMassEntityQuery EntityQuery;
@@ -43,7 +43,7 @@ class UBHEnemyDestructor : public UMassObserverProcessor
 
 public:
 	UBHEnemyDestructor();
-	virtual void ConfigureQueries() override;
+	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override;
 	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
 
 	FMassEntityQuery EntityQuery;

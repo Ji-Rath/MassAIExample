@@ -14,7 +14,7 @@ URandomMovementProcessors::URandomMovementProcessors()
 	ExecutionOrder.ExecuteInGroup = UE::Mass::ProcessorGroupNames::Movement;
 }
 
-void URandomMovementProcessors::ConfigureQueries()
+void URandomMovementProcessors::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FMassMoveTargetFragment>(EMassFragmentAccess::ReadWrite);
@@ -56,7 +56,7 @@ URandomMovementSignalProcessor::URandomMovementSignalProcessor()
 	ExecutionOrder.ExecuteInGroup = UE::Mass::ProcessorGroupNames::Movement;
 }
 
-void URandomMovementSignalProcessor::ConfigureQueries()
+void URandomMovementSignalProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FMassMoveTargetFragment>(EMassFragmentAccess::ReadWrite);
@@ -88,7 +88,7 @@ void URandomMovementSignalProcessor::SignalEntities(FMassEntityManager& EntityMa
 });
 }
 
-void URandomMovementSignalProcessor::Initialize(UObject& Owner)
+void URandomMovementSignalProcessor::InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	Super::Initialize(Owner);
 

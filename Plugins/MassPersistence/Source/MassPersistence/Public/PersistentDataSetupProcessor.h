@@ -11,11 +11,10 @@ UCLASS()
 class UPersistentDataInitializerProcessor : public UMassObserverProcessor
 {
 public:
-	virtual void Initialize(UObject& Owner) override;
 	UPersistentDataInitializerProcessor();
 
 protected:
-	virtual void ConfigureQueries() override;
+	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override;
 	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
 	
 	FMassEntityQuery EntityQuery;
@@ -29,11 +28,10 @@ UCLASS()
 class UPersistentDataDestructorProcessor : public UMassObserverProcessor
 {
 public:
-	virtual void Initialize(UObject& Owner) override;
 	UPersistentDataDestructorProcessor();
 
 protected:
-	virtual void ConfigureQueries() override;
+	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override;
 	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
 	
 	FMassEntityQuery EntityQuery;

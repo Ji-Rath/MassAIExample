@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "HierarchicalHashGrid2D.h"
+#include "MassEntityHandle.h"
 #include "MassEntityTypes.h"
 #include "MassSubsystemBase.h"
 #include "Subsystems/WorldSubsystem.h"

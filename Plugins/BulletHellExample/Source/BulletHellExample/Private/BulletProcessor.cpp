@@ -11,7 +11,7 @@
 #include "MassMovementFragments.h"
 #include "MassSignalSubsystem.h"
 
-void UBulletInitializerProcessor::ConfigureQueries()
+void UBulletInitializerProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddTagRequirement<FBulletTag>(EMassFragmentPresence::All);
 	EntityQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadWrite);
@@ -22,9 +22,9 @@ void UBulletInitializerProcessor::ConfigureQueries()
 	
 }
 
-void UBulletInitializerProcessor::Initialize(UObject& Owner)
+void UBulletInitializerProcessor::InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& EntityManager)
 {
-	Super::Initialize(Owner);
+	Super::InitializeInternal(Owner, EntityManager);
 
 	UMassSignalSubsystem* SignalSubsystem = UWorld::GetSubsystem<UMassSignalSubsystem>(Owner.GetWorld());
 	SubscribeToSignal(*SignalSubsystem, BulletHell::Signals::BulletSpawned);
@@ -55,15 +55,15 @@ void UBulletInitializerProcessor::SignalEntities(FMassEntityManager& EntityManag
 	});
 }
 
-void UBulletDestroyerProcessor::ConfigureQueries()
+void UBulletDestroyerProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddTagRequirement<FBulletTag>(EMassFragmentPresence::All);
 	EntityQuery.RegisterWithProcessor(*this);
 }
 
-void UBulletDestroyerProcessor::Initialize(UObject& Owner)
+void UBulletDestroyerProcessor::InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& EntityManager)
 {
-	Super::Initialize(Owner);
+	Super::InitializeInternal(Owner, EntityManager);
 
 	UMassSignalSubsystem* SignalSubsystem = UWorld::GetSubsystem<UMassSignalSubsystem>(Owner.GetWorld());
 	SubscribeToSignal(*SignalSubsystem, BulletHell::Signals::BulletDestroy);
@@ -82,7 +82,7 @@ void UBulletDestroyerProcessor::SignalEntities(FMassEntityManager& EntityManager
 	});
 }
 
-void UBulletCollisionProcessor::ConfigureQueries()
+void UBulletCollisionProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddTagRequirement<FBulletTag>(EMassFragmentPresence::All);
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
