@@ -7,7 +7,8 @@
 #include "MassPersistentDataSubsystem.h"
 #include "PersistentDataFragment.h"
 
-UPersistentDataInitializerProcessor::UPersistentDataInitializerProcessor()
+UPersistentDataInitializerProcessor::UPersistentDataInitializerProcessor() :
+	EntityQuery(*this)
 {
 	ObservedType = FPersistentDataTag::StaticStruct();
 	Operation = EMassObservedOperation::Add;
@@ -16,7 +17,6 @@ UPersistentDataInitializerProcessor::UPersistentDataInitializerProcessor()
 void UPersistentDataInitializerProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddSubsystemRequirement<UMassPersistentDataSubsystem>(EMassFragmentAccess::ReadWrite);
-	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void UPersistentDataInitializerProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
@@ -33,7 +33,8 @@ void UPersistentDataInitializerProcessor::Execute(FMassEntityManager& EntityMana
 	});
 }
 
-UPersistentDataDestructorProcessor::UPersistentDataDestructorProcessor()
+UPersistentDataDestructorProcessor::UPersistentDataDestructorProcessor() :
+	EntityQuery(*this)
 {
 	ObservedType = FPersistentDataTag::StaticStruct();
 	Operation = EMassObservedOperation::Remove;
@@ -42,7 +43,6 @@ UPersistentDataDestructorProcessor::UPersistentDataDestructorProcessor()
 void UPersistentDataDestructorProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddSubsystemRequirement<UMassPersistentDataSubsystem>(EMassFragmentAccess::ReadWrite);
-	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void UPersistentDataDestructorProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)

@@ -10,6 +10,12 @@
 #include "MassNavigationFragments.h"
 #include "MassSimulationLOD.h"
 
+UBHEnemyProcessor::UBHEnemyProcessor()
+	: EntityQuery(*this),
+	UpdateHashGridQuery(*this)
+{
+}
+
 void UBHEnemyProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddRequirement<FMassMoveTargetFragment>(EMassFragmentAccess::ReadWrite);
@@ -20,16 +26,12 @@ void UBHEnemyProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& E
 	EntityQuery.AddChunkRequirement<FMassSimulationVariableTickChunkFragment>(EMassFragmentAccess::ReadOnly, EMassFragmentPresence::Optional);
 	EntityQuery.SetChunkFilter(FMassSimulationVariableTickChunkFragment::ShouldTickChunkThisFrame);
 	
-	EntityQuery.RegisterWithProcessor(*this);
-
 	UpdateHashGridQuery.AddRequirement<FBHEnemyFragment>(EMassFragmentAccess::ReadWrite);
 	UpdateHashGridQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	UpdateHashGridQuery.AddSubsystemRequirement<UBulletHellSubsystem>(EMassFragmentAccess::ReadWrite);
 
 	UpdateHashGridQuery.AddChunkRequirement<FMassSimulationVariableTickChunkFragment>(EMassFragmentAccess::ReadOnly, EMassFragmentPresence::Optional);
 	UpdateHashGridQuery.SetChunkFilter(FMassSimulationVariableTickChunkFragment::ShouldTickChunkThisFrame);
-	
-	UpdateHashGridQuery.RegisterWithProcessor(*this);
 }
 
 void UBHEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
@@ -87,6 +89,7 @@ void UBHEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
 }
 
 UBHEnemyInitializer::UBHEnemyInitializer()
+	: EntityQuery(*this)
 {
 	ObservedType = FBHEnemyTag::StaticStruct();
 	Operation = EMassObservedOperation::Add;
@@ -97,7 +100,6 @@ void UBHEnemyInitializer::ConfigureQueries(const TSharedRef<FMassEntityManager>&
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FBHEnemyFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddSubsystemRequirement<UBulletHellSubsystem>(EMassFragmentAccess::ReadWrite);
-	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void UBHEnemyInitializer::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
@@ -122,6 +124,7 @@ void UBHEnemyInitializer::Execute(FMassEntityManager& EntityManager, FMassExecut
 }
 
 UBHEnemyDestructor::UBHEnemyDestructor()
+	: EntityQuery(*this)
 {
 	ObservedType = FBHEnemyFragment::StaticStruct();
 	Operation = EMassObservedOperation::Remove;
@@ -131,7 +134,6 @@ void UBHEnemyDestructor::ConfigureQueries(const TSharedRef<FMassEntityManager>& 
 {
 	EntityQuery.AddRequirement<FBHEnemyFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddSubsystemRequirement<UBulletHellSubsystem>(EMassFragmentAccess::ReadWrite);
-	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void UBHEnemyDestructor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)

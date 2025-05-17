@@ -11,6 +11,11 @@
 #include "MassMovementFragments.h"
 #include "MassSignalSubsystem.h"
 
+UBulletInitializerProcessor::UBulletInitializerProcessor()
+	: EntityQuery(*this)
+{
+}
+
 void UBulletInitializerProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddTagRequirement<FBulletTag>(EMassFragmentPresence::All);
@@ -18,8 +23,6 @@ void UBulletInitializerProcessor::ConfigureQueries(const TSharedRef<FMassEntityM
 	EntityQuery.AddRequirement<FBulletFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddSubsystemRequirement<UMassSignalSubsystem>(EMassFragmentAccess::ReadWrite);
-	EntityQuery.RegisterWithProcessor(*this);
-	
 }
 
 void UBulletInitializerProcessor::InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& EntityManager)
@@ -58,7 +61,6 @@ void UBulletInitializerProcessor::SignalEntities(FMassEntityManager& EntityManag
 void UBulletDestroyerProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddTagRequirement<FBulletTag>(EMassFragmentPresence::All);
-	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void UBulletDestroyerProcessor::InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& EntityManager)
@@ -82,12 +84,22 @@ void UBulletDestroyerProcessor::SignalEntities(FMassEntityManager& EntityManager
 	});
 }
 
+UBulletDestroyerProcessor::UBulletDestroyerProcessor()
+	: EntityQuery(*this)
+{
+	
+}
+
+UBulletCollisionProcessor::UBulletCollisionProcessor()
+	: EntityQuery(*this)
+{
+}
+
 void UBulletCollisionProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddTagRequirement<FBulletTag>(EMassFragmentPresence::All);
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddSubsystemRequirement<UBulletHellSubsystem>(EMassFragmentAccess::ReadOnly);
-	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void UBulletCollisionProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)

@@ -8,6 +8,7 @@
 #include "Mass/Animation/VertexAnimProcessor.h"
 
 UVertexAnimLocomotionProcessor::UVertexAnimLocomotionProcessor()
+	: EntityQuery(*this)
 {
 }
 
@@ -16,7 +17,6 @@ void UVertexAnimLocomotionProcessor::ConfigureQueries(const TSharedRef<FMassEnti
 	EntityQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FVertexAnimInfoFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FVertexAnimLocomotionFragment>(EMassFragmentAccess::ReadOnly);
-	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void UVertexAnimLocomotionProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)

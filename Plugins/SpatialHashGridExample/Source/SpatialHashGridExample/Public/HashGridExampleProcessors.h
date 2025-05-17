@@ -44,6 +44,7 @@ UCLASS()
 class SPATIALHASHGRIDEXAMPLE_API UHashGridProcessor : public UMassProcessor
 {
  GENERATED_BODY()
+ UHashGridProcessor();
  virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override;
  virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
  FMassEntityQuery EntityQuery;
@@ -58,7 +59,7 @@ UCLASS()
 class UHashGridQueryProcessor : public UMassSignalProcessorBase
 {
  GENERATED_BODY()
-
+ 
  virtual void InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& EntityManager) override;
  virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override;
  virtual void SignalEntities(FMassEntityManager& EntityManager, FMassExecutionContext& Context, FMassSignalNameLookup& EntitySignals) override;

@@ -8,6 +8,7 @@
 #include "Mass/Animation/VertexAnimProcessor.h"
 
 UMontageDestructorProcessor::UMontageDestructorProcessor()
+	: EntityQuery(*this)
 {
 	ObservedType = FMassMontageFragment::StaticStruct();
 	Operation = EMassObservedOperation::Remove;
@@ -16,7 +17,6 @@ UMontageDestructorProcessor::UMontageDestructorProcessor()
 void UMontageDestructorProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddRequirement<FMassActorFragment>(EMassFragmentAccess::ReadOnly);
-	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void UMontageDestructorProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)

@@ -9,7 +9,8 @@
 #include "MassSignalSubsystem.h"
 #include "MassStateTreeFragments.h"
 
-UStateTreeMovementUpdateProcessor::UStateTreeMovementUpdateProcessor()
+UStateTreeMovementUpdateProcessor::UStateTreeMovementUpdateProcessor() :
+	EntityQuery(*this)
 {
 }
 
@@ -19,7 +20,6 @@ void UStateTreeMovementUpdateProcessor::ConfigureQueries(const TSharedRef<FMassE
 	EntityQuery.AddRequirement<FMassMoveTargetFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddSubsystemRequirement<UMassSignalSubsystem>(EMassFragmentAccess::ReadWrite);
-	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void UStateTreeMovementUpdateProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)

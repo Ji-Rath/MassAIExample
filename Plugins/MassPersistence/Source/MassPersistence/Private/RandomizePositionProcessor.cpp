@@ -8,10 +8,14 @@
 #include "MassSignalSubsystem.h"
 #include "MassPersistentDataSubsystem.h"
 
+URandomizePositionProcessor::URandomizePositionProcessor()
+	: EntityQuery(*this)
+{
+}
+
 void URandomizePositionProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
-	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void URandomizePositionProcessor::SignalEntities(FMassEntityManager& EntityManager, FMassExecutionContext& Context,

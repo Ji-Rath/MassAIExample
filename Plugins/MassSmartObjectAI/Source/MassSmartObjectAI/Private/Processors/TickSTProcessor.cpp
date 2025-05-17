@@ -9,6 +9,7 @@
 #include "MassStateTreeFragments.h"
 
 UTickSTProcessor::UTickSTProcessor()
+	: EntityQuery(*this)
 {
 	bAutoRegisterWithProcessingPhases = false;
 }
@@ -16,7 +17,6 @@ UTickSTProcessor::UTickSTProcessor()
 void UTickSTProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddSubsystemRequirement<UMassSignalSubsystem>(EMassFragmentAccess::ReadWrite);
-	EntityQuery.RegisterWithProcessor(*this);
 	EntityQuery.AddRequirement<FMassStateTreeInstanceFragment>(EMassFragmentAccess::None);
 	EntityQuery.AddChunkRequirement<FMassSimulationVariableTickChunkFragment>(EMassFragmentAccess::ReadOnly, EMassFragmentPresence::Optional);
 	EntityQuery.SetChunkFilter(FMassSimulationVariableTickChunkFragment::ShouldTickChunkThisFrame);

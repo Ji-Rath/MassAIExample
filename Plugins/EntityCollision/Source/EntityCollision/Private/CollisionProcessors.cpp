@@ -13,7 +13,8 @@
 
 static float HalfRange = 25.f;
 
-UCollisionInitializerProcessor::UCollisionInitializerProcessor()
+UCollisionInitializerProcessor::UCollisionInitializerProcessor() :
+	EntityQuery(*this)
 {
 	ObservedType = FCollisionFragment::StaticStruct();
 	Operation = EMassObservedOperation::Add;
@@ -24,7 +25,6 @@ void UCollisionInitializerProcessor::ConfigureQueries(const TSharedRef<FMassEnti
 	EntityQuery.AddRequirement<FCollisionFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddSubsystemRequirement<UCollisionSubsystem>(EMassFragmentAccess::ReadWrite);
-	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void UCollisionInitializerProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
@@ -49,7 +49,8 @@ void UCollisionInitializerProcessor::Execute(FMassEntityManager& EntityManager, 
 	});
 }
 
-UCollisionDestroyProcessor::UCollisionDestroyProcessor()
+UCollisionDestroyProcessor::UCollisionDestroyProcessor() :
+	EntityQuery(*this)
 {
 	ObservedType = FCollisionFragment::StaticStruct();
 	Operation = EMassObservedOperation::Remove;
@@ -59,7 +60,6 @@ void UCollisionDestroyProcessor::ConfigureQueries(const TSharedRef<FMassEntityMa
 {
 	EntityQuery.AddRequirement<FCollisionFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddSubsystemRequirement<UCollisionSubsystem>(EMassFragmentAccess::ReadWrite);
-	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void UCollisionDestroyProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
@@ -80,7 +80,9 @@ void UCollisionDestroyProcessor::Execute(FMassEntityManager& EntityManager, FMas
 	});
 }
 
-UCollisionProcessor::UCollisionProcessor()
+UCollisionProcessor::UCollisionProcessor() :
+	EntityQuery(*this),
+	CollisionQuery(*this)
 {
 	ExecutionOrder.ExecuteBefore.Add(UE::Mass::ProcessorGroupNames::Movement);
 	ExecutionOrder.ExecuteInGroup = UE::Mass::ProcessorGroupNames::Avoidance;
@@ -91,7 +93,6 @@ void UCollisionProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>&
 	EntityQuery.AddRequirement<FCollisionFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddSubsystemRequirement<UCollisionSubsystem>(EMassFragmentAccess::ReadWrite);
-	EntityQuery.RegisterWithProcessor(*this);
 	
 	CollisionQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
 	CollisionQuery.AddRequirement<FAgentRadiusFragment>(EMassFragmentAccess::ReadOnly);
@@ -99,7 +100,6 @@ void UCollisionProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>&
 	CollisionQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadWrite);
 	CollisionQuery.AddRequirement<FCollisionFragment>(EMassFragmentAccess::None); // used for filtering entities
 	CollisionQuery.AddTagRequirement<FMassOffLODTag>(EMassFragmentPresence::None);
-	CollisionQuery.RegisterWithProcessor(*this);
 }
 
 void UCollisionProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)

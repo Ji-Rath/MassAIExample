@@ -9,12 +9,16 @@
 #include "MassSignalSubsystem.h"
 #include "PersistentDataFragment.h"
 
+UPersistEntityDataProcessor::UPersistEntityDataProcessor()
+	: EntityQuery(*this)
+{
+}
+
 void UPersistEntityDataProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddConstSharedRequirement<FPersistentDataFragment>(EMassFragmentPresence::All);
 	EntityQuery.AddSubsystemRequirement<UMassPersistentDataSubsystem>(EMassFragmentAccess::ReadWrite);
-	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void UPersistEntityDataProcessor::SignalEntities(FMassEntityManager& EntityManager, FMassExecutionContext& Context,
@@ -52,12 +56,16 @@ void UPersistEntityDataProcessor::InitializeInternal(UObject& Owner, const TShar
 	Super::InitializeInternal(Owner, EntityManager);
 }
 
+UPersistentDataPostLoadProcessor::UPersistentDataPostLoadProcessor()
+	: EntityQuery(*this)
+{
+}
+
 void UPersistentDataPostLoadProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FPersistentTransformFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddConstSharedRequirement<FPersistentDataFragment>(EMassFragmentPresence::All);
-	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void UPersistentDataPostLoadProcessor::SignalEntities(FMassEntityManager& EntityManager, FMassExecutionContext& Context,

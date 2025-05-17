@@ -10,6 +10,7 @@
 #include "RandomMovementFragments.h"
 
 URandomMovementProcessors::URandomMovementProcessors()
+	: EntityQuery(*this)
 {
 	ExecutionOrder.ExecuteInGroup = UE::Mass::ProcessorGroupNames::Movement;
 }
@@ -20,7 +21,6 @@ void URandomMovementProcessors::ConfigureQueries(const TSharedRef<FMassEntityMan
 	EntityQuery.AddRequirement<FMassMoveTargetFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddConstSharedRequirement<FRandomMovementSettingsFragment>();
 	EntityQuery.AddSubsystemRequirement<UMassSignalSubsystem>(EMassFragmentAccess::ReadWrite);
-	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void URandomMovementProcessors::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
@@ -51,7 +51,8 @@ void URandomMovementProcessors::Execute(FMassEntityManager& EntityManager, FMass
 	});
 }
 
-URandomMovementSignalProcessor::URandomMovementSignalProcessor()
+URandomMovementSignalProcessor::URandomMovementSignalProcessor() :
+	EntityQuery(*this)
 {
 	ExecutionOrder.ExecuteInGroup = UE::Mass::ProcessorGroupNames::Movement;
 }
@@ -61,7 +62,6 @@ void URandomMovementSignalProcessor::ConfigureQueries(const TSharedRef<FMassEnti
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FMassMoveTargetFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddConstSharedRequirement<FRandomMovementSettingsFragment>();
-	EntityQuery.RegisterWithProcessor(*this);
 }
 
 void URandomMovementSignalProcessor::SignalEntities(FMassEntityManager& EntityManager, FMassExecutionContext& Context,
@@ -90,7 +90,7 @@ void URandomMovementSignalProcessor::SignalEntities(FMassEntityManager& EntityMa
 
 void URandomMovementSignalProcessor::InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& EntityManager)
 {
-	Super::Initialize(Owner);
+	Super::InitializeInternal(Owner, EntityManager);
 
 	UMassSignalSubsystem* SignalSubsystem = UWorld::GetSubsystem<UMassSignalSubsystem>(Owner.GetWorld());
 

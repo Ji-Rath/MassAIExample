@@ -15,6 +15,7 @@ class BULLETHELLEXAMPLE_API UBHEnemyProcessor : public UMassProcessor
 {
 	GENERATED_BODY()
 
+	UBHEnemyProcessor();
 	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override;
 	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
 

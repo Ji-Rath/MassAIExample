@@ -12,7 +12,11 @@
 #include "MassSimulationLOD.h"
 #include "VertexAnimInstance.h"
 
-UVertexAnimProcessor::UVertexAnimProcessor()
+UVertexAnimProcessor::UVertexAnimProcessor() :
+	EntityQuery(*this),
+	UpdateAnimInstanceQuery(*this),
+	UpdateMontageQuery(*this),
+	UpdateMontagePositionQuery(*this)
 {
 	ExecutionFlags = (int32)EProcessorExecutionFlags::All;
 	ExecutionOrder.ExecuteAfter.Add(UE::Mass::ProcessorGroupNames::Representation);
@@ -27,20 +31,16 @@ void UVertexAnimProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>
 	
 	EntityQuery.AddChunkRequirement<FMassVisualizationChunkFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.SetChunkFilter(FMassVisualizationChunkFragment::AreAnyEntitiesVisibleInChunk);
-	EntityQuery.RegisterWithProcessor(*this);
 
 	UpdateAnimInstanceQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadOnly);
 	UpdateAnimInstanceQuery.AddRequirement<FMassActorFragment>(EMassFragmentAccess::ReadOnly);
 	UpdateAnimInstanceQuery.AddChunkRequirement<FMassVisualizationChunkFragment>(EMassFragmentAccess::ReadOnly);
 	UpdateAnimInstanceQuery.SetChunkFilter(FMassVisualizationChunkFragment::AreAnyEntitiesVisibleInChunk);
-	UpdateAnimInstanceQuery.RegisterWithProcessor(*this);
 
 	UpdateMontageQuery.AddRequirement<FMassMontageFragment>(EMassFragmentAccess::ReadOnly);
 	UpdateMontageQuery.AddRequirement<FMassActorFragment>(EMassFragmentAccess::ReadOnly);
-	UpdateMontageQuery.RegisterWithProcessor(*this);
 	
 	UpdateMontagePositionQuery.AddRequirement<FMassMontageFragment>(EMassFragmentAccess::ReadWrite);
-	UpdateMontagePositionQuery.RegisterWithProcessor(*this);
 }
 
 void UVertexAnimProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)

@@ -13,7 +13,8 @@
 #include "NiagaraComponent.h"
 #include "NiagaraDataInterfaceArrayFunctionLibrary.h"
 
-UNiagaraRepresentationProcessor::UNiagaraRepresentationProcessor()
+UNiagaraRepresentationProcessor::UNiagaraRepresentationProcessor() :
+	NiagaraPositionChunkQuery(*this)
 {
 	ExecutionFlags = (int32)(EProcessorExecutionFlags::Client | EProcessorExecutionFlags::Standalone | EProcessorExecutionFlags::Editor);
 	
@@ -26,7 +27,6 @@ void UNiagaraRepresentationProcessor::ConfigureQueries(const TSharedRef<FMassEnt
 	NiagaraPositionChunkQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	NiagaraPositionChunkQuery.AddSharedRequirement<FSharedNiagaraSystemFragment>(EMassFragmentAccess::ReadWrite);
 	NiagaraPositionChunkQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadOnly);
-	NiagaraPositionChunkQuery.RegisterWithProcessor(*this);
 }
 
 // todo-performance separate setup for rarely moving pieces?
