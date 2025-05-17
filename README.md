@@ -44,6 +44,15 @@ https://user-images.githubusercontent.com/1747157/172963214-0ef75cdd-75bd-494e-8
 https://user-images.githubusercontent.com/1747157/170729609-3c2716ae-a6a0-40c5-86bf-a437a15e6705.mp4
 </details>
 
+# Mass Niagara Visualization Example
+- Visualize entities efficiently through niagara system
+- 3 LODs using bone vertex animation and billboards
+- Simple Mass processors for wander movement
+- ~50k Mass entities
+
+https://github.com/user-attachments/assets/7acb27be-5130-4075-aa06-c2913f742b68
+
+
 # Mass Nav Mesh Example
 - Entities utilize nav mesh to find optimal path to location
 - Use async functionality to reduce overhead
