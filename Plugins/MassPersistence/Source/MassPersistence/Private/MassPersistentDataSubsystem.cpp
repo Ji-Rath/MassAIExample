@@ -3,6 +3,7 @@
 
 #include "MassPersistentDataSubsystem.h"
 
+#include "MassEntityBuilder.h"
 #include "MassEntityConfigAsset.h"
 #include "MassEntitySubsystem.h"
 #include "MassSaveGame.h"
@@ -17,7 +18,9 @@ void UMassPersistentDataSubsystem::SaveEntities(const FString& SlotName)
 void UMassPersistentDataSubsystem::SaveEntityData(TArray<FMassEntityHandle>& Entities)
 {
 	if (ManagedEntities.IsEmpty()) { return; }
-	GetWorld()->GetSubsystem<UMassSignalSubsystem>()->SignalEntities(PersistentData::Signals::SaveEntity, Entities);
+	
+	auto SignalSubsystem = GetWorld()->GetSubsystem<UMassSignalSubsystem>();
+	SignalSubsystem->SignalEntities(PersistentData::Signals::SaveEntity, Entities);
 }
 
 UMassSaveGame* UMassPersistentDataSubsystem::FindOrCreateSaveGame()
@@ -32,15 +35,23 @@ void UMassPersistentDataSubsystem::LoadEntitiesFromSave(UMassSaveGame* SaveGameF
 	
 	TArray<FMassEntityHandle> AllEntitiesLoaded;
 	auto SignalSubsystem = GetWorld()->GetSubsystem<UMassSignalSubsystem>();
-	auto SpawnerSystem = GetWorld()->GetSubsystem<UMassSpawnerSubsystem>();
 	auto& EntityManager = GetWorld()->GetSubsystem<UMassEntitySubsystem>()->GetMutableEntityManager();
+	
 	for (const auto& EntityData : SaveGameFile->Entities)
 	{
-		if (!EntityData.ConfigAsset) { continue; }
-		TArray<FMassEntityHandle> EntitiesSpawned;
-		SpawnerSystem->SpawnEntities(EntityData.ConfigAsset->GetOrCreateEntityTemplate(*GetWorld()), 1, EntitiesSpawned);
-		EntityManager.SetEntityFragmentsValues(EntitiesSpawned[0], EntityData.EntityFragments);
-		AllEntitiesLoaded.Emplace(EntitiesSpawned[0]);
+		if (!ensure(EntityData.ConfigAsset)) { continue; }
+
+		// create entity based on template
+		const auto& Template = EntityData.ConfigAsset->GetOrCreateEntityTemplate(*GetWorld());
+		auto Entity = Template.CreateEntityBuilder(EntityManager.AsShared());
+
+		// Use fragment data from save
+		for (const FInstancedStruct& EntityFragment : EntityData.EntityFragments)
+		{
+			Entity.Add(EntityFragment);
+		}
+		
+		AllEntitiesLoaded.Emplace(Entity.Commit());
 	}
 	
 	SignalSubsystem->SignalEntities(PersistentData::Signals::EntityLoaded, AllEntitiesLoaded);
@@ -56,12 +67,16 @@ void UMassPersistentDataSubsystem::SpawnEntities(UMassEntityConfigAsset* ConfigA
 void UMassPersistentDataSubsystem::RandomizePositions()
 {
 	if (ManagedEntities.IsEmpty()) { return; }
-	GetWorld()->GetSubsystem<UMassSignalSubsystem>()->SignalEntities(PersistentData::Signals::RandomizePositions, ManagedEntities);
+	auto SignalSubsystem = GetWorld()->GetSubsystem<UMassSignalSubsystem>();
+	SignalSubsystem->SignalEntities(PersistentData::Signals::RandomizePositions, ManagedEntities);
 }
 
 void UMassPersistentDataSubsystem::ClearPersistedEntities()
 {
 	if (ManagedEntities.IsEmpty()) { return; }
-	GetWorld()->GetSubsystem<UMassEntitySubsystem>()->GetMutableEntityManager().BatchDestroyEntities(ManagedEntities);
+	
+	auto& EntityManager = GetWorld()->GetSubsystem<UMassEntitySubsystem>()->GetMutableEntityManager();
+	EntityManager.Defer().DestroyEntities(ManagedEntities);
+	
 	ManagedEntities.Empty();
 }
