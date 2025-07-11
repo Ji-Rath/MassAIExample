@@ -21,7 +21,7 @@ void UMontageDestructorProcessor::ConfigureQueries(const TSharedRef<FMassEntityM
 
 void UMontageDestructorProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(Context, [](FMassExecutionContext& Context)
 	{
 		const auto& ActorFragments = Context.GetFragmentView<FMassActorFragment>();
 		

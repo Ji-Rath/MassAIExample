@@ -57,13 +57,11 @@ public:
 
 	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override;
 	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
-
-	UFUNCTION()
-	void UpdateISMVertexAnimation(FMassInstancedStaticMeshInfo& ISMInfo, FVertexAnimInfoFragment& AnimationData,
+	
+	static void UpdateISMVertexAnimation(FMassInstancedStaticMeshInfo& ISMInfo, FVertexAnimInfoFragment& AnimationData,
 	                              float LODSignificance, float PrevLODSignificance, int32 NumFloatsToPad);
-
-	UFUNCTION()
-	void UpdateAnimInstance(const FMassVelocityFragment& VelocityFragment, const FMassActorFragment& ActorFragment);
+	
+	static void UpdateAnimInstance(const FMassVelocityFragment& VelocityFragment, const FMassActorFragment& ActorFragment);
 
 	FMassEntityQuery EntityQuery;
 	FMassEntityQuery UpdateAnimInstanceQuery;

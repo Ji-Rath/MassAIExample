@@ -45,7 +45,7 @@ void UVertexAnimProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>
 
 void UVertexAnimProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(Context, [](FMassExecutionContext& Context)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(UpdateVertexAnim)
 		UMassRepresentationSubsystem* RepresentationSubsystem = Context.GetMutableSharedFragment<FMassRepresentationSubsystemSharedFragment>().RepresentationSubsystem;
@@ -70,7 +70,7 @@ void UVertexAnimProcessor::Execute(FMassEntityManager& EntityManager, FMassExecu
 					auto& ISMInfo = RepresentationSubsystem->GetMutableInstancedStaticMeshInfos()[SMDesc];
 				
 					const float PrevPlayRate = VertexAnimInfoFragment.PlayRate;
-					float GlobalTime = GetWorld()->GetTimeSeconds();
+					float GlobalTime = Context.GetWorld()->GetTimeSeconds();
 				
 					// Need to conserve current frame on a playrate switch so (GlobalTime - Offset1) * Playrate1 == (GlobalTime - Offset2) * Playrate2
 					VertexAnimInfoFragment.GlobalStartTime = GlobalTime - PrevPlayRate * (GlobalTime - VertexAnimInfoFragment.GlobalStartTime) / VertexAnimInfoFragment.PlayRate;
@@ -81,7 +81,7 @@ void UVertexAnimProcessor::Execute(FMassEntityManager& EntityManager, FMassExecu
 		}
 	});
 
-	UpdateAnimInstanceQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	UpdateAnimInstanceQuery.ForEachEntityChunk(Context, [](FMassExecutionContext& Context)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(UpdateAnimInstance)
 		const auto& VelocityFragments = Context.GetFragmentView<FMassVelocityFragment>();
@@ -97,7 +97,7 @@ void UVertexAnimProcessor::Execute(FMassEntityManager& EntityManager, FMassExecu
 		}
 	});
 
-	UpdateMontageQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	UpdateMontageQuery.ForEachEntityChunk(Context, [](FMassExecutionContext& Context)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(UpdateAnimMontage)
 		const auto& MontageFragments = Context.GetFragmentView<FMassMontageFragment>();
@@ -146,7 +146,7 @@ void UVertexAnimProcessor::Execute(FMassEntityManager& EntityManager, FMassExecu
 		}
 	});
 
-	UpdateMontagePositionQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	UpdateMontagePositionQuery.ForEachEntityChunk(Context, [](FMassExecutionContext& Context)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(UpdateMontagePosition)
 		const auto& MontageFragments = Context.GetMutableFragmentView<FMassMontageFragment>();

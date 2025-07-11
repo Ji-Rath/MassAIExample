@@ -30,7 +30,6 @@ EStateTreeRunStatus FMassFindResource::EnterState(FStateTreeExecutionContext& Co
 	FResourceUserFragment& ResourceUserFragment = Context.GetExternalData(ResourceUserHandle);
 	FTransformFragment& TransformFragment = Context.GetExternalData(EntityTransformHandle);
 	const FMassSmartObjectHandler MassSmartObjectHandler(
-		MassContext.GetEntityManager(),
 		MassContext.GetMassEntityExecutionContext(),
 		SmartObjectSubsystem,
 		SignalSubsystem);
@@ -59,7 +58,6 @@ EStateTreeRunStatus FMassFindResource::Tick(FStateTreeExecutionContext& Context,
 	FResourceUserFragment& ResourceUserFragment = Context.GetExternalData(ResourceUserHandle);
 	FTransformFragment& TransformFragment = Context.GetExternalData(EntityTransformHandle);
 	const FMassSmartObjectHandler MassSmartObjectHandler(
-		MassContext.GetEntityManager(),
 		MassContext.GetMassEntityExecutionContext(),
 		SmartObjectSubsystem,
 		SignalSubsystem);
@@ -87,7 +85,6 @@ void FMassFindResource::ExitState(FStateTreeExecutionContext& Context,
 	FResourceUserFragment& ResourceUserFragment = Context.GetExternalData(ResourceUserHandle);
 	FTransformFragment& TransformFragment = Context.GetExternalData(EntityTransformHandle);
 	const FMassSmartObjectHandler MassSmartObjectHandler(
-		MassContext.GetEntityManager(),
 		MassContext.GetMassEntityExecutionContext(),
 		SmartObjectSubsystem,
 		SignalSubsystem);

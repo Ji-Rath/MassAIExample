@@ -12,8 +12,10 @@ struct FGridFragment : public FMassFragment
 	GENERATED_BODY()
 
 public:
+	FGridFragment() = default;
+	
 	UPROPERTY()
-	FVector LastQueriedPosition;
+	FVector LastQueriedPosition = FVector::ZeroVector;
 
 	UPROPERTY()
 	TArray<int32> NearbyNodes;

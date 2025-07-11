@@ -54,6 +54,10 @@
 		{
 			"Name": "PCG",
 			"Enabled": true
+		},
+		{
+			"Name": "RTSFormations",
+			"Enabled": true
 		}
 	]
 }

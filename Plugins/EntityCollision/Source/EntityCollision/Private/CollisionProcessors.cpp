@@ -29,7 +29,7 @@ void UCollisionInitializerProcessor::ConfigureQueries(const TSharedRef<FMassEnti
 
 void UCollisionInitializerProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(Context, [this](FMassExecutionContext& Context)
 	{
 		auto& HashGridSubsystem = Context.GetMutableSubsystemChecked<UCollisionSubsystem>();
 		
@@ -64,7 +64,7 @@ void UCollisionDestroyProcessor::ConfigureQueries(const TSharedRef<FMassEntityMa
 
 void UCollisionDestroyProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(Context, [this](FMassExecutionContext& Context)
 	{
 		auto& HashGridSubsystem = Context.GetMutableSubsystemChecked<UCollisionSubsystem>();
 		
@@ -105,7 +105,7 @@ void UCollisionProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>&
 void UCollisionProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
 	// Update hash grid position
-	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(Context, [this](FMassExecutionContext& Context)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(UpdateCollisionHashGrid)
 		auto& HashGridSubsystem = Context.GetMutableSubsystemChecked<UCollisionSubsystem>();
@@ -128,7 +128,7 @@ void UCollisionProcessor::Execute(FMassEntityManager& EntityManager, FMassExecut
 	});
 
 	// If we are in range of an entity, push out of it
-	CollisionQuery.ParallelForEachEntityChunk(EntityManager, Context, [this, &EntityManager](FMassExecutionContext& Context)
+	CollisionQuery.ParallelForEachEntityChunk(Context, [this, &EntityManager](FMassExecutionContext& Context)
 	{
 		const auto& HashGridSubsystem = Context.GetSubsystemChecked<UCollisionSubsystem>();
 		

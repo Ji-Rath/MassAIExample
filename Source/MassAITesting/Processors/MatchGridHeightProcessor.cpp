@@ -36,7 +36,7 @@ void UMatchGridHeightProcessor::ConfigureQueries(const TSharedRef<FMassEntityMan
 
 void UMatchGridHeightProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	EntityQuery.ParallelForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ParallelForEachEntityChunk(Context, [this](FMassExecutionContext& Context)
 	{
 		auto& GridManagerSubsystem = Context.GetSubsystemChecked<UGridManagerSubsystem>();
 		

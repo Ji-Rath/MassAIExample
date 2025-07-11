@@ -36,7 +36,7 @@ void UBulletInitializerProcessor::InitializeInternal(UObject& Owner, const TShar
 void UBulletInitializerProcessor::SignalEntities(FMassEntityManager& EntityManager, FMassExecutionContext& Context,
                                                  FMassSignalNameLookup& EntitySignals)
 {
-	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(Context, [this](FMassExecutionContext& Context)
 	{
 		auto SignalSubsystem = Context.GetMutableSubsystem<UMassSignalSubsystem>();
 		auto BulletFragments = Context.GetFragmentView<FBulletFragment>();
@@ -74,7 +74,7 @@ void UBulletDestroyerProcessor::InitializeInternal(UObject& Owner, const TShared
 void UBulletDestroyerProcessor::SignalEntities(FMassEntityManager& EntityManager, FMassExecutionContext& Context,
 	FMassSignalNameLookup& EntitySignals)
 {
-	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(Context, [this](FMassExecutionContext& Context)
 	{
 		const int32 NumEntities = Context.GetNumEntities();
 		for (int EntityIdx = 0; EntityIdx < NumEntities; EntityIdx++)
@@ -104,7 +104,7 @@ void UBulletCollisionProcessor::ConfigureQueries(const TSharedRef<FMassEntityMan
 
 void UBulletCollisionProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this, &EntityManager](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(Context, [this, &EntityManager](FMassExecutionContext& Context)
 	{
 		auto BulletHellSubsystem = Context.GetSubsystem<UBulletHellSubsystem>();
 		auto TransformFragments = Context.GetFragmentView<FTransformFragment>();

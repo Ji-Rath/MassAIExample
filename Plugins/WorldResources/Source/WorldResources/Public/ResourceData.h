@@ -23,7 +23,7 @@ public:
 	FGameplayTag ResourceType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Resource)
-	USmartObjectDefinition* SODefinition;
+	USmartObjectDefinition* SODefinition = nullptr;
 
 	FResourceData() = default;
 };

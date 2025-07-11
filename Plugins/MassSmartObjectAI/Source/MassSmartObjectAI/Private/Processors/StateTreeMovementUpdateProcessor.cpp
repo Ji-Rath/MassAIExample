@@ -24,7 +24,7 @@ void UStateTreeMovementUpdateProcessor::ConfigureQueries(const TSharedRef<FMassE
 
 void UStateTreeMovementUpdateProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(Context, [this](FMassExecutionContext& Context)
 	{
 		auto& SignalSubsystem = Context.GetMutableSubsystemChecked<UMassSignalSubsystem>();
 		

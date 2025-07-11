@@ -21,7 +21,7 @@ void URandomizePositionProcessor::ConfigureQueries(const TSharedRef<FMassEntityM
 void URandomizePositionProcessor::SignalEntities(FMassEntityManager& EntityManager, FMassExecutionContext& Context,
 	FMassSignalNameLookup& EntitySignals)
 {
-	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(Context, [this](FMassExecutionContext& Context)
 	{
 		const auto TransformFragments = Context.GetMutableFragmentView<FTransformFragment>();
 		

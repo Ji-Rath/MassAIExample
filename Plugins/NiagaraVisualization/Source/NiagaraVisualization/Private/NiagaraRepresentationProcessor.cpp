@@ -32,7 +32,7 @@ void UNiagaraRepresentationProcessor::ConfigureQueries(const TSharedRef<FMassEnt
 // todo-performance separate setup for rarely moving pieces?
 void UNiagaraRepresentationProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	NiagaraPositionChunkQuery.ForEachEntityChunk(EntityManager, Context, [&,this](FMassExecutionContext& Context)
+	NiagaraPositionChunkQuery.ForEachEntityChunk(Context, [](FMassExecutionContext& Context)
 	{
 		QUICK_SCOPE_CYCLE_COUNTER(STAT_MASS_PositionChunkQuery);
 		const int32 QueryLength = Context.GetNumEntities();

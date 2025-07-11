@@ -25,7 +25,7 @@ void URandomMovementProcessors::ConfigureQueries(const TSharedRef<FMassEntityMan
 
 void URandomMovementProcessors::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	EntityQuery.ForEachEntityChunk(EntityManager, Context, [&, this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(Context, [](FMassExecutionContext& Context)
 	{
 		const auto& Transforms = Context.GetFragmentView<FTransformFragment>();
 		const auto& MoveTargetFragments = Context.GetMutableFragmentView<FMassMoveTargetFragment>();
@@ -67,7 +67,7 @@ void URandomMovementSignalProcessor::ConfigureQueries(const TSharedRef<FMassEnti
 void URandomMovementSignalProcessor::SignalEntities(FMassEntityManager& EntityManager, FMassExecutionContext& Context,
                                                     FMassSignalNameLookup& EntitySignals)
 {
-	EntityQuery.ForEachEntityChunk(EntityManager, Context, [&, this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(Context, [](FMassExecutionContext& Context)
 {
 	const auto& Transforms = Context.GetFragmentView<FTransformFragment>();
 	const auto& MoveTargetFragments = Context.GetMutableFragmentView<FMassMoveTargetFragment>();

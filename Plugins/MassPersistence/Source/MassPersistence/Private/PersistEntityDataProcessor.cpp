@@ -24,7 +24,7 @@ void UPersistEntityDataProcessor::ConfigureQueries(const TSharedRef<FMassEntityM
 void UPersistEntityDataProcessor::SignalEntities(FMassEntityManager& EntityManager, FMassExecutionContext& Context,
 	FMassSignalNameLookup& EntitySignals)
 {
-	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(Context, [this](FMassExecutionContext& Context)
 	{
 		const auto TransformFragments = Context.GetFragmentView<FTransformFragment>();
 		const auto PersistentDataFragment = Context.GetConstSharedFragment<FPersistentDataFragment>();
@@ -71,7 +71,7 @@ void UPersistentDataPostLoadProcessor::ConfigureQueries(const TSharedRef<FMassEn
 void UPersistentDataPostLoadProcessor::SignalEntities(FMassEntityManager& EntityManager, FMassExecutionContext& Context,
 	FMassSignalNameLookup& EntitySignals)
 {
-	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(Context, [this](FMassExecutionContext& Context)
 	{
 		const auto TransformFragments = Context.GetMutableFragmentView<FTransformFragment>();
 		const auto PersistentTransformFragments = Context.GetFragmentView<FPersistentTransformFragment>();

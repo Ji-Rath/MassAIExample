@@ -27,7 +27,7 @@ void UHashGridInitializeProcessor::ConfigureQueries(const TSharedRef<FMassEntity
 
 void UHashGridInitializeProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(Context, [](FMassExecutionContext& Context)
 	{
 		auto& HashGridSubsystem = Context.GetMutableSubsystemChecked<UHashGridSubsystem>();
 		
@@ -62,7 +62,7 @@ void UHashGridDestroyProcessor::ConfigureQueries(const TSharedRef<FMassEntityMan
 
 void UHashGridDestroyProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(Context, [](FMassExecutionContext& Context)
 	{
 		auto& HashGridSubsystem = Context.GetMutableSubsystemChecked<UHashGridSubsystem>();
 		
@@ -92,7 +92,7 @@ void UHashGridProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& 
 
 void UHashGridProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(Context, [](FMassExecutionContext& Context)
 	{
 		auto& HashGridSubsystem = Context.GetMutableSubsystemChecked<UHashGridSubsystem>();
 		
@@ -129,7 +129,7 @@ void UHashGridQueryProcessor::ConfigureQueries(const TSharedRef<FMassEntityManag
 void UHashGridQueryProcessor::SignalEntities(FMassEntityManager& EntityManager, FMassExecutionContext& Context,
 	FMassSignalNameLookup& EntitySignals)
 {
-	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(Context, [](FMassExecutionContext& Context)
 	{
 		const auto TransformFragments = Context.GetFragmentView<FTransformFragment>();
 		
@@ -141,7 +141,7 @@ void UHashGridQueryProcessor::SignalEntities(FMassEntityManager& EntityManager, 
 			// Destroy the entity when we receive the signal
 			Context.Defer().DestroyEntity(Context.GetEntity(EntityIdx));
 
-			DrawDebugPoint(GetWorld(), TransformFragment.GetTransform().GetLocation(), 50.f, FColor::Yellow, true);
+			DrawDebugPoint(Context.GetWorld(), TransformFragment.GetTransform().GetLocation(), 50.f, FColor::Yellow, true);
 		}
 	});
 }

@@ -37,7 +37,7 @@ void UBHEnemyProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& E
 void UBHEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
 	// Update move target
-	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(Context, [this](FMassExecutionContext& Context)
 	{
 		SCOPED_NAMED_EVENT(STAT_UpdateMoveTarget, FColor::Red);
 		auto BulletHellSubsystem = Context.GetSubsystem<UBulletHellSubsystem>();
@@ -68,7 +68,7 @@ void UBHEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
 		}
 	});
 
-	UpdateHashGridQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	UpdateHashGridQuery.ForEachEntityChunk(Context, [this](FMassExecutionContext& Context)
 	{
 		SCOPED_NAMED_EVENT(STAT_UpdateHashGrid, FColor::Red);
 		auto BulletHellSubsystem = Context.GetMutableSubsystem<UBulletHellSubsystem>();
@@ -104,7 +104,7 @@ void UBHEnemyInitializer::ConfigureQueries(const TSharedRef<FMassEntityManager>&
 
 void UBHEnemyInitializer::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(Context, [this](FMassExecutionContext& Context)
 	{
 		auto TransformFragments = Context.GetFragmentView<FTransformFragment>();
 		auto BHEnemyFragments = Context.GetMutableFragmentView<FBHEnemyFragment>();
@@ -138,7 +138,7 @@ void UBHEnemyDestructor::ConfigureQueries(const TSharedRef<FMassEntityManager>& 
 
 void UBHEnemyDestructor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(Context, [this](FMassExecutionContext& Context)
 	{
 		auto BHEnemyFragments = Context.GetFragmentView<FBHEnemyFragment>();
 		auto BulletHellSubsystem = Context.GetMutableSubsystem<UBulletHellSubsystem>();

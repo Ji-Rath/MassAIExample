@@ -21,7 +21,7 @@ void UVertexAnimLocomotionProcessor::ConfigureQueries(const TSharedRef<FMassEnti
 
 void UVertexAnimLocomotionProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	EntityQuery.ForEachEntityChunk(EntityManager, Context, [this](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(Context, [](FMassExecutionContext& Context)
 	{
 		const auto MassVelocityFragments = Context.GetFragmentView<FMassVelocityFragment>();
 		const auto VertexAnimFragments = Context.GetMutableFragmentView<FVertexAnimInfoFragment>();

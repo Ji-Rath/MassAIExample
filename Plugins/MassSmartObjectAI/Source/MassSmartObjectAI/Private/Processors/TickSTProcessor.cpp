@@ -25,7 +25,7 @@ void UTickSTProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& En
 void UTickSTProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
 	// Iterate through chunks
-	EntityQuery.ForEachEntityChunk(EntityManager, Context,[](FMassExecutionContext& Context)
+	EntityQuery.ForEachEntityChunk(Context,[](FMassExecutionContext& Context)
 	{
 		UMassSignalSubsystem& SignalSubsystem = Context.GetMutableSubsystemChecked<UMassSignalSubsystem>();
 		
