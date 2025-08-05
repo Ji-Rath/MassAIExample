@@ -8,17 +8,34 @@
 #include "MassCommonFragments.h"
 #include "MassEntityBuilder.h"
 #include "MassEntitySubsystem.h"
-#include "MassMovementFragments.h"
+#include "MassExecutionContext.h"
 #include "MassNavigationFragments.h"
 #include "MassObserverNotificationTypes.h"
 #include "MassSignalSubsystem.h"
-#include "MassSpawnerSubsystem.h"
 #include "RTSAgentTraits.h"
-#include "RTSFormationProcessors.h"
+#include "RTSSignals.h"
 #include "Engine/World.h"
-#include "Kismet/GameplayStatics.h"
-#include "Kismet/KismetMathLibrary.h"
+#include "ProfilingDebugging/ScopedTimers.h"
 #include "Unit/UnitFragments.h"
+
+TArray<FUnitHandle> URTSFormationSubsystem::GetUnits() const
+{
+	TArray<FUnitHandle> UnitArray;
+
+	auto& EntityManager = UE::Mass::Utils::GetEntityManagerChecked(*GetWorld());
+
+	EntityManager.ForEachSharedFragment<FUnitFragment>([&UnitArray](FUnitFragment& UnitFragment)
+	{
+		UnitArray.Emplace(UnitFragment.UnitHandle);
+	});
+
+	return UnitArray;
+}
+
+FUnitHandle URTSFormationSubsystem::GetFirstUnit() const
+{
+	return GetUnits().IsEmpty() ? FUnitHandle() : GetUnits()[0];
+}
 
 void URTSFormationSubsystem::DestroyEntity(UMassAgentComponent* Entity)
 {
@@ -28,32 +45,264 @@ void URTSFormationSubsystem::DestroyEntity(UMassAgentComponent* Entity)
 	EntitySubsystem->GetEntityManager().Defer().DestroyEntity(Entity->GetEntityHandle());
 }
 
-void URTSFormationSubsystem::CalculateNewPositions(const FMassEntityHandle& UnitHandle, TMap<int, FVector>& OutNewPositions)
+void URTSFormationSubsystem::UpdateUnitPosition(const FUnitHandle& UnitHandle)
+{
+	auto& InEntityManager = UE::Mass::Utils::GetEntityManagerChecked(*GetWorld());
+	
+	InEntityManager.ForEachSharedFragmentConditional<FUnitFragment>([&UnitHandle](const FUnitFragment& InUnitFragment)
+	{
+		return InUnitFragment.UnitHandle == UnitHandle;
+	},
+	[&InEntityManager, &UnitHandle](FUnitFragment& UnitFragment)
+	{
+		TArray<FVector3f> NewPositions;
+
+		FMassEntityQuery EntityQuery(InEntityManager.AsShared());
+		CreateQueryForUnit(UnitHandle, EntityQuery);
+		EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
+		FMassExecutionContext ExecutionContext(InEntityManager);
+
+		TArray<FVector3f> RotatedNewPositions;
+		TArray<FMassEntityHandle> Entities;
+		
+		{
+			RTS::Stats::UpdateUnitPositionTimeSec = 0.0;
+			FScopedDurationTimer DurationTimer(RTS::Stats::UpdateUnitPositionTimeSec);
+			TRACE_CPUPROFILER_EVENT_SCOPE(TEXT("UpdateUnitPosition"))
+			// Since get num matching entities does not return the correct value, we simply iterate through valid chunks to get # of entities in unit
+			
+			EntityQuery.ForEachEntityChunk(ExecutionContext, [&Entities](FMassExecutionContext& Context)
+			{
+				Entities.Append(Context.GetEntities());
+			});
+			
+			// Calculate new positions for entities and output to NewPositions
+			CalculateNewPositions(UnitFragment, Entities.Num(), NewPositions);
+
+			// We need to rotate the positions to ensure we get accurate positions
+			RotatedNewPositions = NewPositions;
+			for (FVector3f& RotatedNewPosition : RotatedNewPositions)
+			{
+				RotatedNewPosition = RotatedNewPosition.RotateAngleAxis(UnitFragment.InterpRotation.Yaw, FVector3f(0.f,0.f,1.f));
+				RotatedNewPosition += UnitFragment.InterpDestination;
+			}
+		}
+
+		{
+			// Apply new offsets to entities in unit
+			RTS::Stats::UpdateEntityIndexTimeSec = 0.0;
+			FScopedDurationTimer DurationTimer(RTS::Stats::UpdateEntityIndexTimeSec);
+			EntityQuery.ForEachEntityChunk(ExecutionContext, [&NewPositions, &RotatedNewPositions](FMassExecutionContext& Context)
+			{
+				auto FormationAgents = Context.GetMutableFragmentView<FRTSFormationAgent>();
+				auto TransformFragments = Context.GetFragmentView<FTransformFragment>();
+			
+				for (int32 EntityIndex = 0; EntityIndex < Context.GetNumEntities(); ++EntityIndex)
+				{
+					FRTSFormationAgent& FormationAgent = FormationAgents[EntityIndex];
+					auto& Transform = TransformFragments[EntityIndex].GetTransform();
+			
+					int ClosestIndex = 0;
+					float DistSq = FLT_MAX;
+
+					// Calculate distances
+					auto Location = FVector3f(Transform.GetLocation());
+					for (int i=0;i<NewPositions.Num();i++)
+					{
+						float Dist = FVector3f::DistSquared2D(RotatedNewPositions[i], Location);
+
+						if (Dist < DistSq)
+						{
+							ClosestIndex = i;
+							DistSq = Dist;
+						}
+					}
+			
+					FormationAgent.Offset = NewPositions[ClosestIndex];
+				
+					NewPositions.RemoveAtSwap(ClosestIndex, EAllowShrinking::No);
+					RotatedNewPositions.RemoveAtSwap(ClosestIndex, EAllowShrinking::No);
+				}
+			});
+
+			auto SignalSubsystem = UWorld::GetSubsystem<UMassSignalSubsystem>(InEntityManager.GetWorld());
+			SignalSubsystem->SignalEntities(RTS::Unit::Signals::FormationUpdated, Entities);
+		}
+	});
+}
+
+void URTSFormationSubsystem::SetUnitPosition(const FVector& NewPosition, const FUnitHandle& UnitHandle)
 {
 	UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
 	auto& EntityManager = EntitySubsystem->GetMutableEntityManager();
 
+	EntityManager.ForEachSharedFragmentConditional<FUnitFragment>([&UnitHandle](FUnitFragment& UnitFragment)
+	{
+		return UnitHandle == UnitFragment.UnitHandle;
+	},[&EntityManager, &NewPosition, &UnitHandle](FUnitFragment& UnitFragment)
+	{
+		auto NewPosition3f = FVector3f(NewPosition);
+		DrawDebugDirectionalArrow(EntityManager.GetWorld(), NewPosition, FVector(NewPosition3f+((NewPosition3f-UnitFragment.InterpDestination).GetSafeNormal()*250.f)), 150.f, FColor::Red, false, 5.f, 0, 25.f);
+	
+		auto ForwardDir = (NewPosition3f-UnitFragment.InterpDestination).GetSafeNormal();
+		UnitFragment.ForwardDir = FVector2f(ForwardDir.X, ForwardDir.Y);
+		
+		UnitFragment.UnitRotation = FRotator3f(UE::Math::TRotationMatrix<float>::MakeFromX(ForwardDir).Rotator());
+		
+		auto UnitInterpQuat = UnitFragment.InterpRotation.Quaternion();
+		auto UnitQuat = UnitFragment.UnitRotation.Quaternion();
+		
+		bool bBlendAngle = FMath::RadiansToDegrees(UnitInterpQuat.AngularDistance(UnitQuat)) < 45;
+		UnitFragment.InterpRotation = bBlendAngle ? UnitFragment.InterpRotation : UnitFragment.UnitRotation;
+		
+		{
+			// Stop entity movement in unit
+			FMassEntityQuery EntityQuery(EntityManager.AsShared());
+			CreateQueryForUnit(UnitHandle, EntityQuery);
+			EntityQuery.AddRequirement<FMassMoveTargetFragment>(EMassFragmentAccess::ReadWrite);
+
+			FMassExecutionContext Context(EntityManager);
+			EntityQuery.ForEachEntityChunk(Context, [](FMassExecutionContext& Context)
+			{
+				auto MoveTargetFragments = Context.GetMutableFragmentView<FMassMoveTargetFragment>();
+
+				for (auto Entity : Context.CreateEntityIterator())
+				{
+					MoveTargetFragments[Entity].CreateNewAction(EMassMovementAction::Stand, *Context.GetWorld());
+				}
+			});
+		}
+		
+		UnitFragment.UnitDestination = NewPosition3f;
+
+		if (!bBlendAngle)
+		{
+			FMassEntityQuery EntityQuery(EntityManager.AsShared());
+			CreateQueryForUnit(UnitHandle, EntityQuery);
+			
+			EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
+			FMassExecutionContext ExecContext(EntityManager);
+
+			// Find the entity that is closest to the unit destination
+			FVector ClosestLocation;
+			float ClosestDistanceSq = FLT_MAX;
+			EntityQuery.ForEachEntityChunk(ExecContext, [&NewPosition, &ClosestDistanceSq, &ClosestLocation](FMassExecutionContext& Context)
+			{
+				auto TransformFragments = Context.GetFragmentView<FTransformFragment>();
+				for (int i=0;i<Context.GetNumEntities();i++)
+				{
+					const FVector& Location = TransformFragments[i].GetTransform().GetLocation();
+
+					auto LocationDistanceSq = FVector::DistSquared2D(Location, NewPosition);
+					if (LocationDistanceSq < ClosestDistanceSq)
+					{
+						ClosestDistanceSq = LocationDistanceSq;
+						ClosestLocation = Location;
+					}
+				}
+			});
+
+			UnitFragment.InterpDestination = FVector3f(ClosestLocation);
+		}
+	});
+	
+	UpdateUnitPosition(UnitHandle);
+}
+
+void URTSFormationSubsystem::SpawnEntitiesForUnit(const FUnitHandle& UnitHandle, const UMassEntityConfigAsset* EntityConfig, int Count)
+{
+	if (!ensure(EntityConfig)) { return; }
+
+	SpawnEntities(UnitHandle, EntityConfig->GetConfig(), Count);
+}
+
+void URTSFormationSubsystem::SpawnEntities(const FUnitHandle& UnitHandle, const FMassEntityConfig& EntityConfig,
+	int Count)
+{
+	auto& EntityManager = UE::Mass::Utils::GetEntityManagerChecked(*GetWorld());
+
+	// We are doing a little bit of work here since we are setting the unit index manually
+	// Otherwise, using SpawnEntities would be perfectly fine
+
+	auto& EntityTemplate = EntityConfig.GetOrCreateEntityTemplate(*GetWorld());
+	EntityManager.Defer().PushCommand<FMassDeferredCreateCommand>([EntityTemplate, UnitHandle, Count](FMassEntityManager& InEntityManager)
+	{
+		FMassArchetypeSharedFragmentValues SharedFragmentValues = EntityTemplate.GetSharedFragmentValues();
+
+		FUnitFragment UnitFragment = FUnitFragment();
+		UnitFragment.UnitHandle = UnitHandle;
+
+		auto& SharedUnitFragment = InEntityManager.GetOrCreateSharedFragment<FUnitFragment>(UnitFragment);
+		SharedFragmentValues.Add(SharedUnitFragment);
+		SharedFragmentValues.Sort();
+		
+		TArray<FMassEntityHandle> Entities;
+		auto CreationContext = InEntityManager.BatchCreateEntities(EntityTemplate.GetArchetype(), SharedFragmentValues, Count, Entities);
+
+		TConstArrayView<FInstancedStruct> FragmentInstances = EntityTemplate.GetInitialFragmentValues();
+		InEntityManager.BatchSetEntityFragmentValues(CreationContext->GetEntityCollections(InEntityManager), FragmentInstances);
+	});
+}
+
+FUnitHandle URTSFormationSubsystem::SpawnNewUnit(const UMassEntityConfigAsset* EntityConfig, int Count,
+                                                 const FVector& Position)
+{
+	return SpawnUnit(EntityConfig->GetConfig(), Count, Position);
+}
+
+FUnitHandle URTSFormationSubsystem::SpawnUnit(const FMassEntityConfig& EntityConfig, int Count, const FVector& Position)
+{
+	auto UnitHandle = FUnitHandle();
+	
+	SpawnEntities(UnitHandle, EntityConfig, Count);
+	return UnitHandle;
+}
+
+void URTSFormationSubsystem::SetFormationPreset(const FUnitHandle& UnitHandle, UFormationPresets* FormationAsset)
+{
+	if (!ensure(FormationAsset)) { return; }
+
+	// @todo fix this
+	/*
+	UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
+	auto& EntityManager = EntitySubsystem->GetMutableEntityManager();
+
+	auto& UnitSettings = EntityManager.GetSharedFragmentDataChecked<FUnitSettings>(UnitHandle);
 	auto& UnitFragment = EntityManager.GetFragmentDataChecked<FUnitFragment>(UnitHandle);
 	
+	UnitSettings.FormationLength = FormationAsset->FormationLength;
+	UnitSettings.BufferDistance = FormationAsset->BufferDistance;
+	UnitSettings.Formation = FormationAsset->Formation;
+	UnitSettings.Rings = FormationAsset->Rings;
+	UnitSettings.bHollow = FormationAsset->bHollow;
+
+	SetUnitPosition(UnitFragment.UnitPosition, UnitHandle);
+	*/
+}
+
+void URTSFormationSubsystem::CalculateNewPositions(FUnitFragment& UnitFragment,
+                                                   int Count, TArray<FVector3f>& OutNewPositions)
+{
 	// Empty NewPositions Map to make room for new calculations
-	OutNewPositions.Empty(UnitFragment.Entities.Num());
+	OutNewPositions.Empty(Count);
+	auto& UnitSettings = UnitFragment.UnitSettings;
 	
 	// Calculate entity positions for new destination
 	// This is the logic that can change formation types
-	const FVector CenterOffset = FVector((UnitFragment.Entities.Num()/UnitFragment.FormationLength/2) * UnitFragment.BufferDistance, (UnitFragment.FormationLength/2) * UnitFragment.BufferDistance, 0.f);
+	const FVector3f CenterOffset = FVector3f((Count/UnitSettings.FormationLength/2) * UnitSettings.BufferDistance, (UnitSettings.FormationLength/2) * UnitSettings.BufferDistance, 0.f);
 	int PlacedUnits = 0;
 	int PosIndex = 0;
-	while (PlacedUnits < UnitFragment.Entities.Num())
+	while (PlacedUnits < Count)
 	{
-		float w = PosIndex / UnitFragment.FormationLength;
-		float l = PosIndex % UnitFragment.FormationLength;
+		float w = PosIndex / UnitSettings.FormationLength;
+		float l = PosIndex % UnitSettings.FormationLength;
 
 		// Hollow formation logic (2 layers)
-		if (UnitFragment.bHollow && UnitFragment.Formation == EFormationType::Rectangle)
+		if (UnitSettings.bHollow && UnitSettings.Formation == EFormationType::Rectangle)
 		{
-			int Switch = UnitFragment.Entities.Num() - UnitFragment.FormationLength*2;
+			int Switch = Count - UnitSettings.FormationLength*2;
 			if (w != 0 && w != 1 && !(PlacedUnits >= Switch)
-				&& l != 0 && l != 1 && l != UnitFragment.FormationLength-1 && l != UnitFragment.FormationLength-2)
+				&& l != 0 && l != 1 && l != UnitSettings.FormationLength-1 && l != UnitSettings.FormationLength-2)
 			{
 				PosIndex++;
 				continue;
@@ -61,271 +310,41 @@ void URTSFormationSubsystem::CalculateNewPositions(const FMassEntityHandle& Unit
 		}
 
 		// Circle formation
-		if (UnitFragment.Formation == EFormationType::Circle)
+		if (UnitSettings.Formation == EFormationType::Circle)
 		{
-			int AmountPerRing = UnitFragment.Entities.Num() / UnitFragment.Rings;
+			int AmountPerRing = Count / UnitSettings.Rings;
 			float Angle = PosIndex * PI * 2 / AmountPerRing;
-			float Radius = UnitFragment.FormationLength + (PosIndex / AmountPerRing * 1.5f);
+			float Radius = UnitSettings.FormationLength + (PosIndex / AmountPerRing * 1.5f);
 			w = FMath::Cos(Angle) * Radius;
 			l = FMath::Sin(Angle) * Radius;
 		}
 		
 		PlacedUnits++;
-		FVector Position = FVector(w,l,0.f);
-		Position *= UnitFragment.BufferDistance;
-		if (UnitFragment.Formation == EFormationType::Rectangle)
-			Position -= CenterOffset;
+		FVector3f Position = FVector3f(w,l,0.f);
+		Position *= UnitSettings.BufferDistance;
+		if (UnitSettings.Formation == EFormationType::Rectangle)
+		{
+			FVector3f FrontOffset = CenterOffset;
+			FrontOffset.X = 0.f;
+			Position -= FrontOffset;
+		}
+			
+		// Flip so that units are in correct spot
+		Position = Position.RotateAngleAxis(180.f, FVector3f(0.f,0.f,1.f));
 		
-		Position = Position.RotateAngleAxis(UnitFragment.InterpRotation.Yaw+180.f, FVector(0.f,0.f,1.f));
-		
-		OutNewPositions.Add(PosIndex, Position);
+		OutNewPositions.Add(Position);
 		//DrawDebugPoint(GetWorld(), Position+Unit.InterpolatedDestination, 20.f, FColor::Yellow, false, 10.f);
 		PosIndex++;
 	}
 }
 
-void URTSFormationSubsystem::UpdateUnitPosition(const FVector& NewPosition, const FMassEntityHandle& UnitHandle)
+void URTSFormationSubsystem::CreateQueryForUnit(const FUnitHandle& UnitHandle, FMassEntityQuery& EntityQuery)
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(TEXT("UpdateUnitPosition"))
-	if (!ensure(UnitHandle.IsValid())) { return; }
-
-	// Convenience variables
-	UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
-	auto& EntityManager = EntitySubsystem->GetMutableEntityManager();
-
-	auto& UnitFragment = EntityManager.GetFragmentDataChecked<FUnitFragment>(UnitHandle);
-	TMap<int, FVector>& NewPositions = UnitFragment.NewPositions;
-
-	// Calculate new positions for entities and output to NewPositions
-	CalculateNewPositions(UnitHandle, NewPositions);
-
-	// Calculate far corner by finding the new position that is furthest from the unit destination
-	UnitFragment.FarCorner = NewPosition;
-	NewPositions.ValueSort([&UnitFragment, &NewPosition](const FVector& A, const FVector& B)
+	EntityQuery.AddSharedRequirement<FUnitFragment>(EMassFragmentAccess::ReadOnly);
+	EntityQuery.AddRequirement<FRTSFormationAgent>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.SetChunkFilter([&UnitHandle](const FMassExecutionContext& Context)
 	{
-		return FVector::DistSquared2D(A+UnitFragment.InterpolatedDestination, NewPosition) > FVector::DistSquared2D(B+UnitFragment.InterpolatedDestination, NewPosition);
+		auto& UnitFragment = Context.GetSharedFragment<FUnitFragment>();
+		return UnitFragment.UnitHandle == UnitHandle;
 	});
-	
-	if (NewPositions.Num())
-	{
-		TArray<FVector> NewArray;
-		NewArray.Reserve(NewPositions.Num());
-		NewPositions.GenerateValueArray(NewArray);
-		UnitFragment.FarCorner = NewArray[0];
-	}
-	//DrawDebugPoint(GetWorld(), Unit.FarCorner+Unit.InterpolatedDestination, 30.f, FColor::Green, false, 5.f);
-
-	// Sort entities by distance to the far corner location
-	UnitFragment.Entities.Sort([&EntitySubsystem, &UnitFragment](const FMassEntityHandle& A, const FMassEntityHandle& B)
-	{
-		//@todo Find if theres a way to move this logic to a processor, most of the cost is coming from retrieving the location
-		const FVector& LocA = EntitySubsystem->GetEntityManager().GetFragmentDataChecked<FTransformFragment>(A).GetTransform().GetLocation();
-		const FVector& LocB = EntitySubsystem->GetEntityManager().GetFragmentDataChecked<FTransformFragment>(B).GetTransform().GetLocation();
-		return FVector::DistSquared2D(LocA, UnitFragment.FarCorner+UnitFragment.InterpolatedDestination) > FVector::DistSquared2D(LocB, UnitFragment.FarCorner+UnitFragment.InterpolatedDestination);
-	});
-
-	// Sort new positions by distance to the far corner location
-	NewPositions.ValueSort([&UnitFragment](const FVector& A, const FVector& B)
-	{
-		return FVector::DistSquared2D(A, UnitFragment.FarCorner) > FVector::DistSquared2D(B, UnitFragment.FarCorner);
-	});
-
-	// Signal entities to update their position index
-	if (UnitFragment.Entities.Num())
-	{
-		TArray<FMassEntityHandle> Entities = UnitFragment.Entities.Array();
-		GetWorld()->GetSubsystem<UMassSignalSubsystem>()->SignalEntities(UpdateIndex, Entities);
-	}
-}
-
-void URTSFormationSubsystem::SetUnitPositionByIndex(const FVector& NewPosition, int UnitIndex)
-{
-	SetUnitPosition(NewPosition, Units[UnitIndex]);
-}
-
-void URTSFormationSubsystem::MoveEntities(const FMassEntityHandle& UnitHandle)
-{
-	SCOPED_NAMED_EVENT(STAT_RTS_MoveEntities, FColor::Green);
-
-	UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
-	auto& EntityManager = EntitySubsystem->GetMutableEntityManager();
-
-	auto& UnitFragment = EntityManager.GetFragmentDataChecked<FUnitFragment>(UnitHandle);
-	
-	// Final sort to ensure that entities are signaled from front to back
-	UnitFragment.Entities.Sort([&EntitySubsystem, &UnitFragment](const FMassEntityHandle& A, const FMassEntityHandle& B)
-	{
-		// Find if theres a way to move this logic to a processor, most of the cost is coming from retrieving the location
-		const FVector& LocA = EntitySubsystem->GetEntityManager().GetFragmentDataChecked<FRTSFormationAgent>(A).Offset;
-		const FVector& LocB = EntitySubsystem->GetEntityManager().GetFragmentDataChecked<FRTSFormationAgent>(B).Offset;
-		return FVector::DistSquared2D(LocA, UnitFragment.FarCorner) > FVector::DistSquared2D(LocB, UnitFragment.FarCorner);
-	});
-	
-	CurrentIndex = 0;
-
-	// Signal entities to begin moving
-	TArray<FMassEntityHandle> Entities = UnitFragment.Entities.Array();
-	for(int i=0;i<UnitFragment.Entities.Num();++i)
-	{
-		GetWorld()->GetSubsystem<UMassSignalSubsystem>()->DelaySignalEntity(FormationUpdated, Entities[i], 0.1*(i/UnitFragment.FormationLength));
-	} 
-}
-
-void URTSFormationSubsystem::SpawnEntitiesForUnitByIndex(int UnitIndex, const UMassEntityConfigAsset* EntityConfig,
-	int Count)
-{
-	if (ensure(Units.IsValidIndex(UnitIndex)))
-	{
-		SpawnEntitiesForUnit(Units[UnitIndex], EntityConfig, Count);
-	}
-}
-
-void URTSFormationSubsystem::SetUnitPosition(const FVector& NewPosition, const FMassEntityHandle& UnitHandle)
-{
-	if (Units.IsEmpty()) { return; }
-	
-	UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
-	auto& EntityManager = EntitySubsystem->GetMutableEntityManager();
-
-	auto& UnitFragment = EntityManager.GetFragmentDataChecked<FUnitFragment>(UnitHandle);
-
-	DrawDebugDirectionalArrow(GetWorld(), NewPosition, NewPosition+((NewPosition-UnitFragment.InterpolatedDestination).GetSafeNormal()*250.f), 150.f, FColor::Red, false, 5.f, 0, 25.f);
-
-	FVector OldDir = UnitFragment.ForwardDir;
-	UnitFragment.ForwardDir = (NewPosition-UnitFragment.InterpolatedDestination).GetSafeNormal();
-	
-	// Calculate turn direction and angle for entities in unit
-	UnitFragment.TurnDirection = UnitFragment.ForwardDir.Y > 0 ? 1.f : -1.f;
-	
-	UnitFragment.OldRotation = UnitFragment.Rotation;
-	UnitFragment.Rotation = UKismetMathLibrary::MakeRotFromX(UnitFragment.ForwardDir);
-	
-	UnitFragment.bBlendAngle = OldDir.Dot(UnitFragment.ForwardDir) > 0.4;
-	UnitFragment.InterpRotation = UnitFragment.bBlendAngle ? UnitFragment.InterpRotation : UnitFragment.Rotation;
-
-	// Jank solution to stop entities from moving
-	for(const FMassEntityHandle& Entity : UnitFragment.Entities)
-	{
-		if (EntitySubsystem->GetEntityManager().GetFragmentDataPtr<FMassMoveTargetFragment>(Entity))
-		{
-			EntitySubsystem->GetEntityManager().GetFragmentDataPtr<FMassMoveTargetFragment>(Entity)->CreateNewAction(EMassMovementAction::Stand, *GetWorld());
-			EntitySubsystem->GetEntityManager().GetFragmentDataPtr<FMassVelocityFragment>(Entity)->Value = FVector::Zero();
-		}
-	}
-	
-	UnitFragment.UnitPosition = NewPosition;
-	
-	UpdateUnitPosition(NewPosition, UnitHandle);
-}
-
-void URTSFormationSubsystem::SpawnEntitiesForUnit(const FMassEntityHandle& UnitHandle, const UMassEntityConfigAsset* EntityConfig, int Count)
-{
-	if (!ensure(UnitHandle.IsValid() && EntityConfig)) { return; }
-
-	UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
-	auto& EntityManager = EntitySubsystem->GetMutableEntityManager();
-
-	auto& UnitFragment = EntityManager.GetFragmentDataChecked<FUnitFragment>(UnitHandle);
-
-	// Reserve space for the new units, the space will be filled in a processor
-	UnitFragment.Entities.Reserve(UnitFragment.Entities.Num()+Count);
-	
-	TArray<FMassEntityHandle> Entities;
-	auto& EntityTemplate = EntityConfig->GetConfig().GetOrCreateEntityTemplate(*UGameplayStatics::GetPlayerPawn(this, 0)->GetWorld());
-
-	// We are doing a little bit of work here since we are setting the unit index manually
-	// Otherwise, using SpawnEntities would be perfectly fine
-	// @todo find if there is a better way to modify templates in code
-	TArray<FMassEntityHandle> SpawnedEntities;
-	auto CreationContext = EntitySubsystem->GetMutableEntityManager().BatchCreateEntities(EntityTemplate.GetArchetype(), EntityTemplate.GetSharedFragmentValues(), Count, SpawnedEntities);
-
-	// Set the template default values for the entities
-	TConstArrayView<FInstancedStruct> FragmentInstances = EntityTemplate.GetInitialFragmentValues();
-	EntityManager.BatchSetEntityFragmentValues(CreationContext->GetEntityCollections(EntityManager), FragmentInstances);
-
-	// Set unit index for entities
-	FRTSFormationAgent FormationAgent;
-	FormationAgent.UnitHandle = UnitHandle;
-	
-	TArray<FInstancedStruct> Fragments;
-	Fragments.Add(FInstancedStruct::Make(FormationAgent));
-	EntityManager.BatchSetEntityFragmentValues(CreationContext->GetEntityCollections(EntityManager), Fragments);
-}
-
-int URTSFormationSubsystem::SpawnNewUnit(const UMassEntityConfigAsset* EntityConfig, int Count, const FVector& Position)
-{
-	int UnitIndex = Units.Num();
-
-	UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
-	auto& EntityManager = EntitySubsystem->GetMutableEntityManager();
-
-	FUnitFragment UnitFragment = FUnitFragment();
-	UnitFragment.UnitPosition = Position;
-	
-	UE::Mass::FEntityBuilder UnitEntity(EntityManager);
-	UnitEntity.Add<FUnitTag>().Add<FUnitFragment>();
-	auto EntityHandle = UnitEntity.Commit();
-
-	Units.Emplace(EntityHandle);
-	
-	SpawnEntitiesForUnit(EntityHandle, EntityConfig, Count);
-	return UnitIndex;
-}
-
-void URTSFormationSubsystem::SetFormationPresetByIndex(int EntityIndex, UFormationPresets* FormationAsset)
-{
-	if (ensure(Units.IsValidIndex(EntityIndex)))
-	{
-		SetFormationPreset(Units[EntityIndex], FormationAsset);
-	}
-}
-
-void URTSFormationSubsystem::SetFormationPreset(const FMassEntityHandle& UnitHandle, UFormationPresets* FormationAsset)
-{
-	if (!ensure(FormationAsset && UnitHandle.IsValid())) { return; }
-
-	UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
-	auto& EntityManager = EntitySubsystem->GetMutableEntityManager();
-
-	auto& UnitFragment = EntityManager.GetFragmentDataChecked<FUnitFragment>(UnitHandle);
-	
-	UnitFragment.FormationLength = FormationAsset->FormationLength;
-	UnitFragment.BufferDistance = FormationAsset->BufferDistance;
-	UnitFragment.Formation = FormationAsset->Formation;
-	UnitFragment.Rings = FormationAsset->Rings;
-	UnitFragment.bHollow = FormationAsset->bHollow;
-
-	SetUnitPosition(UnitFragment.UnitPosition, UnitHandle);
-}
-
-void URTSFormationSubsystem::Tick(float DeltaTime)
-{
-	UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
-	auto& EntityManager = EntitySubsystem->GetMutableEntityManager();
-	
-	for(int i=0;i<Units.Num();++i)
-	{
-		auto& UnitFragment = EntityManager.GetFragmentDataChecked<FUnitFragment>(Units[i]);
-		if (UnitFragment.Formation != EFormationType::Circle)
-		{
-			UnitFragment.InterpRotation = UKismetMathLibrary::RInterpTo(UnitFragment.InterpRotation, UnitFragment.Rotation, DeltaTime, 0.5f);
-		}
-		
-		UnitFragment.InterpolatedDestination = FMath::VInterpConstantTo(UnitFragment.InterpolatedDestination, UnitFragment.UnitPosition, DeltaTime, 150.f);
-	}
-}
-
-bool URTSFormationSubsystem::IsTickable() const
-{
-	return true;
-}
-
-TStatId URTSFormationSubsystem::GetStatId() const
-{
-	RETURN_QUICK_DECLARE_CYCLE_STAT(URTSFormationSubsystem, STATGROUP_Tickables);
-}
-
-void URTSFormationSubsystem::OnWorldBeginPlay(UWorld& InWorld)
-{
-	
 }

@@ -5,10 +5,6 @@
 #include "MassSignalProcessorBase.h"
 #include "RTSFormationProcessors.generated.h"
 
-class URTSFormationSubsystem;
-const FName FormationUpdated = FName(TEXT("FormationUpdated"));
-const FName UpdateIndex = FName(TEXT("UpdateIndex"));
-
 // Observer that runs when a unit is spawned. Its main purpose is to add entities to a unit array
 // in the subsystem and cache the index for future use in URTSFormationUpdate
 UCLASS()
@@ -54,17 +50,6 @@ class RTSFORMATIONS_API URTSAgentMovement : public UMassProcessor
 // Main bulk of formation logic. Calculates position of entities and sends it to the FMassMoveTargetFragment.
 UCLASS()
 class RTSFORMATIONS_API URTSFormationUpdate : public UMassSignalProcessorBase
-{
-	GENERATED_BODY()
-	
-	virtual void InitializeInternal(UObject& Owner, const TSharedRef<FMassEntityManager>& EntityManager) override;
-	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override;
-	virtual void SignalEntities(FMassEntityManager& EntityManager, FMassExecutionContext& Context, FMassSignalNameLookup& EntitySignals) override;
-};
-
-// Signal Processor that updates the agents index in the unit based on values in the FormationSubsystem Unit Array
-UCLASS()
-class RTSFORMATIONS_API URTSUpdateEntityIndex : public UMassSignalProcessorBase
 {
 	GENERATED_BODY()
 	

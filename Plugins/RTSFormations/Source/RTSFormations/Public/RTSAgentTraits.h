@@ -4,9 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "MassEntityTraitBase.h"
-#include "MassEntityTypes.h"
 #include "MassMovementTypes.h"
 #include "RTSAgentSubsystem.h"
+#include "Unit/UnitFragments.h"
 #include "RTSAgentTraits.generated.h"
 
 class URTSFormationSubsystem;
@@ -17,19 +17,24 @@ struct RTSFORMATIONS_API FRTSFormationAgent : public FMassFragment
 {
 	GENERATED_BODY()
 
-	// The index of the entity in the formation
-	int EntityIndex = 0;
+	FRTSFormationAgent() = default;
+	
+	// The offset of the entity within the unit
+	FVector3f Offset;
+};
 
-	// The unit that this entity is a part of
-	FMassEntityHandle UnitHandle = FMassEntityHandle();
+USTRUCT()
+struct FRTSCellLocFragment : public FMassFragment
+{
+	GENERATED_BODY()
 
-	FVector Offset;
-
+	FRTSCellLocFragment() = default;
+	
 	RTSAgentHashGrid2D::FCellLocation CellLoc;
 };
 
 USTRUCT()
-struct RTSFORMATIONS_API FRTSFormationSettings : public FMassSharedFragment
+struct RTSFORMATIONS_API FRTSFormationSettings : public FMassConstSharedFragment
 {
 	GENERATED_BODY()
 	

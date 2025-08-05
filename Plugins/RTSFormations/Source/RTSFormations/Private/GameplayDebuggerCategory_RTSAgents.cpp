@@ -10,6 +10,8 @@
 
 #if WITH_GAMEPLAY_DEBUGGER
 
+#include "MassEntityUtils.h"
+#include "MassExecutionContext.h"
 #include "GameFramework/PlayerController.h"
 #include "Unit/UnitFragments.h"
 
@@ -23,23 +25,40 @@ void FGameplayDebuggerCategory_RTSAgents::CollectData(APlayerController* OwnerPC
 {
 	if (OwnerPC)
 	{
-		//DataPack.ActorName = OwnerPC->GetPawn()->GetName();
-		URTSFormationSubsystem* FormationSubsystem = UWorld::GetSubsystem<URTSFormationSubsystem>(OwnerPC->GetWorld());
-		UMassEntitySubsystem* EntitySubsystem = UWorld::GetSubsystem<UMassEntitySubsystem>(OwnerPC->GetWorld());
-		DataPack.NumUnits = FormationSubsystem->Units.Num();
-		
-		auto& EntityManager = EntitySubsystem->GetMutableEntityManager();
+		auto& EntityManager = UE::Mass::Utils::GetEntityManagerChecked(*OwnerPC->GetWorld());
 
-		auto& UnitFragment = EntityManager.GetFragmentDataChecked<FUnitFragment>(FormationSubsystem->Units[0]);
+		FMassEntityQuery EntityQuery(EntityManager.AsShared());
+		EntityQuery.AddSharedRequirement<FUnitFragment>(EMassFragmentAccess::ReadOnly);
+		EntityQuery.AddRequirement<FMassMoveTargetFragment>(EMassFragmentAccess::ReadOnly);
 
-		DataPack.Positions.Empty();
-		DataPack.Positions.Reserve(UnitFragment.Entities.Num());
-		
-		for(auto& Entity : UnitFragment.Entities)
+		int Units = 0;
+		FUnitHandle UnitHandle;
+		EntityManager.ForEachSharedFragment<FUnitFragment>([&Units, &UnitHandle](FUnitFragment& UnitFragment)
 		{
-			const FVector& Pos = EntitySubsystem->GetEntityManager().GetFragmentDataChecked<FMassMoveTargetFragment>(Entity).Center;
-			DataPack.Positions.Add(Pos);
-		}
+			UnitHandle = UnitFragment.UnitHandle; //@todo we should be able to select which unit we want to visualize
+			Units++;
+		});
+		
+		DataPack.NumUnits = Units;
+
+		TArray<FVector> Positions;
+		FMassExecutionContext Context(EntityManager);
+		EntityQuery.SetChunkFilter([&UnitHandle](const FMassExecutionContext& Context)
+		{
+			auto UnitFragment = Context.GetSharedFragment<FUnitFragment>();
+			return UnitFragment.UnitHandle == UnitHandle;
+		});
+		
+		EntityQuery.ForEachEntityChunk(Context, [&Positions](FMassExecutionContext& Context)
+		{
+			auto MoveTargetFragments = Context.GetFragmentView<FMassMoveTargetFragment>();
+			for (auto Entity : Context.CreateEntityIterator())
+			{
+				Positions.Emplace(MoveTargetFragments[Entity].Center);
+			}
+		});
+
+		DataPack.Positions = Positions;
 	}
 }
 

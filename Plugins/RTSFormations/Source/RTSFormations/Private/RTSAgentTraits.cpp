@@ -3,9 +3,9 @@
 
 #include "RTSAgentTraits.h"
 
+#include "MassCommonFragments.h"
 #include "MassEntitySubsystem.h"
 #include "MassEntityTemplateRegistry.h"
-#include "MassNavigationFragments.h"
 #include "MassObserverRegistry.h"
 #include "Engine/World.h"
 
@@ -17,6 +17,8 @@ void URTSFormationAgentTrait::BuildTemplate(FMassEntityTemplateBuildContext& Bui
 	
 	BuildContext.AddFragment<FRTSFormationAgent>();
 	
-	auto MySharedFragment = EntityManager.GetOrCreateSharedFragment<FRTSFormationSettings>(FormationSettings);
-	BuildContext.AddSharedFragment(MySharedFragment);
+	auto& FormationSettingsSharedStruct = EntityManager.GetOrCreateConstSharedFragment<FRTSFormationSettings>(FormationSettings);
+	BuildContext.AddConstSharedFragment(FormationSettingsSharedStruct);
+
+	BuildContext.AddFragment<FTransformFragment>();
 }
