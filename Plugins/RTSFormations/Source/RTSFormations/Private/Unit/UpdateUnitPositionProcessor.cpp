@@ -19,6 +19,12 @@ void UUnitProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionCo
 {
 	EntityManager.ForEachSharedFragment<FUnitFragment>([&Context](FUnitFragment& UnitFragment)
 	{
+		if (UnitFragment.bSnapToUnitRotation)
+		{
+			UnitFragment.InterpRotation = UnitFragment.UnitRotation;
+			UnitFragment.bSnapToUnitRotation = false;
+		}
+		
 		if (UnitFragment.UnitSettings.Formation != EFormationType::Circle)
 		{
 			UnitFragment.InterpRotation = FRotator3f(FMath::RInterpConstantTo(FRotator(UnitFragment.InterpRotation), FRotator(UnitFragment.UnitRotation), Context.GetDeltaTimeSeconds(), 15.f));

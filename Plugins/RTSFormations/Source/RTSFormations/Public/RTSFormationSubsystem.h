@@ -20,6 +20,7 @@ namespace RTS::Stats
 {
 	inline double UpdateEntityIndexTimeSec = 0.0;
 	inline double UpdateUnitPositionTimeSec = 0.0;
+	inline uint32 IterationsInLoop = 0;
 }
 
 /**

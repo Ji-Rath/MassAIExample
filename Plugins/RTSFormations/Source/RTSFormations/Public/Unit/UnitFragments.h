@@ -55,8 +55,7 @@ struct FUnitFragment : public FMassSharedFragment
 
 	FUnitFragment() = default;
 
-	UPROPERTY()
-	FUnitHandle UnitHandle;
+	FUnitSettings UnitSettings;
 	
 	// Entities in the unit
 	FVector3f UnitDestination = FVector3f::ZeroVector; // Destination of the unit
@@ -67,8 +66,11 @@ struct FUnitFragment : public FMassSharedFragment
 	FRotator3f InterpRotation;
 	
 	FVector2f ForwardDir;
-	
-	FUnitSettings UnitSettings;
+
+	UPROPERTY()
+	FUnitHandle UnitHandle;
+
+	bool bSnapToUnitRotation = false;
 
 	bool operator==(const FUnitFragment& OtherUnitFragment) const
 	{

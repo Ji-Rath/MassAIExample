@@ -47,7 +47,31 @@ void URTSFormationSubsystem::DestroyEntity(UMassAgentComponent* Entity)
 
 void URTSFormationSubsystem::UpdateUnitPosition(const FUnitHandle& UnitHandle)
 {
+
+	// In order for entities to move to the optimal spot, updating the unit position has to do a few calculations
+	// 1. Calculate new positions for every single unit
+	// 2. Prepare for distance calculations by applying rotation offsets
+	// 3. Add to hash grid for efficient queries
+	// 4. Iterate through all entities in the unit and find the nearest point - this is first done by iteratively querying the hash grid, then doing a distance check
+	// 5. Apply offset and remove from grid to avoid multiple entities claiming the same spot
+	// 6. Signal all entities in unit that they can now start moving to their desired spot
+
+	struct FMortonItem
+	{
+		FMortonItem(uint32 Morton, const FVector3f& Pos) : Position(Pos), MortonValue(Morton) {};
+
+		FVector3f Position;
+		uint32 MortonValue;
+		bool bClaimed = false;
+
+		bool operator<(const FMortonItem& Other) const
+		{
+			return MortonValue < Other.MortonValue;
+		}
+	};
+	
 	auto& InEntityManager = UE::Mass::Utils::GetEntityManagerChecked(*GetWorld());
+	TRACE_CPUPROFILER_EVENT_SCOPE(UpdateUnitPosition)
 	
 	InEntityManager.ForEachSharedFragmentConditional<FUnitFragment>([&UnitHandle](const FUnitFragment& InUnitFragment)
 	{
@@ -55,20 +79,24 @@ void URTSFormationSubsystem::UpdateUnitPosition(const FUnitHandle& UnitHandle)
 	},
 	[&InEntityManager, &UnitHandle](FUnitFragment& UnitFragment)
 	{
-		TArray<FVector3f> NewPositions;
-
+		auto GridItemExtent = FVector(5.f);
+		int CellSize = 50.f;
+		int Offset = 100000;
+		
 		FMassEntityQuery EntityQuery(InEntityManager.AsShared());
 		CreateQueryForUnit(UnitHandle, EntityQuery);
-		EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 		FMassExecutionContext ExecutionContext(InEntityManager);
-
-		TArray<FVector3f> RotatedNewPositions;
+		
 		TArray<FMassEntityHandle> Entities;
+		TArray<FVector3f> NewPositions;
+		TArray<FMortonItem> MortonArray;
+		
+		auto& TargetRotation = UnitFragment.bSnapToUnitRotation ? UnitFragment.UnitRotation.Yaw : UnitFragment.InterpRotation.Yaw;
 		
 		{
 			RTS::Stats::UpdateUnitPositionTimeSec = 0.0;
+			TRACE_CPUPROFILER_EVENT_SCOPE(GenerateUnitPositions)
 			FScopedDurationTimer DurationTimer(RTS::Stats::UpdateUnitPositionTimeSec);
-			TRACE_CPUPROFILER_EVENT_SCOPE(TEXT("UpdateUnitPosition"))
 			// Since get num matching entities does not return the correct value, we simply iterate through valid chunks to get # of entities in unit
 			
 			EntityQuery.ForEachEntityChunk(ExecutionContext, [&Entities](FMassExecutionContext& Context)
@@ -79,55 +107,88 @@ void URTSFormationSubsystem::UpdateUnitPosition(const FUnitHandle& UnitHandle)
 			// Calculate new positions for entities and output to NewPositions
 			CalculateNewPositions(UnitFragment, Entities.Num(), NewPositions);
 
-			// We need to rotate the positions to ensure we get accurate positions
-			RotatedNewPositions = NewPositions;
-			for (FVector3f& RotatedNewPosition : RotatedNewPositions)
+			// Perform rotation so distance queries are correct - we will undo this after
+			auto RotationAxis = FVector3f(0.f,0.f,1.f);
+			for (FVector3f& Position : NewPositions)
 			{
-				RotatedNewPosition = RotatedNewPosition.RotateAngleAxis(UnitFragment.InterpRotation.Yaw, FVector3f(0.f,0.f,1.f));
-				RotatedNewPosition += UnitFragment.InterpDestination;
+				Position = Position.RotateAngleAxis(TargetRotation, RotationAxis);
 			}
+
+			//@todo testing morton
+			MortonArray.Reserve(NewPositions.Num());
+			
+			for (const FVector3f& NewPosition : NewPositions)
+			{
+				FIntPoint Point(NewPosition.X / CellSize + Offset, NewPosition.Y / CellSize + Offset);
+				uint32 Morton = FMath::MortonCode2(Point.X) | (FMath::MortonCode2(Point.Y) << 1);
+				MortonArray.Add(FMortonItem(Morton, NewPosition));
+			}
+
+			MortonArray.Sort();
 		}
 
 		{
 			// Apply new offsets to entities in unit
 			RTS::Stats::UpdateEntityIndexTimeSec = 0.0;
 			FScopedDurationTimer DurationTimer(RTS::Stats::UpdateEntityIndexTimeSec);
-			EntityQuery.ForEachEntityChunk(ExecutionContext, [&NewPositions, &RotatedNewPositions](FMassExecutionContext& Context)
+			TRACE_CPUPROFILER_EVENT_SCOPE(UpdateEntityIndex)
+
+			FVector Extent = FVector(50.f);
+			EntityQuery.ForEachEntityChunk(ExecutionContext, [&MortonArray, &UnitFragment, &GridItemExtent, &TargetRotation, &Extent, &CellSize, &Offset](FMassExecutionContext& Context)
 			{
 				auto FormationAgents = Context.GetMutableFragmentView<FRTSFormationAgent>();
-				auto TransformFragments = Context.GetFragmentView<FTransformFragment>();
 			
 				for (int32 EntityIndex = 0; EntityIndex < Context.GetNumEntities(); ++EntityIndex)
 				{
 					FRTSFormationAgent& FormationAgent = FormationAgents[EntityIndex];
-					auto& Transform = TransformFragments[EntityIndex].GetTransform();
 			
-					int ClosestIndex = 0;
+					int ClosestIndex = INDEX_NONE;
 					float DistSq = FLT_MAX;
 
-					// Calculate distances
-					auto Location = FVector3f(Transform.GetLocation());
-					for (int i=0;i<NewPositions.Num();i++)
-					{
-						float Dist = FVector3f::DistSquared2D(RotatedNewPositions[i], Location);
+					// Apply rotation offset to agent offset for accurate distance check
+					auto RotatedAgentOffset = FormationAgent.Offset.RotateAngleAxis(UnitFragment.InterpRotation.Yaw, FVector3f(0.f,0.f,1.f));
 
-						if (Dist < DistSq)
+					FIntPoint Point(RotatedAgentOffset.X / CellSize + Offset, RotatedAgentOffset.Y / CellSize + Offset);
+					uint32 Morton = FMath::MortonCode2(Point.X) | (FMath::MortonCode2(Point.Y) << 1);
+					int32 ClosestIdx = Algo::LowerBoundBy(MortonArray, Morton, [](const FMortonItem& E) { return E.MortonValue; });
+					ClosestIdx = FMath::Clamp(ClosestIdx, 0, MortonArray.Num() - 1);
+
+					int Left = INDEX_NONE;
+					int Right = INDEX_NONE;
+
+					// Right side
+					for (int i=ClosestIdx;i<MortonArray.Num();i++)
+					{
+						if (!MortonArray[i].bClaimed)
 						{
-							ClosestIndex = i;
-							DistSq = Dist;
+							Right = i;
+							break;
 						}
 					}
-			
-					FormationAgent.Offset = NewPositions[ClosestIndex];
-				
-					NewPositions.RemoveAtSwap(ClosestIndex, EAllowShrinking::No);
-					RotatedNewPositions.RemoveAtSwap(ClosestIndex, EAllowShrinking::No);
+
+					// Left side
+					for (int i=ClosestIdx;i>=0;i--)
+					{
+						if (!MortonArray[i].bClaimed)
+						{
+							Left = i;
+							break;
+						}
+					}
+
+					float LeftDist = MortonArray.IsValidIndex(Left) ? FVector3f::DistSquared2D(MortonArray[Left].Position, RotatedAgentOffset) : FLT_MAX;
+					float RightDist = MortonArray.IsValidIndex(Right) ? FVector3f::DistSquared2D(MortonArray[Right].Position, RotatedAgentOffset) : FLT_MAX;
+					ClosestIndex = LeftDist < RightDist ? Left : Right;
+					MortonArray[ClosestIndex].bClaimed = true;
+
+					// Undo rotation and apply offset
+					FormationAgent.Offset = MortonArray[ClosestIndex].Position.RotateAngleAxis(TargetRotation, FVector3f(0.f,0.f,-1.f));
 				}
 			});
-
-			auto SignalSubsystem = UWorld::GetSubsystem<UMassSignalSubsystem>(InEntityManager.GetWorld());
-			SignalSubsystem->SignalEntities(RTS::Unit::Signals::FormationUpdated, Entities);
 		}
+		
+		auto SignalSubsystem = UWorld::GetSubsystem<UMassSignalSubsystem>(InEntityManager.GetWorld());
+		SignalSubsystem->SignalEntities(RTS::Unit::Signals::FormationUpdated, Entities);
 	});
 }
 
@@ -152,8 +213,7 @@ void URTSFormationSubsystem::SetUnitPosition(const FVector& NewPosition, const F
 		auto UnitInterpQuat = UnitFragment.InterpRotation.Quaternion();
 		auto UnitQuat = UnitFragment.UnitRotation.Quaternion();
 		
-		bool bBlendAngle = FMath::RadiansToDegrees(UnitInterpQuat.AngularDistance(UnitQuat)) < 45;
-		UnitFragment.InterpRotation = bBlendAngle ? UnitFragment.InterpRotation : UnitFragment.UnitRotation;
+		UnitFragment.bSnapToUnitRotation = FMath::RadiansToDegrees(UnitInterpQuat.AngularDistance(UnitQuat)) > 45;
 		
 		{
 			// Stop entity movement in unit
@@ -175,7 +235,7 @@ void URTSFormationSubsystem::SetUnitPosition(const FVector& NewPosition, const F
 		
 		UnitFragment.UnitDestination = NewPosition3f;
 
-		if (!bBlendAngle)
+		if (UnitFragment.bSnapToUnitRotation)
 		{
 			FMassEntityQuery EntityQuery(EntityManager.AsShared());
 			CreateQueryForUnit(UnitHandle, EntityQuery);
