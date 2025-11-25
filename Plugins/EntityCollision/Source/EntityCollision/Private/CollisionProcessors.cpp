@@ -17,7 +17,7 @@ UCollisionInitializerProcessor::UCollisionInitializerProcessor() :
 	EntityQuery(*this)
 {
 	ObservedType = FCollisionFragment::StaticStruct();
-	Operation = EMassObservedOperation::Add;
+	ObservedOperations = EMassObservedOperationFlags::Add;
 }
 
 void UCollisionInitializerProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
@@ -53,7 +53,7 @@ UCollisionDestroyProcessor::UCollisionDestroyProcessor() :
 	EntityQuery(*this)
 {
 	ObservedType = FCollisionFragment::StaticStruct();
-	Operation = EMassObservedOperation::Remove;
+	ObservedOperations = EMassObservedOperationFlags::Remove;
 }
 
 void UCollisionDestroyProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)

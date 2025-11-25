@@ -11,7 +11,7 @@ UMontageDestructorProcessor::UMontageDestructorProcessor()
 	: EntityQuery(*this)
 {
 	ObservedType = FMassMontageFragment::StaticStruct();
-	Operation = EMassObservedOperation::Remove;
+	ObservedOperations = EMassObservedOperationFlags::Remove;
 }
 
 void UMontageDestructorProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)

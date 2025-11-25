@@ -28,6 +28,15 @@ struct VERTEXANIMCHARACTER_API FVertexAnimInfoFragment : public FMassFragment
 	int AnimPosition = 0;
 };
 
+template<>
+struct TMassFragmentTraits<FVertexAnimInfoFragment> final
+{
+	enum
+	{
+		AuthorAcceptsItsNotTriviallyCopyable = true
+	};
+};
+
 // Animation data for playing montages
 USTRUCT()
 struct FMassMontageFragment : public FMassFragment
@@ -42,6 +51,15 @@ struct FMassMontageFragment : public FMassFragment
 	FMassMontageFragment() = default;
 
 	FMassMontageFragment(const TSoftObjectPtr<UAnimMontage>& InMontage): Montage(InMontage) {};
+};
+
+template<>
+struct TMassFragmentTraits<FMassMontageFragment> final
+{
+	enum
+	{
+		AuthorAcceptsItsNotTriviallyCopyable = true
+	};
 };
 
 /**

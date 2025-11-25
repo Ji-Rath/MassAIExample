@@ -11,7 +11,7 @@ UPersistentDataInitializerProcessor::UPersistentDataInitializerProcessor() :
 	EntityQuery(*this)
 {
 	ObservedType = FPersistentDataTag::StaticStruct();
-	Operation = EMassObservedOperation::Add;
+	ObservedOperations = EMassObservedOperationFlags::Add;
 }
 
 void UPersistentDataInitializerProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
@@ -37,7 +37,7 @@ UPersistentDataDestructorProcessor::UPersistentDataDestructorProcessor() :
 	EntityQuery(*this)
 {
 	ObservedType = FPersistentDataTag::StaticStruct();
-	Operation = EMassObservedOperation::Remove;
+	ObservedOperations = EMassObservedOperationFlags::Remove;
 }
 
 void UPersistentDataDestructorProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)

@@ -53,7 +53,7 @@ URTSInitializeHashPosition::URTSInitializeHashPosition()
 	: EntityQuery(*this)
 {
 	ObservedType = FRTSFormationAgent::StaticStruct();
-	Operation = EMassObservedOperation::Add;
+	ObservedOperations = EMassObservedOperationFlags::Add;
 }
 
 void URTSInitializeHashPosition::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
@@ -98,7 +98,7 @@ URTSRemoveHashPosition::URTSRemoveHashPosition()
 	: EntityQuery(*this)
 {
 	ObservedType = FRTSFormationAgent::StaticStruct();
-	Operation = EMassObservedOperation::Remove;
+	ObservedOperations = EMassObservedOperationFlags::Remove;
 }
 
 void URTSRemoveHashPosition::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)

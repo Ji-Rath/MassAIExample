@@ -45,7 +45,13 @@ EStateTreeRunStatus FMassFindResource::EnterState(FStateTreeExecutionContext& Co
 	if (!NeedTag.IsValid()) { return EStateTreeRunStatus::Failed; } // We dont need an item
 	
 	FGameplayTagQuery Query = FGameplayTagQuery::MakeQuery_MatchTag(NeedTag);
-	InstanceData.RequestID = MassSmartObjectHandler.FindCandidatesAsync(MassContext.GetEntity(), FGameplayTagContainer(), Query, TransformFragment.GetTransform().GetLocation());
+	
+	UE::Mass::SmartObject::FFindCandidatesParameters Parameters;
+	Parameters.UserTags = FGameplayTagContainer();
+	Parameters.ActivityRequirements = Query;
+	Parameters.Location = TransformFragment.GetTransform().GetLocation();
+	
+	InstanceData.RequestID = MassSmartObjectHandler.FindCandidatesAsync(MassContext.GetEntity(), MoveTemp(Parameters));
 	return EStateTreeRunStatus::Running;
 }
 

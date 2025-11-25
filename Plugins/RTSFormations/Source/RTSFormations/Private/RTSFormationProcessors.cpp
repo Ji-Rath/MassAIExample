@@ -20,7 +20,7 @@ URTSFormationInitializer::URTSFormationInitializer()
 	: EntityQuery(*this)
 {
 	ObservedType = FRTSFormationAgent::StaticStruct();
-	Operation = EMassObservedOperation::Add;
+	ObservedOperations = EMassObservedOperationFlags::Add;
 }
 
 void URTSFormationInitializer::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
@@ -56,7 +56,7 @@ URTSFormationDestroyer::URTSFormationDestroyer()
 	: EntityQuery(*this)
 {
 	ObservedType = FRTSFormationAgent::StaticStruct();
-	Operation = EMassObservedOperation::Remove;
+	ObservedOperations = EMassObservedOperationFlags::Remove;
 }
 
 void URTSFormationDestroyer::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)

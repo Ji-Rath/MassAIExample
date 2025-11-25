@@ -21,4 +21,13 @@ public:
 	TArray<int32> NearbyNodes;
 };
 
+template<>
+struct TMassFragmentTraits<FGridFragment> final
+{
+	enum
+	{
+		AuthorAcceptsItsNotTriviallyCopyable = true
+	};
+};
+
 

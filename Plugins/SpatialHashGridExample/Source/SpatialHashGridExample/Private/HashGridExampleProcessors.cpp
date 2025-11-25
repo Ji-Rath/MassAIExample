@@ -15,7 +15,7 @@ UHashGridInitializeProcessor::UHashGridInitializeProcessor() :
 	EntityQuery(*this)
 {
 	ObservedType = FHashGridFragment::StaticStruct();
-	Operation = EMassObservedOperation::Add;
+	ObservedOperations = EMassObservedOperationFlags::Add;
 }
 
 void UHashGridInitializeProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
@@ -51,7 +51,7 @@ UHashGridDestroyProcessor::UHashGridDestroyProcessor() :
 	EntityQuery(*this)
 {
 	ObservedType = FHashGridFragment::StaticStruct();
-	Operation = EMassObservedOperation::Remove;
+	ObservedOperations = EMassObservedOperationFlags::Remove;
 }
 
 void UHashGridDestroyProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)

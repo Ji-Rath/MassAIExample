@@ -17,3 +17,12 @@ struct WORLDRESOURCES_API FResourceUserFragment : public FMassFragment
 	UPROPERTY(VisibleAnywhere)
 	FGameplayTagContainer Tags;
 };
+
+template<>
+struct TMassFragmentTraits<FResourceUserFragment> final
+{
+	enum
+	{
+		AuthorAcceptsItsNotTriviallyCopyable = true
+	};
+};
