@@ -44,6 +44,8 @@ void UBulletHellSubsystem::SpawnBullet(UMassEntityConfigAsset* BulletConfig, con
 
 void UBulletHellSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
+	Super::OnWorldBeginPlay(InWorld);
+	
 	if (InWorld.GetFirstPlayerController())
 	{
 		CachedPlayerPawn = InWorld.GetFirstPlayerController()->GetPawn();
