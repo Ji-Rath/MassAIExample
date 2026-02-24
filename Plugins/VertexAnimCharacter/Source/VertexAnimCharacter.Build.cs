@@ -25,7 +25,17 @@ public class VertexAnimCharacter : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core", "MassAIBehavior", "MassEntity", "MassRepresentation", "AnimToTexture", "MassLOD", "MassMovement", "MassActors", "MassSignals", "StateTreeModule"
+				"Core", 
+				"MassAIBehavior",
+				"MassEntity",
+				"MassRepresentation",
+				"AnimToTexture",
+				"MassLOD",
+				"MassMovement",
+				"MassActors",
+				"MassSignals",
+				"StateTreeModule",
+				"MassSpawner"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

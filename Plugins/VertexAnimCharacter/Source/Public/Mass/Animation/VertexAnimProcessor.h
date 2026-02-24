@@ -3,64 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AnimToTextureDataAsset.h"
 #include "MassProcessor.h"
 #include "MassRepresentationTypes.h"
+#include "VertexAnimTrait.h"
 #include "VertexAnimProcessor.generated.h"
 
 struct FMassActorFragment;
 struct FMassVelocityFragment;
-
-// Holds simple animation data (borrowed from CitySample)
-USTRUCT()
-struct VERTEXANIMCHARACTER_API FVertexAnimInfoFragment : public FMassFragment
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere)
-	TSoftObjectPtr<UAnimToTextureDataAsset> AnimToTextureData;
-	
-	float GlobalStartTime = 0.0f;
-	float PlayRate = 1.0f;
-	int32 AnimationStateIndex = 0;
-	bool bSwappedThisFrame = false;
-	bool bCustomAnimation = false;
-	int AnimPosition = 0;
-};
-
-template<>
-struct TMassFragmentTraits<FVertexAnimInfoFragment> final
-{
-	enum
-	{
-		AuthorAcceptsItsNotTriviallyCopyable = true
-	};
-};
-
-// Animation data for playing montages
-USTRUCT()
-struct FMassMontageFragment : public FMassFragment
-{
-	GENERATED_BODY()
-
-	UPROPERTY()
-	TSoftObjectPtr<UAnimMontage> Montage;
-	
-	float Position = 0.f;
-
-	FMassMontageFragment() = default;
-
-	FMassMontageFragment(const TSoftObjectPtr<UAnimMontage>& InMontage): Montage(InMontage) {};
-};
-
-template<>
-struct TMassFragmentTraits<FMassMontageFragment> final
-{
-	enum
-	{
-		AuthorAcceptsItsNotTriviallyCopyable = true
-	};
-};
 
 /**
  * Vertex Animation processor for handling vertex animation changes. Simply updates meshes data based on FVertexAnimInfoFragment
@@ -77,7 +26,7 @@ public:
 	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
 	
 	static void UpdateISMVertexAnimation(FMassInstancedStaticMeshInfo& ISMInfo, FVertexAnimInfoFragment& AnimationData,
-	                              float LODSignificance, float PrevLODSignificance, int32 NumFloatsToPad);
+	                                     const FVertexAnimSharedFragment& VertexAnimData, float LODSignificance, float PrevLODSignificance, int32 NumFloatsToPad);
 	
 	static void UpdateAnimInstance(const FMassVelocityFragment& VelocityFragment, const FMassActorFragment& ActorFragment);
 

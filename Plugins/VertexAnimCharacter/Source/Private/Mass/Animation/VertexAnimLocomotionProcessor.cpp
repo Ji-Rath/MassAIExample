@@ -6,6 +6,7 @@
 #include "MassExecutionContext.h"
 #include "MassMovementFragments.h"
 #include "Mass/Animation/VertexAnimProcessor.h"
+#include "Mass/Animation/VertexAnimTrait.h"
 
 UVertexAnimLocomotionProcessor::UVertexAnimLocomotionProcessor()
 	: EntityQuery(*this)

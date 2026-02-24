@@ -11,6 +11,7 @@
 #include "MassRepresentationSubsystem.h"
 #include "MassSimulationLOD.h"
 #include "VertexAnimInstance.h"
+#include "Mass/Animation/VertexAnimTrait.h"
 
 UVertexAnimProcessor::UVertexAnimProcessor() :
 	EntityQuery(*this),
@@ -28,6 +29,7 @@ void UVertexAnimProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>
 	EntityQuery.AddRequirement<FMassRepresentationLODFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FVertexAnimInfoFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddSharedRequirement<FMassRepresentationSubsystemSharedFragment>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.AddConstSharedRequirement<FVertexAnimSharedFragment>();
 	
 	EntityQuery.AddChunkRequirement<FMassVisualizationChunkFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.SetChunkFilter(FMassVisualizationChunkFragment::AreAnyEntitiesVisibleInChunk);
@@ -55,6 +57,8 @@ void UVertexAnimProcessor::Execute(FMassEntityManager& EntityManager, FMassExecu
 		const TConstArrayView<FMassRepresentationLODFragment> RepresentationLODFragmentList = Context.GetFragmentView<FMassRepresentationLODFragment>();
 		const TArrayView<FVertexAnimInfoFragment> VertexAnimationInfoFragmentList = Context.GetMutableFragmentView<FVertexAnimInfoFragment>();
 		
+		const FVertexAnimSharedFragment& VertexAnimSharedFragment = Context.GetConstSharedFragment<FVertexAnimSharedFragment>();
+		
 		const int32 NumEntities = Context.GetNumEntities();
 		for (int EntityIdx = 0; EntityIdx < NumEntities; EntityIdx++)
 		{
@@ -75,7 +79,7 @@ void UVertexAnimProcessor::Execute(FMassEntityManager& EntityManager, FMassExecu
 					// Need to conserve current frame on a playrate switch so (GlobalTime - Offset1) * Playrate1 == (GlobalTime - Offset2) * Playrate2
 					VertexAnimInfoFragment.GlobalStartTime = GlobalTime - PrevPlayRate * (GlobalTime - VertexAnimInfoFragment.GlobalStartTime) / VertexAnimInfoFragment.PlayRate;
 				
-					UpdateISMVertexAnimation(ISMInfo, VertexAnimInfoFragment, RepresentationLODFragment.LOD, RepresentationLODFragment.PrevLOD, 0);
+					UpdateISMVertexAnimation(ISMInfo, VertexAnimInfoFragment, VertexAnimSharedFragment, RepresentationLODFragment.LOD, RepresentationLODFragment.PrevLOD, 0);
 				}
 			}
 		}
@@ -166,10 +170,11 @@ void UVertexAnimProcessor::Execute(FMassEntityManager& EntityManager, FMassExecu
 	});
 }
 
-void UVertexAnimProcessor::UpdateISMVertexAnimation(FMassInstancedStaticMeshInfo& ISMInfo, FVertexAnimInfoFragment& AnimationData, const float LODSignificance, const float PrevLODSignificance, const int32 NumFloatsToPad /*= 0*/)
+void UVertexAnimProcessor::UpdateISMVertexAnimation(FMassInstancedStaticMeshInfo& ISMInfo, FVertexAnimInfoFragment& AnimationData, const FVertexAnimSharedFragment&
+                                                    VertexAnimData, const float LODSignificance, const float PrevLODSignificance, const int32 NumFloatsToPad /*= 0*/)
 {
 	FAnimToTextureAutoPlayData PlayData;
-	if (UAnimToTextureInstancePlaybackLibrary::GetAutoPlayDataFromDataAsset(AnimationData.AnimToTextureData.LoadSynchronous(), AnimationData.AnimationStateIndex, PlayData))
+	if (UAnimToTextureInstancePlaybackLibrary::GetAutoPlayDataFromDataAsset(VertexAnimData.AnimToTextureData, AnimationData.AnimationStateIndex, PlayData))
 	{
 		if (PrevLODSignificance >= 4.f) { return; }
 		ISMInfo.AddBatchedCustomData<FAnimToTextureAutoPlayData>(PlayData, LODSignificance, PrevLODSignificance, NumFloatsToPad);
