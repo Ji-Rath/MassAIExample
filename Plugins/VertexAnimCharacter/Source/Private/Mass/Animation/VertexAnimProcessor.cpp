@@ -66,7 +66,7 @@ void UVertexAnimProcessor::Execute(FMassEntityManager& EntityManager, FMassExecu
 			const FMassRepresentationLODFragment& RepresentationLODFragment = RepresentationLODFragmentList[EntityIdx];
 			FVertexAnimInfoFragment& VertexAnimInfoFragment = VertexAnimationInfoFragmentList[EntityIdx];
 			
-			if (RepresentationLODFragment.LOD == EMassLOD::High || RepresentationLODFragment.PrevLOD == EMassLOD::High  && RepresentationFragment.CurrentRepresentation == EMassRepresentationType::StaticMeshInstance)
+			if (RepresentationFragment.CurrentRepresentation == EMassRepresentationType::StaticMeshInstance)
 			{
 				if (RepresentationFragment.StaticMeshDescHandle.IsValid())
 				{
@@ -174,9 +174,8 @@ void UVertexAnimProcessor::UpdateISMVertexAnimation(FMassInstancedStaticMeshInfo
                                                     VertexAnimData, const float LODSignificance, const float PrevLODSignificance, const int32 NumFloatsToPad /*= 0*/)
 {
 	FAnimToTextureAutoPlayData PlayData;
-	if (UAnimToTextureInstancePlaybackLibrary::GetAutoPlayDataFromDataAsset(VertexAnimData.AnimToTextureData, AnimationData.AnimationStateIndex, PlayData))
+	if (ensure(UAnimToTextureInstancePlaybackLibrary::GetAutoPlayDataFromDataAsset(VertexAnimData.AnimToTextureData, AnimationData.AnimationStateIndex, PlayData)))
 	{
-		if (PrevLODSignificance >= 4.f) { return; }
 		ISMInfo.AddBatchedCustomData<FAnimToTextureAutoPlayData>(PlayData, LODSignificance, PrevLODSignificance, NumFloatsToPad);
 	}
 }

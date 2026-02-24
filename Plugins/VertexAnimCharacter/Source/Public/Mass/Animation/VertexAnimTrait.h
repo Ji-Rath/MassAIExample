@@ -11,8 +11,13 @@
 class UAnimToTextureDataAsset;
 
 // Holds simple animation data
+USTRUCT()
 struct VERTEXANIMCHARACTER_API FVertexAnimInfoFragment : public FMassFragment
 {
+	GENERATED_BODY()
+	
+	FVertexAnimInfoFragment() = default;
+	
 	float GlobalStartTime = 0.0f;
 	float PlayRate = 1.0f;
 	int8 AnimationStateIndex = 0;

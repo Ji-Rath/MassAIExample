@@ -67,16 +67,19 @@ EStateTreeRunStatus FMassFindResource::Tick(FStateTreeExecutionContext& Context,
 		MassContext.GetMassEntityExecutionContext(),
 		SmartObjectSubsystem,
 		SignalSubsystem);
-
-	if (auto CandidateSlots = MassSmartObjectHandler.GetRequestCandidates(InstanceData.RequestID))
+	
+	if (InstanceData.RequestID.IsSet())
 	{
-		InstanceData.FoundSlots = *CandidateSlots;
-		InstanceData.bFoundSmartObject = InstanceData.FoundSlots.NumSlots > 0;
+		if (auto CandidateSlots = MassSmartObjectHandler.GetRequestCandidates(InstanceData.RequestID))
+		{
+			InstanceData.FoundSlots = *CandidateSlots;
+			InstanceData.bFoundSmartObject = InstanceData.FoundSlots.NumSlots > 0;
 
-		MassSmartObjectHandler.RemoveRequest(InstanceData.RequestID);
-		InstanceData.RequestID.Reset();
+			MassSmartObjectHandler.RemoveRequest(InstanceData.RequestID);
+			InstanceData.RequestID.Reset();
 		
-		SignalSubsystem.SignalEntity(UE::Mass::Signals::LookAtFinished, MassContext.GetEntity());
+			SignalSubsystem.SignalEntity(UE::Mass::Signals::LookAtFinished, MassContext.GetEntity());
+		}
 	}
 	return EStateTreeRunStatus::Running;
 }
