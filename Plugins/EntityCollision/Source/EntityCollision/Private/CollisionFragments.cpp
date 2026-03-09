@@ -5,7 +5,18 @@
 
 #include "MassEntityTemplateRegistry.h"
 
-void UCollisionTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const
+void UAvoidanceTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const
 {
+	BuildContext.AddTag<FEntityAvoidanceTag>();
+	
+	FMassEntityManager& EntityManager = UE::Mass::Utils::GetEntityManagerChecked(World);
+
+	const FConstSharedStruct& AvoidanceSharedFragment = EntityManager.GetOrCreateConstSharedFragment(AvoidanceSettings);
+	BuildContext.AddConstSharedFragment(AvoidanceSharedFragment);
+}
+
+void UObstacleTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const
+{
+	BuildContext.AddTag<FObstacleTag>();
 	BuildContext.AddFragment<FCollisionFragment>();
 }

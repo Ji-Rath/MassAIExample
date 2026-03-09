@@ -115,7 +115,7 @@ void UBulletCollisionProcessor::Execute(FMassEntityManager& EntityManager, FMass
 			auto Location = TransformFragment.GetTransform().GetLocation();
 			
 			TArray<FMassEntityHandle> Entities;
-			BulletHellSubsystem->GetHashGrid().Query(FBox::BuildAABB(Location, FVector(50.f)), Entities);
+			BulletHellSubsystem->GetHashGrid().QuerySmall(FBox::BuildAABB(Location, FVector(50.f)), Entities);
 
 			Entities = Entities.FilterByPredicate([&Location, &EntityManager](const FMassEntityHandle& Entity)
 			{

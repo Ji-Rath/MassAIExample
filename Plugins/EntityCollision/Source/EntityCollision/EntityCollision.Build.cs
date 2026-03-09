@@ -37,7 +37,7 @@ public class EntityCollision : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"Slate",
-				"SlateCore", "MassCommon", "MassSpawner", "MassMovement", "MassLOD"
+				"SlateCore", "MassCommon", "MassSpawner", "MassMovement", "MassLOD", "MassNavigation"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

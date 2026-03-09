@@ -216,6 +216,14 @@ I definitely might change my mind when I attempt to sync actor/ISM animation
 be doing some stuff in ActivateActionAnimate() at MassZoneGraphNavigationUtils too.
   (DONE)
 
+### Third-Party Code
+The EntityCollision plugin contains code adapted from the **RVO2 Library**, developed by the University of North Carolina at Chapel Hill.
+
+*   **RVO2 Library**: [https://gamma.cs.unc.edu](https://gamma.cs.unc.edu)
+*   **Original License**: [Apache License, Version 2.0](http://www.apache.org)
+*   **Adaptations**: Specific functions regarding LinearProgram1, LinearProgram2, and generating ORCA lines have been modified to integrate with the Unreal Engine 5 Mass Entity framework.
+
+
 [contributors-shield]: https://img.shields.io/github/contributors/Ji-Rath/MassAIExample.svg?style=for-the-badge
 [contributors-url]: https://github.com/Ji-Rath/MassAIExample/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/Ji-Rath/MassAIExample.svg?style=for-the-badge

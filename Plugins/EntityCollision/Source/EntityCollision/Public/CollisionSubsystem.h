@@ -12,7 +12,7 @@
 
 
 class UMassEntityConfigAsset;
-typedef THierarchicalHashGrid2D<2, 4, FMassEntityHandle> FHashGridExample;	// 2 levels of hierarchy, 4 ratio between levels
+typedef THierarchicalHashGrid2D<1, 1, FMassEntityHandle> FHashGridExample;	// 2 levels of hierarchy, 4 ratio between levels
 
 /**
  * 
@@ -23,7 +23,7 @@ class ENTITYCOLLISION_API UCollisionSubsystem : public UMassSubsystemBase
 	GENERATED_BODY()
 
 public:
-	FHashGridExample HashGridData = FHashGridExample(100);
+	FHashGridExample HashGridData = FHashGridExample(200);
 
 	UFUNCTION(BlueprintCallable)
 	void SpawnEntities(const FVector& Location, int Count, UMassEntityConfigAsset* EntityConfig);
