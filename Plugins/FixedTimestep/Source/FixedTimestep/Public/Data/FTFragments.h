@@ -31,9 +31,27 @@ struct FFTVelocityFragment : public FMassVelocityFragment
 
 // The desired velocity for this entity. Movement processors will write to this fragment
 USTRUCT()
-struct FFTDesiredMovementFragment : public FMassVelocityFragment
+struct FFTDesiredMovementFragment : public FMassDesiredMovementFragment
 {
 	GENERATED_BODY()
+};
+
+USTRUCT()
+struct FFTMoveTargetFragment : public FMassFragment
+{
+	GENERATED_BODY()
+	
+	UPROPERTY()
+	FVector Center;
+};
+
+USTRUCT()
+struct FMovementSettings : public FMassConstSharedFragment
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float MaxSpeed = 100.f;
 };
 
 UCLASS()
@@ -43,4 +61,7 @@ class UFTMovementTrait : public UMassEntityTraitBase
 
 public:
 	virtual void BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const override;
+	
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	FMovementSettings MovementSettings;
 };

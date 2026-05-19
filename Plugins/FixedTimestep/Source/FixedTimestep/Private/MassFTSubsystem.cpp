@@ -20,6 +20,7 @@ void UMassFTSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Super::Initialize(Collection);
 	
 	MassSim = Collection.InitializeDependency<UMassSimulationSubsystem>();
+	MassSim->GetOnProcessingPhaseStarted(EMassProcessingPhase::PrePhysics).AddUObject(this, &UMassFTSubsystem::TickProcessors);
 }
 
 void UMassFTSubsystem::OnWorldBeginPlay(UWorld& InWorld)
@@ -52,12 +53,24 @@ void UMassFTSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	FixedTimestepProcessors->SetProcessors(Processors, EntityManager.AsShared());
 	
 	FixedTimestepProcessors->CallInitialize(EntityManager.GetOwner(), EntityManager.AsShared());
+}
+
+void UMassFTSubsystem::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
 	
-	MassSim->RegisterDynamicProcessor(*FixedTimestepProcessors);
+	//TickProcessors(DeltaTime);
+}
+
+TStatId UMassFTSubsystem::GetStatId() const
+{
+	RETURN_QUICK_DECLARE_CYCLE_STAT(UMassFTSubsystem, STATGROUP_Tickables);
 }
 
 void UMassFTSubsystem::TickProcessors(float DeltaTime)
 {
+	if (!FixedTimestepProcessors) { return; }
+	
 	AccumulatedDeltaTime += DeltaTime;
 	
 	const float FixedStep = 1.0f / 60.0f;
@@ -69,17 +82,17 @@ void UMassFTSubsystem::TickProcessors(float DeltaTime)
 	if (!EntityManager.IsProcessing())
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FixedTimestep)
+		
+		// Flush commands gets executed when going out of scope
+		FMassProcessingContext Context(EntityManager, FixedStep);
+		
 		while (AccumulatedDeltaTime >= FixedStep)
 		{
-			// Flush commands gets executed when going out of scope
-			FMassProcessingContext Context(EntityManager, FixedStep);
-        
 			// Execute the entire group of processors in order
-			auto GraphRef = UE::Mass::Executor::TriggerParallelTasks(*FixedTimestepProcessors, MoveTemp(Context), []()
-			{
-				
-			});
-        
+			FMassExecutionContext ExecutionContext = MoveTemp(Context).GetExecutionContext();
+			FGraphEventRef GraphRef = FixedTimestepProcessors->DispatchProcessorTasks(Context.GetEntityManager(), ExecutionContext);
+			GraphRef->Wait();
+			
 			AccumulatedDeltaTime -= FixedStep;
 		}
 	}

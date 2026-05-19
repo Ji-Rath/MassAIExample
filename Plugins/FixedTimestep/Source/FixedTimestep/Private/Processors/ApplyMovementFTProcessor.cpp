@@ -8,6 +8,7 @@
 
 UApplyMovementFTProcessor::UApplyMovementFTProcessor() : EntityQuery(*this)
 {
+	ExecutionOrder.ExecuteAfter.Add(UE::Mass::ProcessorGroupNames::Avoidance);
 }
 
 void UApplyMovementFTProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)

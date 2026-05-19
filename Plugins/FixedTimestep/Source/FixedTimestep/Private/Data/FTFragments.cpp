@@ -6,7 +6,11 @@ void UFTMovementTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildConte
 {
 	BuildContext.AddFragment<FFTTransformFragment>();
 	BuildContext.AddFragment<FFTDesiredMovementFragment>();
-	FFTVelocityFragment& Velocity = BuildContext.AddFragment_GetRef<FFTVelocityFragment>();
+	BuildContext.AddFragment<FFTVelocityFragment>();
+	BuildContext.AddFragment<FFTMoveTargetFragment>();
 	
-	Velocity.Value = FVector(50.f, 0, 0);
+	FMassEntityManager& EntityManager = UE::Mass::Utils::GetEntityManagerChecked(World);
+	const FConstSharedStruct& MovementSettingsShared = EntityManager.GetOrCreateConstSharedFragment(MovementSettings);
+	
+	BuildContext.AddConstSharedFragment(MovementSettingsShared);
 }

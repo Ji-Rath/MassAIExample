@@ -16,14 +16,4 @@ class FIXEDTIMESTEP_API UMassFTCompositeProcessor : public UMassCompositeProcess
 	
 public:
 	UMassFTCompositeProcessor();
-	
-	virtual FGraphEventRef DispatchProcessorTasks(const TSharedPtr<FMassEntityManager>& EntityManager, FMassExecutionContext& ExecutionContext, const FGraphEventArray& Prerequisites = FGraphEventArray()) override;
-	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
-	
-	virtual void SubstepProcessors(float DeltaTime, const TFunction<void()>& SubstepFunction);
-	
-	FMassExecutionContext GetFixedTimestepContext(const FMassExecutionContext& InExecutionContext);
-	
-	UPROPERTY()
-	float AccumulatedDeltaTime = 0.f;
 };

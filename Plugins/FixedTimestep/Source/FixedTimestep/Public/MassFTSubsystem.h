@@ -14,7 +14,7 @@ class UMassCompositeProcessor;
  * 
  */
 UCLASS()
-class FIXEDTIMESTEP_API UMassFTSubsystem : public UMassSubsystemBase
+class FIXEDTIMESTEP_API UMassFTSubsystem : public UMassTickableSubsystemBase
 {
 	GENERATED_BODY()
 	
@@ -24,6 +24,8 @@ public:
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
+	virtual void Tick(float DeltaTime) override;
+	virtual TStatId GetStatId() const override;
 	void TickProcessors(float DeltaTime);
 
 	UPROPERTY()

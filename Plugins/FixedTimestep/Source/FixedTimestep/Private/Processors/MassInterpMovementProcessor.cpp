@@ -38,8 +38,6 @@ void UMassInterpMovementProcessor::Execute(FMassEntityManager& EntityManager, FM
 			
 			FVector InterpLocation = FMath::Lerp(OldLocation, NewLocation, FTSubsystem.GetInterpolationAlpha());
 			TransformFragment.GetMutableTransform().SetLocation(InterpLocation);
-			
-			UE_LOG(LogFixedTimestep, Verbose, TEXT("OldLoc: %s, NewLoc: %s, Alpha: %f"), *OldLocation.ToCompactString(), *NewLocation.ToCompactString(), FTSubsystem.GetInterpolationAlpha())
 		}
 	});
 }
