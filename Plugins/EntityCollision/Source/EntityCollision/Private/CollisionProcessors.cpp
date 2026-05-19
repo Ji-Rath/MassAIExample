@@ -13,9 +13,10 @@
 #include "MassLODFragments.h"
 #include "MassMovementFragments.h"
 #include "MassNavigationDebug.h"
-#include "MassSimulationLOD.h"
-#include "Algo/RandomShuffle.h"
+#include "Data/FTFragments.h"
 #include "Movement/MassMovementProcessors.h"
+#include "Processors/DesiredMovementProcessor.h"
+#include "ProfilingDebugging/CountersTrace.h"
 
 UCollisionInitializerProcessor::UCollisionInitializerProcessor() :
 	EntityQuery(*this)
@@ -28,8 +29,9 @@ void UCollisionInitializerProcessor::ConfigureQueries(const TSharedRef<FMassEnti
 {
 	EntityQuery.AddSubsystemRequirement<UCollisionSubsystem>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FCollisionFragment>(EMassFragmentAccess::ReadWrite);
-	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
+	EntityQuery.AddRequirement<FFTTransformFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FAgentRadiusFragment>(EMassFragmentAccess::ReadOnly);
+	EntityQuery.AddRequirement<FFTVelocityFragment>(EMassFragmentAccess::ReadOnly, EMassFragmentPresence::Optional);
 	EntityQuery.AddTagRequirement<FObstacleTag>(EMassFragmentPresence::All);
 }
 
@@ -40,19 +42,24 @@ void UCollisionInitializerProcessor::Execute(FMassEntityManager& EntityManager, 
 		UCollisionSubsystem& HashGridSubsystem = Context.GetMutableSubsystemChecked<UCollisionSubsystem>();
 
 		TArrayView<FCollisionFragment> HashGridFragments = Context.GetMutableFragmentView<FCollisionFragment>();
-		TConstArrayView<FTransformFragment> TransformFragments = Context.GetFragmentView<FTransformFragment>();
+		TConstArrayView<FFTTransformFragment> TransformFragments = Context.GetFragmentView<FFTTransformFragment>();
 		TConstArrayView<FAgentRadiusFragment> RadiusFragments = Context.GetFragmentView<FAgentRadiusFragment>();
+		
+		const bool bHasVelocity = Context.DoesArchetypeHaveFragment(*FFTVelocityFragment::StaticStruct());
+		TConstArrayView<FFTVelocityFragment> VelocityFragments = bHasVelocity ? Context.GetFragmentView<FFTVelocityFragment>() : TConstArrayView<FFTVelocityFragment>();
 		
 		const int32 NumEntities = Context.GetNumEntities();
 		for (int EntityIdx = 0; EntityIdx < NumEntities; EntityIdx++)
 		{
 			FCollisionFragment& HashGridFragment = HashGridFragments[EntityIdx];
-			const FTransformFragment& TransformFragment = TransformFragments[EntityIdx];
+			const FFTTransformFragment& TransformFragment = TransformFragments[EntityIdx];
 			const FVector& Location = TransformFragment.GetTransform().GetLocation();
 			float HalfRadius = RadiusFragments[EntityIdx].Radius / 2;
 			
+			const FVector& Velocity = bHasVelocity ? VelocityFragments[EntityIdx].Value : FVector::ZeroVector;
+			
 			FBox Bounds = { Location - HalfRadius, Location + HalfRadius };
-			HashGridFragment.CellLocation = HashGridSubsystem.HashGridData.Add(Context.GetEntity(EntityIdx), Bounds);
+			HashGridFragment.CellLocation = HashGridSubsystem.HashGridData.Add(FCollisionProxyHandle(Context.GetEntity(EntityIdx), Location, Velocity), Bounds);
 		}
 	});
 }
@@ -83,7 +90,7 @@ void UCollisionDestroyProcessor::Execute(FMassEntityManager& EntityManager, FMas
 		{
 			const FCollisionFragment& HashGridFragment = HashGridFragments[EntityIdx];
 
-			HashGridSubsystem.HashGridData.Remove(Context.GetEntity(EntityIdx), HashGridFragment.CellLocation);
+			HashGridSubsystem.HashGridData.Remove(FCollisionProxyHandle(Context.GetEntity(EntityIdx)), HashGridFragment.CellLocation);
 		}
 	});
 }
@@ -94,31 +101,33 @@ UCollisionProcessor::UCollisionProcessor() :
 {
 	ExecutionFlags = int32(EProcessorExecutionFlags::AllNetModes);
 	ExecutionOrder.ExecuteInGroup = (UE::Mass::ProcessorGroupNames::Avoidance);
+	ExecutionOrder.ExecuteAfter.Add(UDesiredMovementProcessor::StaticClass()->GetFName());
+	ExecutionOrder.ExecuteBefore.Add(UMassApplyMovementProcessor::StaticClass()->GetFName());
 }
 
 void UCollisionProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddRequirement<FCollisionFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddSubsystemRequirement<UCollisionSubsystem>(EMassFragmentAccess::ReadWrite);
-	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
+	EntityQuery.AddRequirement<FFTTransformFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FAgentRadiusFragment>(EMassFragmentAccess::ReadOnly);
+	EntityQuery.AddRequirement<FFTVelocityFragment>(EMassFragmentAccess::ReadOnly, EMassFragmentPresence::Optional);
 	EntityQuery.AddTagRequirement<FObstacleTag>(EMassFragmentPresence::All);
 	
-	AvoidanceQuery.AddRequirement<FMassDesiredMovementFragment>(EMassFragmentAccess::ReadWrite);
-	AvoidanceQuery.AddRequirement<FMassForceFragment>(EMassFragmentAccess::ReadWrite);
+	AvoidanceQuery.AddRequirement<FFTVelocityFragment>(EMassFragmentAccess::ReadWrite);
+	AvoidanceQuery.AddRequirement<FFTDesiredMovementFragment>(EMassFragmentAccess::ReadOnly);
 	AvoidanceQuery.AddRequirement<FAgentRadiusFragment>(EMassFragmentAccess::ReadOnly);
-	AvoidanceQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
+	AvoidanceQuery.AddRequirement<FFTTransformFragment>(EMassFragmentAccess::ReadOnly);
 	AvoidanceQuery.AddSubsystemRequirement<UCollisionSubsystem>(EMassFragmentAccess::ReadOnly);
 	AvoidanceQuery.AddConstSharedRequirement<FAvoidanceSettings>();
 	AvoidanceQuery.AddTagRequirement<FEntityAvoidanceTag>(EMassFragmentPresence::All);
-	AvoidanceQuery.AddTagRequirement<FMassOffLODTag>(EMassFragmentPresence::None);
-	AvoidanceQuery.AddTagRequirement<FMassLowLODTag>(EMassFragmentPresence::Optional);
 	
 #if WITH_MASSGAMEPLAY_DEBUG
 	AvoidanceQuery.DebugEnableEntityOwnerLogging();
 #endif
 }
 
+TRACE_DECLARE_INT_COUNTER(Trace_Neighbors, TEXT("EntityCollision/NeighborsPerEntity"));
 void UCollisionProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
 	// Update hash grid position
@@ -128,63 +137,83 @@ void UCollisionProcessor::Execute(FMassEntityManager& EntityManager, FMassExecut
 		UCollisionSubsystem& HashGridSubsystem = Context.GetMutableSubsystemChecked<UCollisionSubsystem>();
 
 		TArrayView<FCollisionFragment> HashGridFragments = Context.GetMutableFragmentView<FCollisionFragment>();
-		TConstArrayView<FTransformFragment> TransformFragments = Context.GetFragmentView<FTransformFragment>();
+		TConstArrayView<FFTTransformFragment> TransformFragments = Context.GetFragmentView<FFTTransformFragment>();
 		TConstArrayView<FAgentRadiusFragment> RadiusFragments = Context.GetFragmentView<FAgentRadiusFragment>();
+		
+		const bool bHasVelocity = Context.DoesArchetypeHaveFragment(*FFTVelocityFragment::StaticStruct());
+		TConstArrayView<FFTVelocityFragment> VelocityFragments = bHasVelocity ? Context.GetFragmentView<FFTVelocityFragment>() : TConstArrayView<FFTVelocityFragment>();
 		
 		const int32 NumEntities = Context.GetNumEntities();
 		for (int EntityIdx = 0; EntityIdx < NumEntities; EntityIdx++)
 		{
 			FCollisionFragment& HashGridFragment = HashGridFragments[EntityIdx];
-			const FTransformFragment& TransformFragment = TransformFragments[EntityIdx];
+			const FFTTransformFragment& TransformFragment = TransformFragments[EntityIdx];
 			const FVector& Location = TransformFragment.GetTransform().GetLocation();
-			const float HalfRadius = RadiusFragments[EntityIdx].Radius / 2;
+			
+			FIntVector2 Diff = HashGridFragment.CachedLocation - FIntVector2(Location.X, Location.Y);
+			float Dist = FMath::Abs(Diff.X) + FMath::Abs(Diff.Y);
+			
+			if (Dist > 5.f)
+			{
+				const FVector& Velocity = bHasVelocity ? VelocityFragments[EntityIdx].Value : FVector::ZeroVector;
+				const float HalfRadius = RadiusFragments[EntityIdx].Radius / 2;
 
-			// Move the entity to the new location
-			FBox Bounds = { Location - HalfRadius, Location + HalfRadius };
-			FHashGridExample::FCellLocation NewCellLocation = HashGridSubsystem.HashGridData.Move(Context.GetEntity(EntityIdx), HashGridFragment.CellLocation, Bounds);
-			HashGridFragment.CellLocation = NewCellLocation;
+				// Move the entity to the new location
+				FBox Bounds = { Location - HalfRadius, Location + HalfRadius };
+				
+				// We can't use Move() in this scenario because the grid only updates when the cell changes. But our entity could move within the cell - causing the cached location to be incorrect
+				HashGridSubsystem.HashGridData.Remove(FCollisionProxyHandle(Context.GetEntity(EntityIdx)), HashGridFragment.CellLocation);
+				HashGridFragment.CellLocation = HashGridSubsystem.HashGridData.Add(FCollisionProxyHandle(Context.GetEntity(EntityIdx), Location, Velocity), Bounds);
+				HashGridFragment.CachedLocation = FIntVector2(Location.X, Location.Y);
+			}
 		}
 	});
+	
+	TRACE_COUNTER_SET(Trace_Neighbors, 0);
 
 	// Use ORCA for nearby entity avoidance
 	// This also includes collision handling
-	AvoidanceQuery.ParallelForEachEntityChunk(Context, [this](FMassExecutionContext& Context)
+	AvoidanceQuery.ParallelForEachEntityChunk(Context, [&](FMassExecutionContext& Context)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(AvoidanceQuery)
-		TArrayView<FMassDesiredMovementFragment> DesiredMovementFragments = Context.GetMutableFragmentView<FMassDesiredMovementFragment>();
-		TArrayView<FMassForceFragment> ForceFragments = Context.GetMutableFragmentView<FMassForceFragment>();
-		
+		TArrayView<FFTVelocityFragment> VelocityFragments = Context.GetMutableFragmentView<FFTVelocityFragment>();
+		TConstArrayView<FFTDesiredMovementFragment> DesiredMovementFragments = Context.GetFragmentView<FFTDesiredMovementFragment>();
 		const FAvoidanceSettings& AvoidanceSettings = Context.GetConstSharedFragment<FAvoidanceSettings>();
 		const UCollisionSubsystem& CollisionSubsystem = Context.GetSubsystemChecked<UCollisionSubsystem>();
 		TConstArrayView<FAgentRadiusFragment> RadiusFragments = Context.GetFragmentView<FAgentRadiusFragment>();
-		TConstArrayView<FTransformFragment> TransformFragments = Context.GetFragmentView<FTransformFragment>();
-		
-		bool bCalculateAvoidance = !Context.DoesArchetypeHaveTag<FMassLowLODTag>() && !Context.DoesArchetypeHaveTag<FMassMediumLODTag>();
+		TConstArrayView<FFTTransformFragment> TransformFragments = Context.GetFragmentView<FFTTransformFragment>();
 		
 		for (FMassExecutionContext::FEntityIterator EntityIt = Context.CreateEntityIterator(); EntityIt; ++EntityIt)
 		{
-			FMassForceFragment& ForceFragment = ForceFragments[EntityIt];
-			FVector& DesiredVelocity = DesiredMovementFragments[EntityIt].DesiredVelocity;
+			FFTVelocityFragment& VelocityFragment = VelocityFragments[EntityIt];
 			const FAgentRadiusFragment& RadiusFragment = RadiusFragments[EntityIt];
-			const FTransformFragment& TransformFragment = TransformFragments[EntityIt];
+			const FFTTransformFragment& TransformFragment = TransformFragments[EntityIt];
+			FVector DesiredVelocity = DesiredMovementFragments[EntityIt].DesiredVelocity;
+			DesiredVelocity.Z = 0.f;
 			
 			const FVector& EntityLocation = TransformFragment.GetTransform().GetLocation();
 			
-			TArray<FMassEntityHandle, TInlineAllocator<MaxObstacleResults>> NearbyObstacles;
+			TArray<FCollisionProxyHandle, TInlineAllocator<MaxObstacleResults>> NearbyObstacles;
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(QueryCloseObstacles)
-				FindCloseObstacles<FHashGridExample, FHashGridExample::FCell, FHashGridExample::FItem, FMassEntityHandle, MaxObstacleResults>(EntityLocation, AvoidanceSettings.ObstacleSearchDistance, CollisionSubsystem.HashGridData, NearbyObstacles);
+				CollisionSubsystem.HashGridData.QuerySmall(FBox::BuildAABB(EntityLocation, FVector(RadiusFragment.Radius)), NearbyObstacles);
+				
+				NearbyObstacles = NearbyObstacles.FilterByPredicate([&](const FCollisionProxyHandle& Handle1)
+				{
+					return Handle1.EntityHandle == Context.GetEntity(EntityIt) ? false : FVector::DistSquared(Handle1.EntityLocation, EntityLocation) < (100.f * 100.f); 
+				});
 			}
 			
+			VelocityFragment.Value = DesiredVelocity;
+			
 			// No avoidance logic to run
-			if (NearbyObstacles.Num() == 0) { continue; }
+			if (NearbyObstacles.IsEmpty()) { continue; }
 			
 			TArray<UE::Geometry::FLine2f> OrcaLines;
 			bool bColliding = false;
 			
 			auto ORCAAvoidance = [&](const FVector& OtherLocation, const float& OtherRadius, const FVector& OtherVelocity)
 			{
-				TRACE_CPUPROFILER_EVENT_SCOPE(CalculateORCALines)
 				const float Radius = RadiusFragment.Radius + 5.f;
 				
 				FVector2f EntityLocation2D(EntityLocation.X, EntityLocation.Y);
@@ -267,7 +296,6 @@ void UCollisionProcessor::Execute(FMassEntityManager& EntityManager, FMassExecut
 			
 			auto CollisionAndSliding = [&](const FVector& OtherLocation, const float& OtherRadius)
 			{
-				TRACE_CPUPROFILER_EVENT_SCOPE(SoftCollision)
 				const float Radius = RadiusFragment.Radius;
 				
 				float MinDistance = Radius + OtherRadius;
@@ -275,49 +303,38 @@ void UCollisionProcessor::Execute(FMassEntityManager& EntityManager, FMassExecut
 				FVector ToNeighbor = OtherLocation - EntityLocation;
 				float Distance = ToNeighbor.Size();
 			
-				if (Distance < MinDistance + 5 && Distance > UE_KINDA_SMALL_NUMBER)
+				if (Distance < MinDistance && Distance > UE_KINDA_SMALL_NUMBER)
 				{
 					bColliding = true;
 					float Overlap = MinDistance - Distance;
 					FVector PushDir = ToNeighbor / Distance * -1.0f;
-				
-					FVector ToNeighborNormal = ToNeighbor.GetSafeNormal();
-					float VelDot = FVector::DotProduct(DesiredVelocity, ToNeighborNormal);
 					
-					if (Distance < MinDistance)
-					{
-						DesiredVelocity += PushDir * (Overlap / MinDistance) * AvoidanceSettings.PushStrength;
-					}
-					else
-					{
-						if (VelDot > 0.f)
-						{
-							DesiredVelocity = DesiredVelocity - (ToNeighborNormal * VelDot);
-							ForceFragment.Value = FVector::ZeroVector;
-						}
-					}
+					DesiredVelocity += PushDir * (Overlap / MinDistance) * AvoidanceSettings.PushStrength;
 				}
 			};
 			
-			for (const FMassEntityHandle& NearbyObstacle : NearbyObstacles)
 			{
-				FMassEntityView EntityView(Context.GetEntityManagerChecked(), NearbyObstacle);
-				const FVector& OtherLocation = EntityView.GetFragmentData<FTransformFragment>().GetTransform().GetLocation();
-				const float OtherRadius = EntityView.GetFragmentData<FAgentRadiusFragment>().Radius;
-
-				FMassDesiredMovementFragment* DesiredMovementFragment = EntityView.GetFragmentDataPtr<FMassDesiredMovementFragment>();
-				const FVector& OtherVelocity = DesiredMovementFragment ? DesiredMovementFragment->DesiredVelocity : FVector::ZeroVector;
+				TRACE_CPUPROFILER_EVENT_SCOPE(NearbyObstacles)
 				
-				if (bCalculateAvoidance)
+				TRACE_COUNTER_ADD(Trace_Neighbors, NearbyObstacles.Num());
+				for (const FCollisionProxyHandle& NearbyObstacle : NearbyObstacles)
 				{
-					ORCAAvoidance(OtherLocation, OtherRadius, OtherVelocity);
+#if WITH_MASSGAMEPLAY_DEBUG
+					const UE::MassNavigation::Debug::FDebugContext CollisionDebugContext(Context, this, LogTemp, Context.GetWorld(), Context.GetEntity(EntityIt), EntityIt);
+					UE::MassNavigation::Debug::DebugDrawLine(CollisionDebugContext, NearbyObstacle.EntityLocation, NearbyObstacle.EntityLocation + FVector::UpVector * 200.f, FColor::Red, 10.f);
+#endif
+					
+					if (!bColliding)
+					{
+						ORCAAvoidance(NearbyObstacle.EntityLocation, RadiusFragment.Radius, NearbyObstacle.EntityVelocity);
+					}
+					
+					CollisionAndSliding(NearbyObstacle.EntityLocation, RadiusFragment.Radius);
 				}
-				
-				CollisionAndSliding(OtherLocation, OtherRadius);
 			}
 			
 			// Avoidance
-			if (!bColliding && bCalculateAvoidance)
+			if (!bColliding)
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(Avoidance)
 			
@@ -329,6 +346,13 @@ void UCollisionProcessor::Execute(FMassEntityManager& EntityManager, FMassExecut
 			
 			DesiredVelocity.Z = 0.f;
 			DesiredVelocity = DesiredVelocity.GetClampedToMaxSize(200.f);
+			
+			VelocityFragment.Value = DesiredVelocity;
+			
+#if WITH_MASSGAMEPLAY_DEBUG
+			const UE::MassNavigation::Debug::FDebugContext CollisionDebugContext(Context, this, LogTemp, Context.GetWorld(), Context.GetEntity(EntityIt), EntityIt);
+			UE::MassNavigation::Debug::DebugDrawLine(CollisionDebugContext, EntityLocation, EntityLocation + (DesiredVelocity * 200.f), FColor::Blue, 5.f);
+#endif
 		}
 	});
 }

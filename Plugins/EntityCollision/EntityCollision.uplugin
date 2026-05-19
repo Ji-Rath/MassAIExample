@@ -24,6 +24,10 @@
 		{
 			"Name": "MassGameplay",
 			"Enabled": true
+		},
+		{
+			"Name": "FixedTimestep",
+			"Enabled": true
 		}
 	]
 }

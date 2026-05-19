@@ -8,6 +8,7 @@
 #include "MassObserverProcessor.h"
 #include "MassProcessor.h"
 #include "MassSignalProcessorBase.h"
+#include "Processors/MassFTProcessor.h"
 
 #include "CollisionProcessors.generated.h"
 
@@ -20,6 +21,8 @@ class ENTITYCOLLISION_API UCollisionInitializerProcessor : public UMassObserverP
 {
 	GENERATED_BODY()
 	UCollisionInitializerProcessor();
+	
+protected:
 	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override;
 	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
 	FMassEntityQuery EntityQuery;
@@ -33,6 +36,8 @@ class ENTITYCOLLISION_API UCollisionDestroyProcessor : public UMassObserverProce
 {
 	GENERATED_BODY()
 	UCollisionDestroyProcessor();
+	
+protected:
 	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override;
 	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
 	FMassEntityQuery EntityQuery;
@@ -42,10 +47,12 @@ class ENTITYCOLLISION_API UCollisionDestroyProcessor : public UMassObserverProce
  * This processor will mainly update the entities that are within the hash grid and update their position. This will allow for accurate queries when the entities move
  */
 UCLASS()
-class ENTITYCOLLISION_API UCollisionProcessor : public UMassProcessor
+class ENTITYCOLLISION_API UCollisionProcessor : public UMassFTProcessor
 {
 	GENERATED_BODY()
 	UCollisionProcessor();
+	
+protected:
 	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override;
 	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
 	

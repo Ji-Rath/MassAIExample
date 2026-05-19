@@ -13,15 +13,24 @@ namespace HashGridExample::Signals
 }
 
 // We need to pick a relatively high # so that moving entities will be considered
-constexpr int8 MaxObstacleResults = 15;
+constexpr int8 MaxObstacleResults = 16;
 
 // Stores location information so that the entity position in the hash grid can be updated
 USTRUCT()
 struct ENTITYCOLLISION_API FCollisionFragment : public FMassFragment
 {
 	GENERATED_BODY()
+	
 public:
+	FCollisionFragment()
+	{
+		CachedLocation = FIntVector2::ZeroValue;
+		CellLocation = FHashGridExample::FCellLocation();
+	}
+	
+	FIntVector2 CachedLocation;
 	FHashGridExample::FCellLocation CellLocation;
+	
 };
 
 // Settings related to ORCA avoidance

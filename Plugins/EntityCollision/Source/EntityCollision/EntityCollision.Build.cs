@@ -25,7 +25,7 @@ public class EntityCollision : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core", "MassEntity", "MassEntity", "MassSignals", "MassSpawner",
+				"Core", "MassEntity", "MassEntity", "MassSignals", "MassSpawner", "FixedTimestep",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -37,7 +37,8 @@ public class EntityCollision : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"Slate",
-				"SlateCore", "MassCommon", "MassSpawner", "MassMovement", "MassLOD", "MassNavigation"
+				"SlateCore", "MassCommon", "MassSpawner", "MassMovement", "MassLOD", "MassNavigation",
+				"FixedTimestep"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
