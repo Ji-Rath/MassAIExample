@@ -21,6 +21,7 @@ struct BULLETHELLEXAMPLE_API FBHEnemyFragment : public FMassFragment
 	FVector CollisionExtent = FVector(100.f);
 
 	FBHEntityHashGrid::FCellLocation CellLocation;
+	bool bInitialized = false;
 };
 
 // Defines an entity as a bullet hell enemy

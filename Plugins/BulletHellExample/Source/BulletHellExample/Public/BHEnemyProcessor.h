@@ -5,13 +5,14 @@
 #include "CoreMinimal.h"
 #include "MassObserverProcessor.h"
 #include "MassProcessor.h"
+#include "Processors/MassFTProcessor.h"
 #include "BHEnemyProcessor.generated.h"
 
 /**
  * Processor which manages the movement of enemies towards the player
  */
 UCLASS()
-class BULLETHELLEXAMPLE_API UBHEnemyProcessor : public UMassProcessor
+class BULLETHELLEXAMPLE_API UBHEnemyProcessor : public UMassFTProcessor
 {
 	GENERATED_BODY()
 

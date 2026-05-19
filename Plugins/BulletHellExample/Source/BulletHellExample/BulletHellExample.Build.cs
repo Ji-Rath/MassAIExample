@@ -25,7 +25,7 @@ public class BulletHellExample : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core", "MassAIBehavior", "MassEntity", "MassCommon", "MassNavigation", "MassSpawner", "MassMovement", "MassSignals", "MassLOD"
+				"Core", "MassAIBehavior", "MassEntity", "MassCommon", "MassNavigation", "MassSpawner", "MassMovement", "MassSignals", "MassLOD", "FixedTimestep"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -37,7 +37,7 @@ public class BulletHellExample : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"Slate",
-				"SlateCore",
+				"SlateCore", "FixedTimestep",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
