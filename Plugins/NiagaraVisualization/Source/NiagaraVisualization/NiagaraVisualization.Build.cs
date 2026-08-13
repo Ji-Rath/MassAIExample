@@ -25,7 +25,8 @@ public class NiagaraVisualization : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core", "MassEntity", "MassSpawner", "MassSignals", "MassLOD", "MassMovement"
+				"Core", "MassEntity", "MassSpawner", "MassSignals", "MassLOD", "MassMovement",
+				"MassCore"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

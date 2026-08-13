@@ -11,7 +11,7 @@ public class MassAITesting : ModuleRules
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay",
 			"MassEntity", "MassCommon", "MassNavigation", "MassMovement", "NavigationSystem",
 			"AIModule", "MassAIBehavior", "StateTreeModule", "GameplayTags", "SmartObjectsModule", "MassSmartObjects", "MassSignals",
-			"MassRepresentation", "MassLOD", "AnimToTexture", "WorldResources"
+			"MassRepresentation", "MassLOD", "AnimToTexture", "WorldResources", "MassCore"
 		});
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{

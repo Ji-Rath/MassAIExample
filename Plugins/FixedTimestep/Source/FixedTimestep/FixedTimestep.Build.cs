@@ -29,7 +29,8 @@ public class FixedTimestep : ModuleRules
 				"MassEntity",
 				"MassCommon",
 				"MassMovement",
-				"MassSpawner"
+				"MassSpawner",
+				"MassCore"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

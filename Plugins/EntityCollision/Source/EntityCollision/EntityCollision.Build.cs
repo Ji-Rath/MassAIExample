@@ -26,6 +26,7 @@ public class EntityCollision : ModuleRules
 			new string[]
 			{
 				"Core", "MassEntity", "MassEntity", "MassSignals", "MassSpawner", "FixedTimestep",
+				"MassCore"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

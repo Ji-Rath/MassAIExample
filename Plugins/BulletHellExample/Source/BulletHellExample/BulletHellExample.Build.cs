@@ -25,7 +25,8 @@ public class BulletHellExample : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core", "MassAIBehavior", "MassEntity", "MassCommon", "MassNavigation", "MassSpawner", "MassMovement", "MassSignals", "MassLOD", "FixedTimestep"
+				"Core", "MassAIBehavior", "MassEntity", "MassCommon", "MassNavigation", "MassSpawner", "MassMovement", "MassSignals", "MassLOD", "FixedTimestep",
+				"MassCore"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

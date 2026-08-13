@@ -35,7 +35,8 @@ public class VertexAnimCharacter : ModuleRules
 				"MassActors",
 				"MassSignals",
 				"StateTreeModule",
-				"MassSpawner"
+				"MassSpawner",
+				"MassCore"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

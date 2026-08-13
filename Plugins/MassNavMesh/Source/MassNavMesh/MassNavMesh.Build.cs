@@ -38,6 +38,7 @@ public class MassNavMesh : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
+				"MassCore"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

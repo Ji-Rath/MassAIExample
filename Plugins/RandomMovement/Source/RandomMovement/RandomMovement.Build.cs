@@ -25,7 +25,7 @@ public class RandomMovement : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core", "MassSpawner", "MassEntity", "MassSignals", "MassCommon"
+				"Core", "MassSpawner", "MassEntity", "MassSignals", "MassCommon", "MassCore"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
