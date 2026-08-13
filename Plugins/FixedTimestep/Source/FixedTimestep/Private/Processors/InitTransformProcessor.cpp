@@ -10,7 +10,7 @@
 UInitTransformProcessor::UInitTransformProcessor() : EntityQuery(*this)
 {
 	ObservedOperations = EMassObservedOperationFlags::Add;
-	ObservedType = FFTTransformFragment::StaticStruct();
+	ObservedTypes.Add(FFTTransformFragment::StaticStruct());
 }
 
 void UInitTransformProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)

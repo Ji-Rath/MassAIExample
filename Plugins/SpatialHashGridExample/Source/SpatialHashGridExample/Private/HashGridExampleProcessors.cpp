@@ -14,7 +14,7 @@ static float HalfRange = 25.f;
 UHashGridInitializeProcessor::UHashGridInitializeProcessor() :
 	EntityQuery(*this)
 {
-	ObservedType = FHashGridFragment::StaticStruct();
+	ObservedTypes.Add(FHashGridFragment::StaticStruct());
 	ObservedOperations = EMassObservedOperationFlags::Add;
 }
 
@@ -50,7 +50,7 @@ void UHashGridInitializeProcessor::Execute(FMassEntityManager& EntityManager, FM
 UHashGridDestroyProcessor::UHashGridDestroyProcessor() :
 	EntityQuery(*this)
 {
-	ObservedType = FHashGridFragment::StaticStruct();
+	ObservedTypes.Add(FHashGridFragment::StaticStruct());
 	ObservedOperations = EMassObservedOperationFlags::Remove;
 }
 

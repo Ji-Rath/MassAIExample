@@ -52,7 +52,7 @@ void URTSUpdateHashPosition::Execute(FMassEntityManager& EntityManager, FMassExe
 URTSInitializeHashPosition::URTSInitializeHashPosition()
 	: EntityQuery(*this)
 {
-	ObservedType = FRTSFormationAgent::StaticStruct();
+	ObservedTypes.Add(FRTSFormationAgent::StaticStruct());
 	ObservedOperations = EMassObservedOperationFlags::Add;
 }
 
@@ -97,7 +97,7 @@ void URTSInitializeHashPosition::Execute(FMassEntityManager& EntityManager, FMas
 URTSRemoveHashPosition::URTSRemoveHashPosition()
 	: EntityQuery(*this)
 {
-	ObservedType = FRTSFormationAgent::StaticStruct();
+	ObservedTypes.Add(FRTSFormationAgent::StaticStruct());
 	ObservedOperations = EMassObservedOperationFlags::Remove;
 }
 

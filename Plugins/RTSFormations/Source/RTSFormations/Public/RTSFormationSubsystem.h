@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "FormationPresets.h"
-#include "MassEntityHandle.h"
+#include "Mass/EntityHandle.h"
 #include "MassSubsystemBase.h"
 #include "Unit/UnitFragments.h"
 #include "RTSFormationSubsystem.generated.h"

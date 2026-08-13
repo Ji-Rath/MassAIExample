@@ -10,7 +10,7 @@
 UMontageDestructorProcessor::UMontageDestructorProcessor()
 	: EntityQuery(*this)
 {
-	ObservedType = FMassMontageFragment::StaticStruct();
+	ObservedTypes.Add(FMassMontageFragment::StaticStruct());
 	ObservedOperations = EMassObservedOperationFlags::Remove;
 }
 

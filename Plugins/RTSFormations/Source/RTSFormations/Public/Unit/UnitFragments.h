@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "FormationPresets.h"
-#include "MassEntityElementTypes.h"
+#include "Mass/EntityElementTypes.h"
 #include "UnitFragments.generated.h"
 
 static int16 UnitNum = 0;

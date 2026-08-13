@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MassExternalSubsystemTraits.h"
+#include "Mass/ExternalSubsystemTraits.h"
 #include "MassSaveGame.h"
 #include "MassSubsystemBase.h"
 #include "MassPersistentDataSubsystem.generated.h"

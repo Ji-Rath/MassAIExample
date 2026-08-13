@@ -77,7 +77,7 @@ void UBHEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
 UBHEnemyInitializer::UBHEnemyInitializer()
 	: EntityQuery(*this)
 {
-	ObservedType = FBHEnemyTag::StaticStruct();
+	ObservedTypes.Add(FBHEnemyTag::StaticStruct());
 	ObservedOperations = EMassObservedOperationFlags::Add;
 }
 
@@ -113,7 +113,7 @@ void UBHEnemyInitializer::Execute(FMassEntityManager& EntityManager, FMassExecut
 UBHEnemyDestructor::UBHEnemyDestructor()
 	: EntityQuery(*this)
 {
-	ObservedType = FBHEnemyFragment::StaticStruct();
+	ObservedTypes.Add(FBHEnemyFragment::StaticStruct());
 	ObservedOperations = EMassObservedOperationFlags::Remove;
 }
 

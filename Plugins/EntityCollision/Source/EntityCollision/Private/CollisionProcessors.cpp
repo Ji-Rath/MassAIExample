@@ -21,7 +21,7 @@
 UCollisionInitializerProcessor::UCollisionInitializerProcessor() :
 	EntityQuery(*this)
 {
-	ObservedType = FCollisionFragment::StaticStruct();
+	ObservedTypes.Add(FCollisionFragment::StaticStruct());
 	ObservedOperations = EMassObservedOperationFlags::Add;
 }
 
@@ -45,7 +45,7 @@ void UCollisionInitializerProcessor::Execute(FMassEntityManager& EntityManager, 
 		TConstArrayView<FFTTransformFragment> TransformFragments = Context.GetFragmentView<FFTTransformFragment>();
 		TConstArrayView<FAgentRadiusFragment> RadiusFragments = Context.GetFragmentView<FAgentRadiusFragment>();
 		
-		const bool bHasVelocity = Context.DoesArchetypeHaveFragment(*FFTVelocityFragment::StaticStruct());
+		const bool bHasVelocity = Context.DoesArchetypeHaveFragment(FFTVelocityFragment::StaticStruct());
 		TConstArrayView<FFTVelocityFragment> VelocityFragments = bHasVelocity ? Context.GetFragmentView<FFTVelocityFragment>() : TConstArrayView<FFTVelocityFragment>();
 		
 		const int32 NumEntities = Context.GetNumEntities();
@@ -67,7 +67,7 @@ void UCollisionInitializerProcessor::Execute(FMassEntityManager& EntityManager, 
 UCollisionDestroyProcessor::UCollisionDestroyProcessor() :
 	EntityQuery(*this)
 {
-	ObservedType = FCollisionFragment::StaticStruct();
+	ObservedTypes.Add(FCollisionFragment::StaticStruct());
 	ObservedOperations = EMassObservedOperationFlags::Remove;
 }
 
@@ -140,7 +140,7 @@ void UCollisionProcessor::Execute(FMassEntityManager& EntityManager, FMassExecut
 		TConstArrayView<FFTTransformFragment> TransformFragments = Context.GetFragmentView<FFTTransformFragment>();
 		TConstArrayView<FAgentRadiusFragment> RadiusFragments = Context.GetFragmentView<FAgentRadiusFragment>();
 		
-		const bool bHasVelocity = Context.DoesArchetypeHaveFragment(*FFTVelocityFragment::StaticStruct());
+		const bool bHasVelocity = Context.DoesArchetypeHaveFragment(FFTVelocityFragment::StaticStruct());
 		TConstArrayView<FFTVelocityFragment> VelocityFragments = bHasVelocity ? Context.GetFragmentView<FFTVelocityFragment>() : TConstArrayView<FFTVelocityFragment>();
 		
 		const int32 NumEntities = Context.GetNumEntities();

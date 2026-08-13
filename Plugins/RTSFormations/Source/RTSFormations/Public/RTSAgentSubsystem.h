@@ -5,8 +5,8 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "HierarchicalHashGrid2D.h"
-#include "MassEntityHandle.h"
-#include "MassExternalSubsystemTraits.h"
+#include "Mass/EntityHandle.h"
+#include "Mass/ExternalSubsystemTraits.h"
 #include "RTSAgentSubsystem.generated.h"
 
 
